@@ -502,6 +502,43 @@ static int32_t msm_flash_init(
 }
 //xiongdajun add front/near flash
 extern int msm_sensor_is_front_camera(void);
+
+#ifdef CONFIG_COMPAT
+static int32_t msm_flash_init_prepare(
+       struct msm_flash_ctrl_t *flash_ctrl,
+       struct msm_flash_cfg_data_t *flash_data)
+{
+       return msm_flash_init(flash_ctrl, flash_data);
+}
+#else
+static int32_t msm_flash_init_prepare(
+       struct msm_flash_ctrl_t *flash_ctrl,
+       struct msm_flash_cfg_data_t *flash_data)
+{
+       struct msm_flash_cfg_data_t flash_data_k;
+       struct msm_flash_init_info_t flash_init_info;
+       int32_t i = 0;
+
+       flash_data_k.cfg_type = flash_data->cfg_type;
+       for (i = 0; i < MAX_LED_TRIGGERS; i++) {
+               flash_data_k.flash_current[i] =
+                       flash_data->flash_current[i];
+               flash_data_k.flash_duration[i] =
+                       flash_data->flash_duration[i];
+       }
+
+       flash_data_k.cfg.flash_init_info = &flash_init_info;
+       if (copy_from_user(&flash_init_info,
+                       (void *)(flash_data->cfg.flash_init_info),
+                       sizeof(struct msm_flash_init_info_t))) {
+                       pr_err("%s copy_from_user failed %d\n",
+                               __func__, __LINE__);
+                       return -EFAULT;
+               }
+       return msm_flash_init(flash_ctrl, &flash_data_k);
+}
+#endif
+
 static int32_t msm_flash_low(
 	struct msm_flash_ctrl_t *flash_ctrl,
 	struct msm_flash_cfg_data_t *flash_data)
@@ -537,7 +574,7 @@ static int32_t msm_flash_low(
                         else
                             led_trigger_event(flash_ctrl->torch_trigger[0],
     				curr);
-			//BEGIN<20160601>wangyanhui add for front flash 			
+			//BEGIN<20160601>wangyanhui add for front flash
 			#elif defined(CONFIG_LEDS_MSM_GPIO_DUAL_REAR_FLASH_AND_FRONT_FLASH)
 	                      if((msm_sensor_is_front_camera()||flash_data->camera_id == 1))
 	    			    led_trigger_event(flash_ctrl->torch_trigger[2],
@@ -545,7 +582,7 @@ static int32_t msm_flash_low(
 	                        else if(i < 2)
 	                            led_trigger_event(flash_ctrl->torch_trigger[i],
 	    				curr);
-			//END<20160601>wangyanhui add for front flash				
+			//END<20160601>wangyanhui add for front flash
                     #else
                     led_trigger_event(flash_ctrl->torch_trigger[i],
 				curr);
@@ -594,7 +631,7 @@ static int32_t msm_flash_high(
                         else
                                 led_trigger_event(flash_ctrl->flash_trigger[0],
             				curr);
-			//BEGIN<20160601>wangyanhui add for front flash 			
+			//BEGIN<20160601>wangyanhui add for front flash
 			#elif defined(CONFIG_LEDS_MSM_GPIO_DUAL_REAR_FLASH_AND_FRONT_FLASH)
                         if((msm_sensor_is_front_camera()|| flash_data->camera_id == 1))
             			led_trigger_event(flash_ctrl->flash_trigger[2],
@@ -602,7 +639,7 @@ static int32_t msm_flash_high(
                         else if(i < 2)
                                 led_trigger_event(flash_ctrl->flash_trigger[i],
             				curr);
-			//END<20160601>wangyanhui add for front flash 			
+			//END<20160601>wangyanhui add for front flash
                      #else
                         led_trigger_event(flash_ctrl->flash_trigger[i],
         				curr);
@@ -648,7 +685,7 @@ static int32_t msm_flash_config(struct msm_flash_ctrl_t *flash_ctrl,
 
 	switch (flash_data->cfg_type) {
 	case CFG_FLASH_INIT:
-		rc = msm_flash_init(flash_ctrl, flash_data);
+      rc = msm_flash_init_prepare(flash_ctrl, flash_data);
 		break;
 	case CFG_FLASH_RELEASE:
 		if (flash_ctrl->flash_state == MSM_CAMERA_FLASH_INIT)
@@ -973,7 +1010,7 @@ static int32_t msm_flash_get_dt_data(struct device_node *of_node,
 		return rc;
 	}
 
-#if (defined CONFIG_PROJECT_P7701)||(defined CONFIG_PROJECT_P7705)||(defined CONFIG_PROJECT_P7201)||(defined CONFIG_PROJECT_P7203) //MYOSC-710.前后闪光灯都设置为长亮，切换前后置摄像头，有时前置闪光灯不亮.wupingzhou,20160611.
+#if (defined CONFIG_PROJECT_P7701)||(defined CONFIG_PROJECT_P7705)||(defined CONFIG_PROJECT_P7201)||(defined CONFIG_PROJECT_P7203) //MYOSC-710.前\BA\F3\C9\C1\B9\E2\B5贫\BC\C9\E8\D6\C3为\B3\A4\C1\C1\A3\AC\C7谢\BB前\BA\F3\D6\C3\C9\E3\CF\F1头\A3\AC\D3\D0时前\D6\C3\C9\C1\B9\E2\B5撇\BB\C1\C1.wupingzhou,20160611.
 #else
 	if (fctrl->flash_driver_type == FLASH_DRIVER_DEFAULT)
 		fctrl->flash_driver_type = FLASH_DRIVER_GPIO;
@@ -1013,14 +1050,14 @@ static long msm_flash_subdev_do_ioctl(
 		flash_data.flash_current[i] = u32->flash_current[i];
 		flash_data.flash_duration[i] = u32->flash_duration[i];
 	}
-	
-	//BEGIN<20160601>wangyanhui add for front flash 
+
+	//BEGIN<20160601>wangyanhui add for front flash
 	#if defined(CONFIG_LEDS_MSM_GPIO_DUAL_REAR_FLASH_AND_FRONT_FLASH)
 		flash_data.flash_current[MAX_LED_TRIGGERS - 1] = flash_data.flash_current[MAX_LED_TRIGGERS - 2];
 		flash_data.flash_duration[MAX_LED_TRIGGERS - 1] = flash_data.flash_duration[MAX_LED_TRIGGERS - 2];
 	#endif
 	//END<20160601>wangyanhui add for front flash
-	
+
 	switch (cmd) {
 	case VIDIOC_MSM_FLASH_CFG32:
 		cmd = VIDIOC_MSM_FLASH_CFG;
