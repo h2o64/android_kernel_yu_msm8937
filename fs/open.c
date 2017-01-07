@@ -685,6 +685,9 @@ static int do_dentry_open(struct file *f,
 		return 0;
 	}
 
+	if (S_ISREG(inode->i_mode))
+		f->f_mode |= FMODE_SPLICE_WRITE | FMODE_SPLICE_READ;
+
 	if (f->f_mode & FMODE_WRITE && !special_file(inode->i_mode)) {
 		error = get_write_access(inode);
 		if (unlikely(error))
