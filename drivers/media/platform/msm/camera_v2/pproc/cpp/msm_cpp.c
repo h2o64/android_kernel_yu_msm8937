@@ -2263,6 +2263,13 @@ static int msm_cpp_cfg_frame(struct cpp_device *cpp_dev,
 		return -EAGAIN;
 	}
 
+	if (stripe_base == UINT_MAX || new_frame->num_strips >
+		(UINT_MAX - 1 - stripe_base) / 27) {
+		pr_err("Invalid frame message,num_strips %d is large\n",
+			new_frame->num_strips);
+		return -EINVAL;
+	}
+
 	in_phyaddr = msm_cpp_fetch_buffer_info(cpp_dev,
 		&new_frame->input_buffer_info,
 		((new_frame->input_buffer_info.identity >> 16) & 0xFFFF),
