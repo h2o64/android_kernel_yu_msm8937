@@ -1132,7 +1132,8 @@ static int msm_lsm_ioctl_compat(struct snd_pcm_substream *substream,
 		if (copy_from_user(&userarg32, arg, sizeof(userarg32))) {
 			dev_err(rtd->dev, "%s: err copyuser ioctl %s\n",
 				__func__, "SNDRV_LSM_EVENT_STATUS32");
-			return -EFAULT;
+			err = -EFAULT;
+			goto done;
 		}
 
 		if (userarg32.payload_size >
