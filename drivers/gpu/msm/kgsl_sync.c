@@ -219,12 +219,12 @@ int kgsl_add_fence_event(struct kgsl_device *device,
 		if (ret)
 			goto out;
 	}
+	sync_fence_install(fence, priv.fence_fd);
 
 	if (copy_to_user(data, &priv, sizeof(priv))) {
 		ret = -EFAULT;
 		goto out;
 	}
-	sync_fence_install(fence, priv.fence_fd);
 out:
 	kgsl_context_put(context);
 	if (ret) {
