@@ -1,0 +1,106 @@
+/*
+ * Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+#include "msm-pmi8950.dtsi"
+#include "msm8937-mtp.dtsi"
+#include "msm8937-audio-mtp.dtsi"
+
+&soc {
+	led_flash0: qcom,camera-flash {
+		cell-index = <0>;
+		compatible = "qcom,camera-flash";
+		qcom,flash-type = <1>;
+		//Ramiel add for front flightlight start
+		qcom,flash-source = <&pmi8950_flash0 &pmi8950_flash1  &pmi8950_flash2>;
+		qcom,torch-source = <&pmi8950_torch0 &pmi8950_torch1  &pmi8950_torch2>;
+		//Ramiel add for front flightlight end
+		qcom,switch-source = <&pmi8950_switch>;
+	};
+};
+
+/{
+	mtp_batterydata: qcom,battery-data {
+		qcom,batt-id-range-pct = <100>; //change for battery detect 
+		#include "batterydata-tinno-3000mah-4400mv.dtsi"
+	};
+};
+
+&pmi8950_fg {
+	qcom,battery-data = <&mtp_batterydata>;
+	qcom,cold-bat-decidegc = <(0)>;
+	qcom,cool-bat-decidegc = <(100)>;
+	qcom,hot-bat-decidegc = <600>;
+	qcom,warm-bat-decidegc = <500>;
+	qcom,bad-battery-detection-enable;
+};
+
+&pmi8950_charger {
+	qcom,battery-data = <&mtp_batterydata>;
+	qcom,chg-led-sw-controls;
+	qcom,chg-led-support;
+};
+
+&mdss_dsi0 {
+	lab-supply = <&lab_regulator>;
+	ibb-supply = <&ibb_regulator>;
+};
+
+&mdss_dsi1 {
+	lab-supply = <&lab_regulator>;
+	ibb-supply = <&ibb_regulator>;
+};
+
+&labibb {
+	status = "ok";
+	qpnp,qpnp-labibb-mode = "lcd";
+};
+
+&ibb_regulator {
+	qcom,qpnp-ibb-discharge-resistor = <32>;
+};
+
+//add by lishengli 20160305
+//7203 hasn't parallel charger   ---pony
+
+//&i2c_2 {
+	/* Parallel-charger configuration */
+//	smb1351-charger@1d {
+//		compatible = "qcom,smb1351-charger";
+//		reg = <0x1d>;
+//		qcom,parallel-en-pin-polarity = <1>;
+//		qcom,parallel-charger;
+//		qcom,float-voltage-mv = <4400>;
+//		qcom,recharge-mv = <100>;
+//	};
+//};
+
+&dsi_panel_pwr_supply {
+	qcom,panel-supply-entry@2 {
+		reg = <2>;
+		qcom,supply-name = "lab";
+		qcom,supply-min-voltage = <4600000>;
+		qcom,supply-max-voltage = <6000000>;
+		qcom,supply-enable-load = <100000>;
+		qcom,supply-disable-load = <100>;
+	};
+
+	qcom,panel-supply-entry@3 {
+		reg = <3>;
+		qcom,supply-name = "ibb";
+		qcom,supply-min-voltage = <4600000>;
+		qcom,supply-max-voltage = <6000000>;
+		qcom,supply-enable-load = <100000>;
+		qcom,supply-disable-load = <100>;
+		qcom,supply-post-on-sleep = <20>;
+	};
+};

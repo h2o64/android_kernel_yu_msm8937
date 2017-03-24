@@ -663,6 +663,10 @@ void mdss_dsi_set_burst_mode(struct mdss_dsi_ctrl_pdata *ctrl);
 void mdss_dsi_set_reg(struct mdss_dsi_ctrl_pdata *ctrl, int off,
 	u32 mask, u32 val);
 
+#if defined(CONFIG_PROJECT_P7201) || defined(CONFIG_PROJECT_P7203)|| defined(CONFIG_PROJECT_I9051)
+int mdss_dsi_panel_disp_en_gpio(struct mdss_panel_data *pdata, int enable);//LINE<20160622><sharp lcd  power timing>wangyanhui 
+#endif
+
 static inline const char *__mdss_dsi_pm_name(enum dsi_pm_type module)
 {
 	switch (module) {

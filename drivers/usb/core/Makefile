@@ -1,6 +1,13 @@
 #
 # Makefile for USB Core files and filesystem
 #
+# Shuai.Chen, Date20160702, Modify For Wiko Unify Version, HCABMA-2, Start
+WIKO_UNIFY_DEF := $(strip $(subst ro.wiko.type =,,$(shell cat $(PWD)/../build.ini |grep ^ro.wiko.type)))
+ifeq ($(strip $(WIKO_UNIFY_DEF)),unify)
+ccflags-y += -DCONFIG_WIKO_UNIFY
+$(warning ---add marco CONFIG_WIKO_UNIFY---)
+endif
+# Shuai.Chen, Date20160702, Modify For Wiko Unify Version, HCABMA-2, End
 
 usbcore-y := usb.o hub.o hcd.o urb.o message.o driver.o
 usbcore-y += config.o file.o buffer.o sysfs.o endpoint.o

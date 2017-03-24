@@ -1,6 +1,43 @@
 #
 # Makefile for the linux kernel.
 #
+# Shuai.Chen, Date20160702, Modify For Wiko Unify Version, HCABMA-2, Start
+#WIKO_UNIFY_DEF := $(strip $(subst ro.wiko.type =,,$(shell cat $(PWD)/build.ini |grep ^ro.wiko.type)))
+##$(warning -wlj--WIKO_UNIFY_DEF= $(WIKO_UNIFY_DEF))
+#$(warning -wlj--PWD= $(PWD)-------)
+#ifeq ($(strip $(WIKO_UNIFY_DEF)),unify)
+#$(warning -wlj--PWD= $(PWD)-------)
+#ccflags-y += -DCONFIG_WIKO_UNIFY
+#$(warning -wlj---ccflags-y += -DCONFIG_WIKO_UNIFY---)
+#ccflags-y += -DCONFIG_TINNO_DEV_INFO
+#$(warning -wlj---ccflags-y += -DCONFIG_TINNO_DEV_INFO---)
+#else
+#$(warning -wlj-- error)
+#endif
+
+
+WIKO_UNIFY_DEF := $(strip $(subst ro.wiko.type =,,$(shell cat $(PWD)/../../../../../../build.ini |grep ^ro.wiko.type)))
+$(warning -wlj--1--PWD= $(PWD)-------)
+ifeq ($(strip $(WIKO_UNIFY_DEF)),unify)
+$(warning -wlj--1--WIKO_UNIFY_DEF= $(WIKO_UNIFY_DEF))
+ccflags-y += -DCONFIG_WIKO_UNIFY
+$(warning -wlj--1---ccflags-y += -DCONFIG_WIKO_UNIFY---)
+ccflags-y += -DCONFIG_TINNO_DEV_INFO
+$(warning -wlj--1---ccflags-y += -DCONFIG_TINNO_DEV_INFO---)
+endif
+
+WIKO_UNIFY_DEF := $(strip $(subst ro.wiko.type =,,$(shell cat $(PWD)/build.ini |grep ^ro.wiko.type)))
+$(warning -wlj--2--PWD= $(PWD)-------)
+ifeq ($(strip $(WIKO_UNIFY_DEF)),unify)
+$(warning -wlj--2--WIKO_UNIFY_DEF= $(WIKO_UNIFY_DEF))
+ccflags-y += -DCONFIG_WIKO_UNIFY
+$(warning -wlj--2---ccflags-y += -DCONFIG_WIKO_UNIFY---)
+ccflags-y += -DCONFIG_TINNO_DEV_INFO
+$(warning -wlj--2---ccflags-y += -DCONFIG_TINNO_DEV_INFO---)
+endif
+
+
+# Shuai.Chen, Date20160702, Modify For Wiko Unify Version, HCABMA-2, End
 
 obj-y                          := main.o version.o mounts.o
 obj-y                          += noinitramfs.o

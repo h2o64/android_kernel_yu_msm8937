@@ -1,0 +1,28 @@
+#
+# fingerprint driver configuration
+#
+
+config INPUT_FINGERPRINT
+  bool INPUT_FINGERPRINT
+  default n
+  help
+    Switch for tinno fingerprint
+
+config FINGERPRINT_ELAN
+  bool FINGERPRINT_ELAN
+  default n
+  help
+    Elan Fingerprint
+
+config FINGERPRINT_GOODIX_GFX1XM
+  bool FINGERPRINT_GOODIX_GFX1XM
+  default n
+  help
+    Goodix Fingerprint chip GF316M/GF516M/GF318M/
+
+config FINGERPRINT_GOODIX_GFX1XM_QSEE
+  bool FINGERPRINT_GOODIX_GFX1XM_QSEE
+  default n
+  help
+    Goodix Fingerprint chip GF316M/GF516M/GF318M/ for QSEE
+

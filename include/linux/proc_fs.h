@@ -11,6 +11,58 @@ struct proc_dir_entry;
 
 #ifdef CONFIG_PROC_FS
 
+// Shuai.Chen, Date20160705, Modify For Wiko Unify Version, HCABMA-2, Start
+#ifdef CONFIG_TINNO_DEV_INFO
+#define MAX_DEVINFO_STR_LEN  255
+//add by tinno dev info
+#define DEF_TINNO_DEV_INFO(name)  \
+extern struct proc_dir_entry * creat_devinfo_file(const char *name,struct file_operations * fp); \
+static size_t name##_devinfo_size=0; \
+static char name##_des_buf[MAX_DEVINFO_STR_LEN]; \
+static int name##_dev_info_open(struct inode *inode, struct file *file)  \
+{  \
+       for(name##_devinfo_size=0;name##_devinfo_size<MAX_DEVINFO_STR_LEN;name##_devinfo_size++) \
+       { \
+		if(name##_des_buf[name##_devinfo_size]==0) \
+		{ \
+			break; \
+		} \
+	 } \
+	return 0; \
+}  \
+static int name##_dev_info_release(struct inode *inode, struct file *file)  \
+{ \
+	return 0; \
+} \
+static ssize_t name##_read(struct file *file, char __user *buf, size_t size, loff_t *ppos)  \
+{   ssize_t name##_ret=name##_devinfo_size; \
+	if(name##_devinfo_size==0) \
+	{ \
+		return name##_devinfo_size; \
+	} \
+       name##_ret=copy_to_user(buf,name##_des_buf,name##_ret); \
+       name##_ret=name##_devinfo_size; \
+       name##_devinfo_size=0; \
+	 return name##_ret;  \
+}  \
+static  struct file_operations  name##_info_fops = { \
+	.owner		= THIS_MODULE, \
+	.open		= name##_dev_info_open,  \
+	.read		= name##_read,  \
+	.release	= name##_dev_info_release,  \
+};
+
+#define CAREAT_TINNO_DEV_INFO(name)  creat_devinfo_file(#name,&name##_info_fops)
+
+#define SET_DEVINFO_STR(name,str)  \
+do{ \
+	memset(name##_des_buf,0,MAX_DEVINFO_STR_LEN); \
+	sprintf(name##_des_buf,"%s",str); \
+}while(0)
+#endif
+//add end
+// Shuai.Chen, Date20160705, Modify For Wiko Unify Version, HCABMA-2, End
+
 extern void proc_root_init(void);
 extern void proc_flush_task(struct task_struct *);
 

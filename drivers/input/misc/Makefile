@@ -3,6 +3,13 @@
 #
 
 # Each configuration option enables a list of files.
+# Shuai.Chen, Date20160702, Modify For Wiko Unify Version, HCABMA-2, Start
+WIKO_UNIFY_DEF := $(strip $(subst ro.wiko.type =,,$(shell cat $(PWD)/build.ini |grep ^ro.wiko.type)))
+ifeq ($(strip $(WIKO_UNIFY_DEF)),unify)
+ccflags-y += -DCONFIG_WIKO_UNIFY
+$(warning ---2222 ---- add marco CONFIG_WIKO_UNIFY---)
+endif
+# Shuai.Chen, Date20160702, Modify For Wiko Unify Version, HCABMA-2, End
 
 obj-$(CONFIG_INPUT_88PM860X_ONKEY)	+= 88pm860x_onkey.o
 obj-$(CONFIG_INPUT_88PM80X_ONKEY)	+= 88pm80x_onkey.o
@@ -71,3 +78,10 @@ obj-$(CONFIG_INPUT_WM831X_ON)		+= wm831x-on.o
 obj-$(CONFIG_INPUT_XEN_KBDDEV_FRONTEND)	+= xen-kbdfront.o
 obj-$(CONFIG_INPUT_YEALINK)		+= yealink.o
 obj-$(CONFIG_INPUT_IDEAPAD_SLIDEBAR)	+= ideapad_slidebar.o
+
+obj-$(CONFIG_SENSORS_MPU6880)		+= mpu6880.o
+obj-$(CONFIG_SENSORS_AKM09911)		+= akm09911.o
+obj-$(CONFIG_SENSORS_BMA2X2)	+= bstclass.o
+obj-$(CONFIG_SENSORS_BMA2X2)	+= bma2x2.o
+obj-$(CONFIG_SENSORS_LTR553)	+= ltr553.o
+obj-$(CONFIG_HALL_SENSOR)	+= hall_sensor.o

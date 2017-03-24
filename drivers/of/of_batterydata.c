@@ -310,6 +310,7 @@ static int64_t of_batterydata_convert_battery_id_kohm(int batt_id_uv,
 	return resistor_value_kohm;
 }
 
+
 struct device_node *of_batterydata_get_best_profile(
 		const struct device_node *batterydata_container_node,
 		const char *psy_name,  const char  *batt_type)
@@ -322,7 +323,14 @@ struct device_node *of_batterydata_get_best_profile(
 	int delta = 0, best_delta = 0, best_id_kohm = 0, id_range_pct,
 		batt_id_kohm = 0, i = 0, rc = 0, limit = 0;
 	bool in_range = false;
-
+	
+#ifdef CONFIG_TINNO_NO_BATID
+	if(batt_type==NULL)
+	{
+		printk("of_batterydata_get_best_profile :Error !needs a battery type!\n");
+		return NULL;
+	}
+#endif
 	psy = power_supply_get_by_name(psy_name);
 	if (!psy) {
 		pr_err("%s supply not found. defer\n", psy_name);
@@ -391,7 +399,7 @@ struct device_node *of_batterydata_get_best_profile(
 		pr_err("No battery data found\n");
 		return best_node;
 	}
-
+#ifndef CONFIG_TINNO_NO_BATID
 	/* check that profile id is in range of the measured batt_id */
 	if (abs(best_id_kohm - batt_id_kohm) >
 			((best_id_kohm * id_range_pct) / 100)) {
@@ -399,7 +407,7 @@ struct device_node *of_batterydata_get_best_profile(
 			best_id_kohm, batt_id_kohm, id_range_pct);
 		return NULL;
 	}
-
+#endif
 	rc = of_property_read_string(best_node, "qcom,battery-type",
 							&battery_type);
 	if (!rc)

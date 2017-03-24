@@ -1,0 +1,458 @@
+/*
+ * Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 and
+ * only version 2 as published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
+
+#include "msm8937-pinctrl.dtsi"
+#include "msm8937-camera-sensor-mtp.dtsi"
+
+&flash_led {
+	compatible = "qcom,qpnp-flash-led";
+	reg = <0xd300 0x100>;
+	pinctrl-names = "flash_led_enable","flash_led_disable";
+	pinctrl-0 = <&rear_flash_led_enable>;
+	pinctrl-1 = <&rear_flash_led_disable>;
+	qcom,follow-otst2-rb-disabled;
+};
+
+&wled {
+	qcom,cons-sync-write-delay-us = <1000>;
+};
+
+&soc {
+	gpio_keys {
+		compatible = "gpio-keys";
+		input-name = "gpio-keys";
+		pinctrl-names = "tlmm_gpio_key_active","tlmm_gpio_key_suspend";
+		pinctrl-0 = <&gpio_key_active>;
+		pinctrl-1 = <&gpio_key_suspend>;
+
+		/*camera_focus {
+			label = "camera_focus";
+			gpios = <&tlmm 128 0x1>;
+			linux,input-type = <1>;
+			linux,code = <0x210>;
+			debounce-interval = <15>;
+		};
+
+		camera_snapshot {
+			label = "camera_snapshot";
+			gpios = <&tlmm 127 0x1>;
+			linux,input-type = <1>;
+			linux,code = <0x2fe>;
+			debounce-interval = <15>;
+		};*/ //wangyanhui delete camera keys
+
+		vol_up {
+			label = "volume_up";
+			gpios = <&tlmm 91 0x1>;
+			linux,input-type = <1>;
+			linux,code = <115>;
+			debounce-interval = <15>;
+		};
+		home { //wangyanhui add home key 
+			label = "home";
+			gpios = <&tlmm 128 0x1>;
+			linux,input-type = <1>;
+			linux,code = <0x66>;
+			gpio-key,wakeup;
+			debounce-interval = <15>;
+		};
+	};
+
+	//wangyanhui delete hbtp
+	/*hbtp {
+		compatible = "qcom,hbtp-input";
+		vcc_dig-supply = <&pm8937_l5>;
+		qcom,dig-load = <15000>;
+		qcom,dig-vtg-min = <1800000>;
+		qcom,dig-vtg-max = <1800000>;
+	};*/
+
+	//wangyanhui add hall ic
+	hall-ic{//yangliang add for hall sensor;20150902
+		compatible = "hall-switch";
+		//pinctrl-names = "default";
+		//pinctrl-0 = <&hall_sensor_int_default>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <45 0x0>;
+		vddio-supply = <&pm8937_l6>;
+		linux,gpio-int = <&tlmm 45 0x1>;
+		linux,wakeup;
+		linux,min-uv = <1800000>;
+		linux,max-uv = <1800000>;
+	};
+};
+
+&blsp1_uart2 {
+	status = "ok";
+	pinctrl-names = "default";
+	pinctrl-0 = <&uart_console_active>;
+};
+
+&pmi_haptic{
+	qcom,wave-play-rate-us = <4165>;
+	qcom,actuator-type = "erm";
+};
+
+//Ramiel add for front flightlight start 
+&flash_led{
+	qcom,front_flash_gpio_mode=<&tlmm 12 0x00>;
+	qcom,front_flash_gpio_en=<&tlmm 13 0x00>;
+};
+//Ramiel add for front flightlight end
+
+//&spi_3 { /* BLSP1 QUP3 */  //delete spi3
+	/*maxim_sti@0 {
+		status = "disabled";
+		compatible = "maxim,maxim_sti";
+		reg = <0>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <65 0>;
+		spi-max-frequency = <16000000>;
+		avdd-supply = <&pm8937_l10>;
+		dvdd-supply = <&pm8937_l5>;
+		maxim_sti,irq-gpio = <&tlmm 65 0x00>;
+		maxim_sti,reset-gpio = <&tlmm 64 0x00>;
+		maxim_sti,touch_fusion = "/vendor/bin/touch_fusion";
+		maxim_sti,config_file = "/etc/firmware/qtc800s.cfg";
+		maxim_sti,fw_name = "qtc800s.bin";
+		pinctrl-names = "pmx_ts_active","pmx_ts_suspend",
+			"pmx_ts_release";
+		pinctrl-0 = <&ts_int_active &ts_reset_active>;
+		pinctrl-1 = <&ts_int_suspend &ts_reset_suspend>;
+		pinctrl-2 = <&ts_release>;
+	};*/
+
+//};
+
+//zenghaihui 
+&spi_6 { /* BLSP1 QUP3 */
+	/*goodix_fp@0 {
+		status = "ok";
+		compatible = "goodix,fingerprint";
+               vdd-supply = <&pm8937_l10>;
+		reg = <0>;
+		interrupt-parent = <&tlmm>;
+		interrupts = <17 0x1>;
+               gf,irq-gpio = <&tlmm 17 0x00>;
+               gf,reset-gpio = <&tlmm 19 0x00>;
+		spi-max-frequency = <8000000>;
+	};
+
+    elan_fp@0 {
+        status = "ok";
+        compatible = "elan,fingerprint";
+       vdd-supply = <&pm8937_l10>;
+       vio-supply = <&pm8937_l12>;
+        reg = <0>;
+        interrupt-parent = <&tlmm>;
+        interrupts = <17 0x1>;
+       elan,intr-gpio = <&tlmm 17 0x00>;
+       elan,rst-gpio = <&tlmm 19 0x00>;
+        spi-max-frequency = <8000000>;
+    };*/
+
+    qcom_fp@0 {
+        status = "ok";
+        compatible = "qcom,fingerprint";
+       vdd-supply = <&pm8937_l10>;
+       vio-supply = <&pm8937_l12>;
+        reg = <0>;
+        interrupt-parent = <&tlmm>;
+        interrupts = <17 0x1>;
+       qcom,irq-gpio = <&tlmm 17 0x00>;
+       qcom,reset-gpio = <&tlmm 19 0x00>;
+        spi-max-frequency = <8000000>;
+    };
+
+};
+
+// add i2c3 for touchpanel
+&i2c_3{
+	    	synaptics@39 {
+				compatible = "synaptics,rmi4";
+				reg = <0x39>;
+				interrupt-parent = <&tlmm>;
+				interrupts = <65 0x2008>;
+		                vdd-supply = <&pm8937_l10>;
+		                vcc_i2c-supply = <&pm8937_l5>;
+				// pins used by touchscreen 
+				pinctrl-names = "pmx_ts_active","pmx_ts_suspend";
+				pinctrl-0 = <&ts_int_active &ts_reset_active>;
+				pinctrl-1 = <&ts_int_suspend &ts_reset_suspend>;
+				synaptics,display-coords = <0 0 1080 1920>;
+				synaptics,panel-coords = <0 0 1080 1920>;
+				synaptics,irq-gpio = <&tlmm 65 0x2008>;
+				synaptics,reset-gpio = <&tlmm 64 0x0>;
+				synaptics,power-gpio = <&tlmm 68 0x0>;
+				synaptics,i2c-pull-up;
+				synaptics,power-down;
+				synaptics,disable-gpios;
+		                synaptics,power-delay-ms = <160>;
+		                synaptics,reset-delay-ms = <100>;
+				synaptics,fw-image-name = "YEJI_PR1723210-S3202_TINNO_P7021.img";
+				//synaptics,fw-image-name-ttouch = "";
+			};	
+		focaltech@38 {
+			compatible = "focaltech,5x06";
+			reg = <0x38>;
+			interrupt-parent = <&tlmm>;
+			interrupts = <65 0x2008>;
+			vdd-supply = <&pm8937_l10>;
+			vcc_i2c-supply = <&pm8937_l5>;
+			/* pins used by touchscreen */
+			pinctrl-names = "pmx_ts_active","pmx_ts_suspend";//,"pmx_ts_release";
+			pinctrl-0 = <&ts_int_active &ts_reset_active>;
+			pinctrl-1 = <&ts_int_suspend &ts_reset_suspend>;
+			//pinctrl-2 = <&ts_release>;
+			focaltech,name = "ft6436";
+			focaltech,family-id = <0x36>;
+			focaltech,irq-gpio = <&tlmm 65 0x0>;
+			focaltech,reset-gpio = <&tlmm 64 0x0>;
+			focaltech,display-coords = <0 0 1080 1920>;
+			focaltech,panel-coords = <0 0 1080 1920>;
+			focaltech,no-force-update;
+			focaltech,i2c-pull-up;
+			focaltech,group-id = <1>;
+			focaltech,hard-reset-delay-ms = <20>;
+			focaltech,soft-reset-delay-ms = <200>;
+			focaltech,num-max-touches = <5>;
+			focaltech,fw-delay-aa-ms = <30>;
+			focaltech,fw-delay-55-ms = <30>;
+			focaltech,fw-upgrade-id1 = <0x79>;
+			focaltech,fw-upgrade-id2 = <0x18>;
+			focaltech,fw-delay-readid-ms = <10>;
+			focaltech,fw-delay-era-flsh-ms = <2000>;
+			focaltech,fw-auto-cal;
+			focaltech,ignore-id-check;
+		};
+};
+
+//wangyanhui delete i2c5 for nfc 
+//&i2c_5 { /* BLSP2 QUP1 */
+	/*nq@28 {
+		compatible = "qcom,nq-nci";
+		reg = <0x28>;
+		qcom,nq-irq = <&tlmm 17 0x00>;
+		qcom,nq-ven = <&tlmm 16 0x00>;
+		qcom,nq-firm = <&tlmm 130 0x00>;
+		qcom,nq-clkreq = <&pm8937_gpios 5 0x00>;
+		interrupt-parent = <&tlmm>;
+		qcom,clk-src = "BBCLK2";
+		interrupts = <17 0>;
+		interrupt-names = "nfc_irq";
+		pinctrl-names = "nfc_active", "nfc_suspend";
+		pinctrl-0 = <&nfc_int_active &nfc_disable_active>;
+		pinctrl-1 = <&nfc_int_suspend &nfc_disable_suspend>;
+		clocks = <&clock_gcc clk_bb_clk2_pin>;
+		clock-names = "ref_clk";
+	};*/
+//};
+
+&sdhc_1 {
+	/* device core power supply */
+	vdd-supply = <&pm8937_l8>;
+	qcom,vdd-voltage-level = <2900000 2900000>;
+	qcom,vdd-current-level = <200 570000>;
+
+	/* device communication power supply */
+	vdd-io-supply = <&pm8937_l5>;
+	qcom,vdd-io-always-on;
+	qcom,vdd-io-lpm-sup;
+	qcom,vdd-io-voltage-level = <1800000 1800000>;
+	qcom,vdd-io-current-level = <200 325000>;
+
+	pinctrl-names = "active", "sleep";
+	pinctrl-0 = <&sdc1_clk_on &sdc1_cmd_on &sdc1_data_on &sdc1_rclk_on>;
+	pinctrl-1 = <&sdc1_clk_off &sdc1_cmd_off &sdc1_data_off &sdc1_rclk_off>;
+
+	qcom,clk-rates = <400000 20000000 25000000 50000000 100000000 192000000
+								384000000>;
+	qcom,nonremovable;
+	qcom,bus-speed-mode = "HS400_1p8v", "HS200_1p8v", "DDR_1p8v";
+
+	status = "ok";
+};
+
+&sdhc_2 {
+	/* device core power supply */
+	vdd-supply = <&pm8937_l11>;
+	qcom,vdd-voltage-level = <2950000 2950000>;
+	qcom,vdd-current-level = <15000 800000>;
+
+	/* device communication power supply */
+	vdd-io-supply = <&pm8937_l5>; //TN:peter
+	qcom,vdd-io-voltage-level = <1800000 1800000>;
+	qcom,vdd-io-current-level = <200 22000>;
+
+	pinctrl-names = "active", "sleep";
+	pinctrl-0 = <&sdc2_clk_on &sdc2_cmd_on &sdc2_data_on &sdc2_cd_on>;
+	pinctrl-1 = <&sdc2_clk_off &sdc2_cmd_off &sdc2_data_off>;
+
+	#address-cells = <0>;
+	interrupt-parent = <&sdhc_2>;
+	interrupts = <0 1 2>;
+	#interrupt-cells = <1>;
+	interrupt-map-mask = <0xffffffff>;
+	interrupt-map = <0 &intc 0 125 0
+		1 &intc 0 221 0
+		2 &tlmm 67 0>;
+	interrupt-names = "hc_irq", "pwr_irq", "status_irq";
+	cd-gpios = <&tlmm 67 0x0>;//TN:peter
+
+	qcom,clk-rates = <400000 20000000 25000000 50000000 100000000
+								200000000>;
+	qcom,bus-speed-mode = "SDR12", "SDR25", "SDR50", "DDR50", "SDR104";
+
+	status = "ok";
+};
+
+&pm8937_gpios {
+	gpio@c400 {
+		qcom,mode = <0>;
+		qcom,output-type = <0>;
+		qcom,pull = <0>;
+		qcom,vin-sel = <2>;
+		qcom,out-strength = <3>;
+		qcom,src-sel = <0>;
+		qcom,master-en = <1>;
+		status = "okay";
+	};
+};
+
+#include "msm8937-mdss-panels.dtsi"
+
+&mdss_mdp {
+	qcom,mdss-pref-prim-intf = "dsi";
+};
+
+&mdss_dsi {
+	hw-config = "single_dsi";
+};
+
+ //wangyanhui delete org lcm config and add new lcd
+/*
+&mdss_dsi0 {
+	qcom,dsi-pref-prim-pan = <&dsi_truly_1080_vid>;
+	pinctrl-names = "mdss_default", "mdss_sleep";
+	pinctrl-0 = <&mdss_dsi_active &mdss_te_active>;
+	pinctrl-1 = <&mdss_dsi_suspend &mdss_te_suspend>;
+
+	qcom,platform-te-gpio = <&tlmm 24 0>;
+	qcom,platform-enable-gpio = <&tlmm 99 0>;
+	qcom,platform-reset-gpio = <&tlmm 60 0>;
+	qcom,platform-bklight-en-gpio = <&tlmm 98 0>;
+};
+
+&mdss_dsi1 {
+	status = "disabled";
+	qcom,dsi-pref-prim-pan = <&dsi_truly_1080_vid>;
+	pinctrl-names = "mdss_default", "mdss_sleep";
+	pinctrl-0 = <&mdss_dsi_active &mdss_te_active>;
+	pinctrl-1 = <&mdss_dsi_suspend &mdss_te_suspend>;
+
+	qcom,platform-te-gpio = <&tlmm 24 0>;
+	qcom,platform-enable-gpio = <&tlmm 99 0>;
+	qcom,platform-reset-gpio = <&tlmm 60 0>;
+	qcom,platform-bklight-en-gpio = <&tlmm 98 0>;
+};
+
+&dsi_truly_1080_vid {
+	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+	qcom,mdss-dsi-pan-enable-dynamic-fps;
+	qcom,mdss-dsi-pan-fps-update = "dfps_immediate_porch_mode_vfp";
+};
+
+&dsi_truly_1080_cmd {
+	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+	qcom,ulps-enabled;
+	qcom,partial-update-enabled;
+	qcom,panel-roi-alignment = <2 2 4 2 1080 2>;
+};
+
+&dsi_truly_720_vid {
+	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+	qcom,mdss-dsi-pan-enable-dynamic-fps;
+	qcom,mdss-dsi-pan-fps-update = "dfps_immediate_porch_mode_vfp";
+};
+*/
+
+&mdss_dsi0 {
+	qcom,dsi-pref-prim-pan = <&dsi_nt35595_sharp_1080p_cmd>; //LINE<20160725><only one lcd as cmd mode>wangyanhui add
+	pinctrl-names = "mdss_default", "mdss_sleep";
+	pinctrl-0 = <&mdss_dsi_active &mdss_te_active>;
+	pinctrl-1 = <&mdss_dsi_suspend &mdss_te_suspend>;
+
+	qcom,platform-te-gpio = <&tlmm 24 0>;
+	qcom,platform-enable-gpio = <&tlmm 68 0>;
+	qcom,platform-reset-gpio = <&tlmm 60 0>;
+	qcom,platform-bklight-en-gpio = <&tlmm 98 0>;
+};
+
+&dsi_nt35595_sharp_1080p_cmd { //LINE<20160725><only one lcd as cmd mode>wangyanhui add
+	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+	//qcom,mdss-dsi-pan-enable-dynamic-fps;
+	//qcom,mdss-dsi-pan-fps-update = "dfps_immediate_porch_mode_vfp";
+};
+//wangyanhui end 
+
+/*
+&mdss_dsi1 {
+	qcom,dsi-pref-prim-pan = <&dsi_otm1901a_1080p_vdo>;
+	pinctrl-names = "mdss_default", "mdss_sleep";
+	pinctrl-0 = <&mdss_dsi_active &mdss_te_active>;
+	pinctrl-1 = <&mdss_dsi_suspend &mdss_te_suspend>;
+
+	qcom,platform-te-gpio = <&tlmm 24 0>;
+	qcom,platform-enable-gpio = <&tlmm 68 0>;
+	qcom,platform-reset-gpio = <&tlmm 60 0>;
+	qcom,platform-bklight-en-gpio = <&tlmm 98 0>;
+};
+
+&dsi_ili9885_1080p_video_a_si_boe_p7701 {
+	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+	//qcom,mdss-dsi-pan-enable-dynamic-fps;
+	//qcom,mdss-dsi-pan-fps-update = "dfps_immediate_porch_mode_vfp";
+};
+
+&dsi_otm1901a_1080p_vdo {
+	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+	//qcom,mdss-dsi-pan-enable-dynamic-fps;
+	//qcom,mdss-dsi-pan-fps-update = "dfps_immediate_porch_mode_vfp";
+};
+ 
+&dsi_nt35596h_1080_vid {
+	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+	//qcom,mdss-dsi-pan-enable-dynamic-fps;
+	//qcom,mdss-dsi-pan-fps-update = "dfps_immediate_porch_mode_vfp";
+};
+
+&dsi_nt35595_sharp_1080p_video {
+	qcom,panel-supply-entries = <&dsi_panel_pwr_supply>;
+	//qcom,mdss-dsi-pan-enable-dynamic-fps;
+	//qcom,mdss-dsi-pan-fps-update = "dfps_immediate_porch_mode_vfp";
+};
+*/
+
+/* PM8937 GPIO configuration */
+&pm8937_gpios {
+	gpio@c100 {
+		qcom,mode = <0>;
+		qcom,vin-sel = <3>;
+		qcom,dtest-sel = <1>;
+		status = "okay";
+	};
+};
+
+&qpdi {
+	qcom,pmic-carddetect-gpio = <&pm8937_gpios 0x2 0>;
+};

@@ -485,6 +485,12 @@ config QPNP_CHARGER
 	  also offers relevant information to userspace via the power supply
 	  framework.
 
+config TINNO_CHARGER_CONFIG
+        bool "Tinno charger config"
+        default n
+	help
+          Say Y here to enable tinno battery charger config.
+
 config QPNP_SMBCHARGER
 	tristate "QPNP SMB Charger driver"
 	depends on SPMI || MSM_SPMI

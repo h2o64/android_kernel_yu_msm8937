@@ -820,7 +820,9 @@ COMPAT_SYSCALL_DEFINE5(mount, const char __user *, dev_name,
 				goto out3;
 		}
 	}
-
+#ifdef CONFIG_TINNO_ROOT_PROTECT
+	flags |= TINNO_ROOT_PROTECT_FLAGS(kernel_type, kernel_dev);
+#endif
 	retval = do_mount(kernel_dev, dir_name, kernel_type,
 			flags, (void*)data_page);
 

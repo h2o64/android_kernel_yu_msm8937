@@ -30,6 +30,13 @@ config MSM_APM
 	SRAM Vmin requirements are met across different performance
 	levels.
 
+config TINNO_NO_BATID
+       default n
+       bool "Tinno's Battery Not Support Battery Id Pin,Just Use The Battery Name In dtsi."
+       help
+	 Tinno's Battery Not Support Battery Id Pin,Just Use The Battery Name In dtsi.
+
+
 if MSM_PM
 menuconfig MSM_IDLE_STATS
 	bool "Collect idle statistics"

@@ -1013,3 +1013,36 @@ endif
 source "lib/Kconfig"
 
 source "arch/arm64/mm/Kconfig"
+
+config PROJECT_P7701
+	tristate "project support"
+	help
+	  This option enables support project name
+	  
+config PROJECT_P7705
+	tristate "project support"
+	help
+	  This option enables support project name
+	  
+config PROJECT_P7203
+	tristate "project support"
+	help
+	  This option enables support project name
+
+config PROJECT_P7201
+	tristate "project support"
+	help
+	  This option enables support project name
+
+config PROJECT_I9051
+	tristate "project support"
+	help
+	  This option enables support project name	  
+
+config TINNO_ROOT_PROTECT
+bool "for tinno root protect "
+default n
+
+config TINNO_PRINTK_UART
+bool "for tinno product printk uart dts build"
+default n
