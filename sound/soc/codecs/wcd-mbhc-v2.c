@@ -30,6 +30,12 @@
 #include "wcd-mbhc-v2.h"
 #include "wcdcal-hwdep.h"
 
+#include <linux/switch.h>//yangliang add for ftm hph detect20150830
+
+#ifdef CONFIG_PROJECT_P7201
+extern bool ext_spk_pa_current_state;
+#endif
+
 #define WCD_MBHC_JACK_MASK (SND_JACK_HEADSET | SND_JACK_OC_HPHL | \
 			   SND_JACK_OC_HPHR | SND_JACK_LINEOUT | \
 			   SND_JACK_MECHANICAL | SND_JACK_MICROPHONE2 | \
@@ -54,6 +60,11 @@
 #define WCD_MBHC_BTN_PRESS_COMPL_TIMEOUT_MS  50
 #define ANC_DETECT_RETRY_CNT 7
 #define WCD_MBHC_SPL_HS_CNT  1
+//++ camera selfie stick TN:peter
+#ifdef CONFIG_PROJECT_P7201
+#define CAMERA_SELFIE_STICK
+#endif
+//-- camera selfie stick
 
 static int det_extn_cable_en;
 module_param(det_extn_cable_en, int,
@@ -66,6 +77,15 @@ enum wcd_mbhc_cs_mb_en_flag {
 	WCD_MBHC_EN_PULLUP,
 	WCD_MBHC_EN_NONE,
 };
+#ifdef CONFIG_SWITCH //yangliang add for ftm hph detect20150830
+extern struct switch_dev wcd_mbhc_headset_switch ;
+extern struct switch_dev wcd_mbhc_button_switch ;
+#endif
+//++ camera selfie stick TN:peter
+#ifdef CAMERA_SELFIE_STICK
+bool self_pole = false;
+#endif
+//-- camera selfie stick
 
 static void wcd_mbhc_jack_report(struct wcd_mbhc *mbhc,
 				struct snd_soc_jack *jack, int status, int mask)
@@ -501,7 +521,17 @@ static void wcd_mbhc_set_and_turnoff_hph_padac(struct wcd_mbhc *mbhc)
 	} else {
 		pr_debug("%s PA is off\n", __func__);
 	}
-	WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_HPH_PA_EN, 0);
+
+	//yangliang add to feedback ext pa-spk used state for insert hph of spk-voice and out hph resulting in spk-voice no downlink 20160530
+	#ifdef CONFIG_PROJECT_P7201
+	if(ext_spk_pa_current_state == false){
+		WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_HPH_PA_EN, 0);
+	}
+	#else
+		WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_HPH_PA_EN, 0);
+	#endif
+	//yangliang add to feedback ext pa-spk used state for insert hph of spk-voice and out hph resulting in spk-voice no downlink 20160530
+
 	usleep_range(wg_time * 1000, wg_time * 1000 + 50);
 }
 
@@ -695,6 +725,9 @@ static void wcd_mbhc_report_plug(struct wcd_mbhc *mbhc, int insertion,
 		wcd_mbhc_clr_and_turnon_hph_padac(mbhc);
 	}
 	pr_debug("%s: leave hph_status %x\n", __func__, mbhc->hph_status);
+#ifdef CONFIG_SWITCH //yangliang add for ftm hph detect20150830
+        switch_set_state(&wcd_mbhc_headset_switch, insertion ? 1:0);
+#endif
 }
 
 static bool wcd_mbhc_detect_anc_plug_type(struct wcd_mbhc *mbhc)
@@ -811,7 +844,30 @@ static void wcd_mbhc_find_plug_and_report(struct wcd_mbhc *mbhc,
 						SND_JACK_HEADPHONE);
 			if (mbhc->current_plug == MBHC_PLUG_TYPE_HEADSET)
 				wcd_mbhc_report_plug(mbhc, 0, SND_JACK_HEADSET);
+	//++ camera selfie stick TN:peter
+	#ifdef CAMERA_SELFIE_STICK
+		if (mbhc->impedance_detect) {
+				mbhc->mbhc_cb->compute_impedance(mbhc,
+						&mbhc->zl, &mbhc->zr);
+				if ((mbhc->zl > 20000) && (mbhc->zr > 20000)) {
+					pr_debug("%s: special accessory \n", __func__);
+					/* Toggle switch back */
+					if (mbhc->mbhc_cfg->swap_gnd_mic &&
+						mbhc->mbhc_cfg->swap_gnd_mic(mbhc->codec)) {
+						pr_debug("%s: US_EU gpio present,flip switch again\n"
+								, __func__);
+					}
+					wcd_mbhc_report_plug(mbhc, 1, SND_JACK_HEADSET);
+					self_pole = true;
+				}
+				else {
+					wcd_mbhc_report_plug(mbhc, 1, SND_JACK_UNSUPPORTED);
+				}
+			}
+	#else
 		wcd_mbhc_report_plug(mbhc, 1, SND_JACK_UNSUPPORTED);
+	#endif
+	//-- camera selfie stick
 	} else if (plug_type == MBHC_PLUG_TYPE_HEADSET) {
 		if (mbhc->mbhc_cfg->enable_anc_mic_detect)
 			anc_mic_found = wcd_mbhc_detect_anc_plug_type(mbhc);
@@ -1054,6 +1110,12 @@ static void wcd_enable_mbhc_supply(struct wcd_mbhc *mbhc,
 							WCD_MBHC_EN_CS);
 		} else if (plug_type == MBHC_PLUG_TYPE_HEADPHONE) {
 			wcd_enable_curr_micbias(mbhc, WCD_MBHC_EN_CS);
+		//++ camera selfie stick TN:peter
+		#ifdef CAMERA_SELFIE_STICK
+		} else if (self_pole == true){
+			wcd_enable_curr_micbias(mbhc, WCD_MBHC_EN_CS);
+		#endif
+		//-- camera selfie stick
 		} else {
 			wcd_enable_curr_micbias(mbhc, WCD_MBHC_EN_NONE);
 		}
@@ -1468,6 +1530,10 @@ static void wcd_mbhc_swch_irq_handler(struct wcd_mbhc *mbhc)
 
 	pr_debug("%s: mbhc->current_plug: %d detection_type: %d\n", __func__,
 			mbhc->current_plug, detection_type);
+
+	printk(KERN_ERR"%s: mbhc->current_plug: %d detection_type: %d\n", __func__,
+			mbhc->current_plug, detection_type);//yangliang add for mbhc problem trace;20160701
+
 	wcd_cancel_hs_detect_plug(mbhc, &mbhc->correct_plug_swch);
 
 	if (mbhc->mbhc_cb->micbias_enable_status)
@@ -1476,6 +1542,8 @@ static void wcd_mbhc_swch_irq_handler(struct wcd_mbhc *mbhc)
 
 	if ((mbhc->current_plug == MBHC_PLUG_TYPE_NONE) &&
 	    detection_type) {
+	    	printk(KERN_ERR"%s detection_type\n",__func__);//yangliang add for mbhc problem trace;20160701
+
 		/* Make sure MASTER_BIAS_CTL is enabled */
 		mbhc->mbhc_cb->mbhc_bias(codec, true);
 
@@ -1503,6 +1571,8 @@ static void wcd_mbhc_swch_irq_handler(struct wcd_mbhc *mbhc)
 		wcd_mbhc_detect_plug_type(mbhc);
 	} else if ((mbhc->current_plug != MBHC_PLUG_TYPE_NONE)
 			&& !detection_type) {
+		printk(KERN_ERR"%s  not detection_type\n",__func__);//yangliang add for mbhc problem trace;20160701
+
 		/* Disable external voltage source to micbias if present */
 		if (mbhc->mbhc_cb->enable_mb_source)
 			mbhc->mbhc_cb->enable_mb_source(codec, false);
@@ -1559,6 +1629,8 @@ static void wcd_mbhc_swch_irq_handler(struct wcd_mbhc *mbhc)
 			wcd_mbhc_report_plug(mbhc, 0, SND_JACK_ANC_HEADPHONE);
 		}
 	} else if (!detection_type) {
+		printk(KERN_ERR"%s always not detection_type\n",__func__);//yangliang add for mbhc problem trace;20160701
+
 		/* Disable external voltage source to micbias if present */
 		if (mbhc->mbhc_cb->enable_mb_source)
 			mbhc->mbhc_cb->enable_mb_source(codec, false);
@@ -1570,6 +1642,8 @@ static void wcd_mbhc_swch_irq_handler(struct wcd_mbhc *mbhc)
 	mbhc->in_swch_irq_handler = false;
 	WCD_MBHC_RSC_UNLOCK(mbhc);
 	pr_debug("%s: leave\n", __func__);
+
+	printk(KERN_ERR"%s: leave\n", __func__);//yangliang add for mbhc problem trace;20160701
 }
 
 static irqreturn_t wcd_mbhc_mech_plug_detect_irq(int irq, void *data)
@@ -1580,9 +1654,13 @@ static irqreturn_t wcd_mbhc_mech_plug_detect_irq(int irq, void *data)
 	pr_debug("%s: enter\n", __func__);
 	if (unlikely((mbhc->mbhc_cb->lock_sleep(mbhc, true)) == false)) {
 		pr_warn("%s: failed to hold suspend\n", __func__);
+
+		printk(KERN_ERR"%s: failed to hold suspend\n", __func__);//yangliang add for mbhc problem trace;20160701
 		r = IRQ_NONE;
 	} else {
 		/* Call handler */
+		printk(KERN_ERR"%s: enter real machine det\n", __func__);//yangliang add for mbhc problem trace;20160701
+
 		wcd_mbhc_swch_irq_handler(mbhc);
 		mbhc->mbhc_cb->lock_sleep(mbhc, false);
 	}
@@ -1650,6 +1728,10 @@ static irqreturn_t wcd_mbhc_hs_ins_irq(int irq, void *data)
 
 	pr_debug("%s: detection_type %d, elect_result %x\n", __func__,
 				detection_type, elect_result);
+
+	printk(KERN_ERR"%s: detection_type %d, elect_result %x\n", __func__,
+				detection_type, elect_result);//yangliang add for mbhc problem trace;20160701
+
 	if (detection_type) {
 		/* check if both Left and MIC Schmitt triggers are triggered */
 		WCD_MBHC_REG_READ(WCD_MBHC_HPHL_SCHMT_RESULT, hphl_sch);
@@ -1658,6 +1740,9 @@ static irqreturn_t wcd_mbhc_hs_ins_irq(int irq, void *data)
 			/* Go for plug type determination */
 			pr_debug("%s: Go for plug type determination\n",
 				  __func__);
+
+			printk(KERN_ERR"%s: Go for plug type determination\n",
+				  __func__);//yangliang add for mbhc problem trace;20160701
 			goto determine_plug;
 
 		} else {
@@ -1665,6 +1750,10 @@ static irqreturn_t wcd_mbhc_hs_ins_irq(int irq, void *data)
 				mic_trigerred++;
 				pr_debug("%s: Insertion MIC trigerred %d\n",
 					 __func__, mic_trigerred);
+
+				printk(KERN_ERR"%s: Insertion MIC trigerred %d\n",
+					 __func__, mic_trigerred);//yangliang add for mbhc problem trace;20160701
+
 				WCD_MBHC_REG_UPDATE_BITS(
 						WCD_MBHC_ELECT_SCHMT_ISRC,
 						0);
@@ -1677,11 +1766,17 @@ static irqreturn_t wcd_mbhc_hs_ins_irq(int irq, void *data)
 				hphl_trigerred++;
 				pr_debug("%s: Insertion HPHL trigerred %d\n",
 					 __func__, hphl_trigerred);
+
+				printk(KERN_ERR"%s: Insertion HPHL trigerred %d\n",
+					 __func__, hphl_trigerred);//yangliang add for mbhc problem trace;20160701
 			}
 			if (mic_trigerred && hphl_trigerred) {
 				/* Go for plug type determination */
 				pr_debug("%s: Go for plug type determination\n",
 					 __func__);
+
+				printk(KERN_ERR"%s: Go for plug type determination\n",
+					 __func__);//yangliang add for mbhc problem trace;20160701
 				goto determine_plug;
 			}
 		}
@@ -1696,6 +1791,8 @@ determine_plug:
 	 * Setup for insertion detection.
 	 */
 	pr_debug("%s: Disable insertion interrupt\n", __func__);
+
+	printk(KERN_ERR"%s: Disable insertion interrupt\n", __func__);//yangliang add for mbhc problem trace;20160701
 	wcd_mbhc_hs_elec_irq(mbhc, WCD_MBHC_ELEC_HS_INS,
 			     false);
 
@@ -1722,6 +1819,8 @@ static irqreturn_t wcd_mbhc_hs_rem_irq(int irq, void *data)
 
 	pr_debug("%s: enter\n", __func__);
 
+	printk(KERN_ERR"%s: enter\n", __func__);//yangliang add for mbhc problem trace;20160701
+
 	WCD_MBHC_RSC_LOCK(mbhc);
 
 	timeout = jiffies +
@@ -1745,6 +1844,9 @@ static irqreturn_t wcd_mbhc_hs_rem_irq(int irq, void *data)
 
 	pr_debug("%s: headset %s actually removed\n", __func__,
 		removed ? "" : "not ");
+
+	printk(KERN_ERR"%s: headset %s actually removed\n", __func__,
+		removed ? "" : "not ");//yangliang add for mbhc problem trace;20160701
 
 	WCD_MBHC_REG_READ(WCD_MBHC_HPHL_SCHMT_RESULT, hphl_sch);
 	WCD_MBHC_REG_READ(WCD_MBHC_MIC_SCHMT_RESULT, mic_sch);
@@ -1773,6 +1875,7 @@ static irqreturn_t wcd_mbhc_hs_rem_irq(int irq, void *data)
 				 * extension cable is still plugged in
 				 * report it as LINEOUT device
 				 */
+				printk(KERN_ERR"%s mic_trigerred && hphl_trigerred \n",__func__);//yangliang add for mbhc problem trace;20160701
 				goto report_unplug;
 			}
 		}
@@ -1817,6 +1920,8 @@ report_unplug:
 	mic_trigerred = 0;
 	WCD_MBHC_RSC_UNLOCK(mbhc);
 	pr_debug("%s: leave\n", __func__);
+
+	printk(KERN_ERR"%s: leave\n", __func__);//yangliang add for mbhc problem trace;20160701
 	return IRQ_HANDLED;
 }
 
@@ -1905,6 +2010,9 @@ static irqreturn_t wcd_mbhc_btn_press_handler(int irq, void *data)
 	mask = wcd_mbhc_get_button_mask(mbhc);
 	mbhc->buttons_pressed |= mask;
 	mbhc->mbhc_cb->lock_sleep(mbhc, true);
+#ifdef CONFIG_SWITCH
+    switch_set_state(&wcd_mbhc_button_switch, mbhc->buttons_pressed ? 1:0);
+#endif
 	if (schedule_delayed_work(&mbhc->mbhc_btn_dwork,
 				msecs_to_jiffies(400)) == 0) {
 		WARN(1, "Button pressed twice without release event\n");
@@ -1971,6 +2079,9 @@ static irqreturn_t wcd_mbhc_release_handler(int irq, void *data)
 			}
 		}
 		mbhc->buttons_pressed &= ~WCD_MBHC_JACK_BUTTON_MASK;
+#ifdef CONFIG_SWITCH
+        switch_set_state(&wcd_mbhc_button_switch, mbhc->buttons_pressed ? 1:0);
+#endif
 	}
 exit:
 	pr_debug("%s: leave\n", __func__);
@@ -2064,7 +2175,7 @@ static int wcd_mbhc_initialise(struct wcd_mbhc *mbhc)
 	WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_L_DET_EN, 1);
 
 	/* Insertion debounce set to 96ms */
-	WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_INSREM_DBNC, 6);
+	WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_INSREM_DBNC, 9);//yangliang modify 6 to 9 for 256ms debounce time for judgement by mistake 20160606;
 	/* Button Debounce set to 16ms */
 	WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_BTN_DBNC, 2);
 
