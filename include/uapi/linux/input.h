@@ -203,6 +203,10 @@ struct input_keymap_entry {
 #define SYN_CONFIG		1
 #define SYN_MT_REPORT		2
 #define SYN_DROPPED		3
+//wangyanhui add for kernel sensors
+#define SYN_TIME_SEC		4
+#define SYN_TIME_NSEC		5
+//wangyanhui end
 #define SYN_MAX			0xf
 #define SYN_CNT			(SYN_MAX+1)
 
@@ -480,6 +484,10 @@ struct input_keymap_entry {
 #define KEY_RFKILL		247	/* Key that controls all radios */
 
 #define KEY_MICMUTE		248	/* Mute / unmute the microphone */
+
+//wangyanhui add for hall ic
+#define KEY_HALLOPEN	249
+#define KEY_HALLCLOSE	250
 
 /* Code 255 is reserved for special needs of AT keyboard driver */
 
