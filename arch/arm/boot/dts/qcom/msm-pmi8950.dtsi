@@ -158,7 +158,13 @@
 			gpio@c100 {
 				reg = <0xc100 0x100>;
 				qcom,pin-num = <2>;
-				status = "disabled";
+				qcom,mode = <0>;
+				qcom,output-type = <2>;
+				qcom,pull = <1>;
+				qcom,vin-sel = <0>;
+				qcom,out-strength = <2>;
+				//add by lishengli 20160703 for fix smb be disable after long press power key to restart dievice
+				//status = "disabled";
 			};
 		};
 
@@ -202,20 +208,29 @@
 			#address-cells = <1>;
 			#size-cells = <1>;
 
-			qcom,iterm-ma = <100>;
-			qcom,float-voltage-mv = <4200>;
+                        //add by lishengli 20160519
+			qcom,iterm-ma = <250>;
+			qcom,float-voltage-mv = <4400>;
 			qcom,resume-delta-mv = <200>;
+			//add by lishengli
+			qcom,fastchg-current-ma = <1500>;
 			qcom,chg-inhibit-fg;
 			qcom,rparasitic-uohm = <100000>;
 			qcom,bms-psy-name = "bms";
-			qcom,thermal-mitigation = <1500 700 600 0>;
-			qcom,parallel-usb-min-current-ma = <1400>;
-			qcom,parallel-usb-9v-min-current-ma = <900>;
-			qcom,parallel-allowed-lowering-ma = <500>;
+			qcom,thermal-mitigation = <1500 1000 300 0>;
 			qcom,pmic-revid = <&pmi8950_revid>;
 			qcom,force-aicl-rerun;
 			qcom,aicl-rerun-period-s = <180>;
 			qcom,autoadjust-vfloat;
+			//add by lishengli 20160412
+			qcom,float-voltage-comp = <13>; //4100v
+			qcom,fastchg-current-comp = <700>; //900ma
+            //LINE<REQ><><DEFUALT USB DCP ICL SET TO 1400MA><20160708>huiyong.yin
+			qcom,no-parallel-defualt-dcp-icl-ma = <1400>;
+
+			qcom,no_support_qc;//<20160720><don't support qc>wangyanhui add
+
+			qcom,speed-current = <1500 1400 1200 1100 900 700 600 450 400 0>;
 
 			qcom,chgr@1000 {
 				reg = <0x1000 0x100>;
@@ -317,15 +332,26 @@
 			compatible = "qcom,qpnp-fg";
 			#address-cells = <1>;
 			#size-cells = <1>;
-			qcom,resume-soc = <95>;
+			qcom,fg-cc-cv-threshold-mv = <4390>;
+			//add by lishengli 20160519
+			qcom,hold-soc-while-full;
+			qcom,vbat-estimate-diff-mv =<40>;
+			qcom,resume-soc = <98>;
 			status = "okay";
 			qcom,bcl-lm-threshold-ma = <127>;
 			qcom,bcl-mh-threshold-ma = <405>;
-			qcom,fg-iterm-ma = <150>;
-			qcom,fg-chg-iterm-ma = <100>;
+			//add by lishengli 20160519   fixed can't charge to full
+			qcom,fg-iterm-ma = <300>;
+			//add by lishengli 20160519
+			qcom,fg-chg-iterm-ma = <250>;
 			qcom,pmic-revid = <&pmi8950_revid>;
-			qcom,fg-cutoff-voltage-mv = <3500>;
+			qcom,fg-cutoff-voltage-mv = <3400>;
 			qcom,cycle-counter-en;
+			qcom,ext-sense-type;
+
+			qcom,fg-delta-soc = <1>;//LINE<BUG><HHABM-151><><><20150620>huiyong.yin
+			//add by lishengli for 3430    20160412
+			qcom,thermal-coefficients =[c8 86 c1 50 d3 37];
 			qcom,capacity-learning-on;
 
 			qcom,fg-soc@4000 {
@@ -405,11 +431,35 @@
 			qcom,inhibit-derating-ua = <550000>;
 		};
 
-		qcom,leds@a100 {
+		//wangyanhui add start for green led blink
+		/*qcom,leds@a100 {
 			compatible = "qcom,leds-qpnp";
 			reg = <0xa100 0x100>;
 			label = "mpp";
+		};*/
+		qcom,leds@a100 {
+			compatible = "qcom,leds-qpnp";
+			reg = <0xa100 0x100>;
+			status = "okay";
+			qcom,led_mpp_2 {
+				label = "mpp";
+				linux,name = "green";
+				linux,default-trigger = "none";
+				qcom,default-state = "off";
+				qcom,max-current = <40>;
+				qcom,current-setting = <10>;
+				qcom,id = <6>;
+				qcom,mode = "pwm";
+				qcom,source-sel = <8>;
+				qcom,mode-ctrl = <0x60>;
+				qcom,pwm-channel = <0>;
+				qcom,pwm-us = <5000000>;
+				pwms = <&pmi8950_pwm 0 0>;
+				pwm-names="green"; // add this
+				qcom,use-blink;
+			};
 		};
+		//wangyanhui add end for green led blink
 	};
 
 	qcom,pmi8950@3 {
@@ -418,7 +468,8 @@
 		#address-cells = <1>;
 		#size-cells = <1>;
 
-		pmi8950_pwm: pwm@b000 {
+		//wangyanhui modify end for green led blink use pwm
+		/*pmi8950_pwm: pwm@b000 {
 			status = "disabled";
 			compatible = "qcom,qpnp-pwm";
 			reg = <0xb000 0x100>;
@@ -426,7 +477,22 @@
 			qcom,channel-id = <0>;
 			qcom,supported-sizes = <6>, <9>;
 			#pwm-cells = <2>;
-		};
+		};*/
+		pmi8950_pwm: pwm@b000 {
+				compatible = "qcom,qpnp-pwm";
+				reg = <0xb000 0x100>;
+				reg-names = "qpnp-lpg-channel-base";
+				qcom,channel-id = <0>;
+				qcom,supported-sizes = <6>, <9>;
+				qcom,period = <1000000>;
+				qcom,lpg-dtest-line = <1>;
+				qcom,dtest-output = <1>;
+				#pwm-cells = <2>;
+				qcom,pwm {
+				qcom,duty = <500000>; //PWM duty time in microseconds
+				label = "pwm";};
+		 };
+		//wangyanhui modify end for green led blink use pwm
 
 		labibb: qpnp-labibb-regulator {
 			status = "disabled";
@@ -530,7 +596,7 @@
 			qcom,fs-curr-ua = <20000>;
 			qcom,ibb-pwrup-dly = <8>;
 			qcom,led-strings-list = [00 01];
-			qcom,en-ext-pfet-sc-pro;
+			//qcom,en-ext-pfet-sc-pro; //wangyanhui delete for green led blink use pwm
 		};
 
 		flash_led: qcom,leds@d300 {
@@ -572,11 +638,23 @@
 				qcom,led-name = "led:flash_1";
 				qcom,default-led-trigger =
 						"flash1_trigger";
-				qcom,max-current = <1000>;
+				qcom,max-current = <1000>;   //modify current of front flash
 				qcom,duration = <1280>;
 				qcom,id = <1>;
+				qcom,current = <625>;           //modify current of front flash
+			};
+			//wangyanhui add for front flightlight start
+			pmi8950_flash2: qcom,flash_2 {
+				label = "flash";
+				qcom,led-name = "led:flash_2";
+				qcom,default-led-trigger =
+						"flash2_trigger";
+				qcom,max-current = <1000>;
+				qcom,duration = <1280>;
+				qcom,id = <3>;
 				qcom,current = <625>;
 			};
+			//wangyanhui add for front flightlight end
 
 			pmi8950_torch0: qcom,torch_0 {
 				label = "torch";
@@ -593,10 +671,22 @@
 				qcom,led-name = "led:torch_1";
 				qcom,default-led-trigger =
 						"torch1_trigger";
-				qcom,max-current = <200>;
+				qcom,max-current = <200>;        //modify current of front flash
 				qcom,id = <1>;
-				qcom,current = <120>;
+				qcom,current = <120>;                //modify current of front flash
 			};
+			//wangyanhui add for front flightlight start
+			pmi8950_torch2: qcom,torch_2 {
+				label = "torch";
+				qcom,led-name = "led:torch_2";
+				qcom,default-led-trigger =
+						"torch2_trigger";
+				qcom,max-current = <200>;
+				qcom,id = <3>;
+				qcom,current = <120>;
+
+			};
+			//wangyanhui add for front flightlight end
 
 			pmi8950_switch: qcom,switch {
 				label = "switch";
@@ -611,6 +701,8 @@
 					regulator-name = "pon_spare_reg";
 				};
 			};
+
+
 		};
 
 		pmi_haptic: qcom,haptic@c000 {
@@ -624,7 +716,7 @@
 			qcom,wave-play-rate-us = <5263>;
 			qcom,actuator-type = "erm";
 			qcom,wave-shape = "square";
-			qcom,vmax-mv = <2000>;
+			qcom,vmax-mv = <3000>; //wangyahui set 3000 //2000
 			qcom,ilim-ma = <800>;
 			qcom,sc-deb-cycles = <8>;
 			qcom,int-pwm-freq-khz = <505>;
