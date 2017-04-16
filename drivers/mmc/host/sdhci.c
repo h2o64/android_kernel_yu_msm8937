@@ -783,6 +783,13 @@ static u8 sdhci_calc_timeout(struct sdhci_host *host, struct mmc_command *cmd)
 	 * longer to time out, but that's much better than having a too-short
 	 * timeout value.
 	 */
+
+
+        //LINE<JIRA_ID><DATE20160816><set max timeout>zenghaihui
+        //pr_info("%s: %d, %s \n",    __func__, __LINE__, mmc_hostname(host->mmc));
+        return 0xF;
+
+
 	if (host->quirks & SDHCI_QUIRK_BROKEN_TIMEOUT_VAL)
 		return 0xE;
 
@@ -4049,6 +4056,16 @@ int sdhci_add_host(struct sdhci_host *host)
 		}
 	} else if (caps[1] & SDHCI_SUPPORT_SDR50)
 		mmc->caps |= MMC_CAP_UHS_SDR50;
+
+//LINE<JIRA_ID><DATE20160816><disable SDR104>zenghaihui
+#if 1
+             //pr_err("clency mmc_hostname(mmc) = %s \n", mmc_hostname(mmc));
+             if(!strcmp("mmc1",mmc_hostname(mmc))){
+                       mmc->caps &=~ (MMC_CAP_UHS_SDR104);
+                       pr_err("clency add mask SDR104\n");
+             }
+#endif
+
 
 	if (host->quirks2 & SDHCI_QUIRK2_CAPS_BIT63_FOR_HS400 &&
 	    (caps[1] & SDHCI_SUPPORT_HS400))
