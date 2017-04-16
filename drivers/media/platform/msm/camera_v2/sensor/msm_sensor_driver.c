@@ -29,6 +29,15 @@ static int32_t msm_sensor_driver_platform_probe(struct platform_device *pdev);
 
 /* Static declaration */
 static struct msm_sensor_ctrl_t *g_sctrl[MAX_CAMERAS];
+//BEGIN<REQ><FCEBL-64><20150901>Add store camera  info;xiongdajun
+#ifdef CONFIG_DEV_INFO
+#define DEV_INFO_LEN 80
+static char main_camera_and_eeprom[DEV_INFO_LEN];
+extern int store_main_camera_info(const char *const str);
+extern int store_sub_camera_info(const char *const str);
+static char sub_camera_and_eeprom[DEV_INFO_LEN];
+#endif
+//END<REQ><JABALL-1500><20150405>Add store camera  info;xiongdajun
 
 static int msm_sensor_platform_remove(struct platform_device *pdev)
 {
@@ -895,6 +904,178 @@ CSID_TG:
 	}
 
 	pr_err("%s probe succeeded", slave_info->sensor_name);
+
+//BEGIN<REQ><FCEBL-64><20150901>Add store camera  info;xiongdajun
+#ifdef CONFIG_DEV_INFO
+	if(!strncmp(slave_info->sensor_name, "s5k3p3", sizeof("s5k3p3")))
+	{
+		rc = snprintf(sub_camera_and_eeprom, DEV_INFO_LEN, "%s_(16M)",
+			"s5k3p3");
+		if(rc < 0){
+			store_main_camera_info(slave_info->sensor_name);
+		}else{
+			store_main_camera_info(sub_camera_and_eeprom);
+		}
+	}
+       else if(!strncmp(slave_info->sensor_name, "s5k4h8", sizeof("s5k4h8")))
+	{
+	        if(!strncmp(s_ctrl->sensordata->eeprom_name, "sunny_s5k4h8", sizeof("sunny_s5k4h8"))){
+			//store_sub_camera_eeprom_info("DaLing");
+
+			rc = snprintf(main_camera_and_eeprom, DEV_INFO_LEN, "%s_(8M)",
+					"s5k4h8_sunny");
+		}
+		if(rc < 0){
+			store_sub_camera_info(slave_info->sensor_name);
+		}else{
+			store_sub_camera_info(main_camera_and_eeprom);
+		}
+	}
+        else if(!strncmp(slave_info->sensor_name, "s5k4h80x11", sizeof("s5k4h80x11")))
+	{
+	        if(!strncmp(s_ctrl->sensordata->eeprom_name, "sunny_s5k4h80x11", sizeof("sunny_s5k4h80x11"))){
+			//store_sub_camera_eeprom_info("DaLing");
+
+			rc = snprintf(main_camera_and_eeprom, DEV_INFO_LEN, "%s_(8M)",
+					"s5k4h80x11_sunny");
+		}
+		if(rc < 0){
+			store_sub_camera_info(slave_info->sensor_name);
+		}else{
+			store_sub_camera_info(main_camera_and_eeprom);
+		}
+	}
+//Ramiel add p7203 camera +++++++++++++++
+	  else if(!strncmp(slave_info->sensor_name, "p7203_gb_imx258", sizeof("p7203_gb_imx258")))
+	 {
+		  rc = snprintf(main_camera_and_eeprom, DEV_INFO_LEN, "%s_(13M)",
+			  "imx258_guangbao");
+		  if(rc < 0){
+			  store_main_camera_info(slave_info->sensor_name);
+		  }else{
+			  store_main_camera_info(main_camera_and_eeprom);
+		  }
+
+	 }
+	  else if(!strncmp(slave_info->sensor_name, "p7203_sy_imx258", sizeof("p7203_sy_imx258")))
+	  {
+		  rc = snprintf(main_camera_and_eeprom, DEV_INFO_LEN, "%s_(13M)",
+			  "imx258_sunny");
+		  if(rc < 0){
+			  store_main_camera_info(slave_info->sensor_name);
+		  }else{
+			  store_main_camera_info(main_camera_and_eeprom);
+		  }
+
+	  }
+	  else if(!strncmp(slave_info->sensor_name, "p7203_gb_s5k4h8", sizeof("p7203_gb_s5k4h8")))
+	 {
+		 rc = snprintf(sub_camera_and_eeprom, DEV_INFO_LEN, "%s_(8M)",
+			 "s5k4h8_guangbao");
+		 if(rc < 0){
+			 store_sub_camera_info(slave_info->sensor_name);
+		 }else{
+			 store_sub_camera_info(sub_camera_and_eeprom);
+		 }
+
+	 }
+//Ramiel add p7203 camera  ---------------------
+
+	 else if(!strncmp(slave_info->sensor_name, "p7705_sunny_s5k4h8", sizeof("p7705_sunny_s5k4h8")))
+	{
+		 rc = snprintf(sub_camera_and_eeprom, DEV_INFO_LEN, "%s_(8M)",
+			 "s5k4h8_sunny");
+		 if(rc < 0){
+			 store_sub_camera_info(slave_info->sensor_name);
+		 }else{
+			 store_sub_camera_info(sub_camera_and_eeprom);
+		 }
+
+	}
+	 else if(!strncmp(slave_info->sensor_name, "p7705_sunny_0x11_s5k4h8", sizeof("p7705_sunny_0x11_s5k4h8")))
+	{
+		 rc = snprintf(sub_camera_and_eeprom, DEV_INFO_LEN, "%s_(8M)",
+			 "s5k4h8_Blue_sunny");
+		 if(rc < 0){
+			 store_sub_camera_info(slave_info->sensor_name);
+		 }else{
+			 store_sub_camera_info(sub_camera_and_eeprom);
+		 }
+
+	}
+	 else if(!strncmp(slave_info->sensor_name, "imx258", sizeof("imx258")))
+	{
+	        if(!strncmp(s_ctrl->sensordata->eeprom_name, "p7705_sunny_imx258_otp", sizeof("p7705_sunny_imx258_otp"))){
+			//store_sub_camera_eeprom_info("DaLing");
+
+			rc = snprintf(main_camera_and_eeprom, DEV_INFO_LEN, "%s_(13M)",
+					"imx258_sunny");
+		}
+		if(rc < 0){
+			store_main_camera_info(slave_info->sensor_name);
+		}else{
+			store_main_camera_info(main_camera_and_eeprom);
+		}
+	}
+       //BEGIN<20160617><add camera info for 7201>wangyanhui
+	else if(!strncmp(slave_info->sensor_name, "imx258_guangbao_p7201", sizeof("imx258_guangbao_p7201")))
+	{
+		rc = snprintf(main_camera_and_eeprom, DEV_INFO_LEN, "%s_(13M)",
+			"imx258_guangbao");
+		if(rc < 0){
+			store_main_camera_info(slave_info->sensor_name);
+		}else{
+			store_main_camera_info(main_camera_and_eeprom);
+		}
+	}
+	else if(!strncmp(slave_info->sensor_name, "imx258_sunny_p7201", sizeof("imx258_sunny_p7201")))
+	{
+		rc = snprintf(main_camera_and_eeprom, DEV_INFO_LEN, "%s_(13M)",
+			"imx258_sunny");
+		if(rc < 0){
+			store_main_camera_info(slave_info->sensor_name);
+		}else{
+			store_main_camera_info(main_camera_and_eeprom);
+		}
+	}
+	 else if(!strncmp(slave_info->sensor_name, "s5k4h8_p7201", sizeof("s5k4h8_p7201")))
+	{
+		 rc = snprintf(sub_camera_and_eeprom, DEV_INFO_LEN, "%s_(8M)",
+			 "s5k4h8");
+		 if(rc < 0){
+			 store_sub_camera_info(slave_info->sensor_name);
+		 }else{
+			 store_sub_camera_info(sub_camera_and_eeprom);
+		 }
+
+	}
+	 else if(!strncmp(slave_info->sensor_name, "ov8856", sizeof("ov8856")))
+	{
+		 rc = snprintf(sub_camera_and_eeprom, DEV_INFO_LEN, "%s_(8M)", "ov8856");
+		 if(rc < 0){
+			 store_sub_camera_info(slave_info->sensor_name);
+		 }else{
+			 store_sub_camera_info(sub_camera_and_eeprom);
+		 }
+
+	}
+       //END<20160617><add camera info for 7201>wangyanhui
+	else
+	{
+		if(!strncmp(s_ctrl->sensordata->eeprom_name, "daling_p5v23c", sizeof("daling_p5v23c"))){
+			rc = snprintf(main_camera_and_eeprom, DEV_INFO_LEN, "%s_%s",
+					slave_info->sensor_name, "DaLing");
+		}
+
+		if(rc < 0){
+			store_main_camera_info(slave_info->sensor_name);
+		}else{
+			store_main_camera_info(main_camera_and_eeprom);
+		}
+	}
+
+#endif
+//END<REQ><FCEBL-64><20150901>Add store camera  info;xiongdajun
 
 	/*
 	  Set probe succeeded flag to 1 so that no other camera shall
