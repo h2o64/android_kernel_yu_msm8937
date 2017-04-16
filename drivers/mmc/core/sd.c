@@ -1319,6 +1319,10 @@ static int mmc_sd_runtime_suspend(struct mmc_host *host)
 	if (!(host->caps & MMC_CAP_AGGRESSIVE_PM))
 		return 0;
 
+	//LINE<JIRA_ID><DATE20160630><sdcard issue whiel video playing and video recording>zenghaihui
+	//pr_err("%s: %s: %d skipped\n", mmc_hostname(host), __func__, __LINE__);
+	return 0;
+
 	err = _mmc_sd_suspend(host);
 	if (err)
 		pr_err("%s: error %d doing aggessive suspend\n",
@@ -1333,6 +1337,10 @@ static int mmc_sd_runtime_suspend(struct mmc_host *host)
 static int mmc_sd_runtime_resume(struct mmc_host *host)
 {
 	int err;
+
+	//LINE<JIRA_ID><DATE20160630><sdcard issue whiel video playing and video recording>zenghaihui
+	//pr_err("%s: %s: %d skipped\n", mmc_hostname(host), __func__, __LINE__);
+	return 0;
 
 	if (!(host->caps & (MMC_CAP_AGGRESSIVE_PM | MMC_CAP_RUNTIME_RESUME)))
 		return 0;

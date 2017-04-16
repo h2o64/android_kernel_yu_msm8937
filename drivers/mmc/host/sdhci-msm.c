@@ -1776,6 +1776,7 @@ struct sdhci_msm_pltfm_data *sdhci_msm_populate_pdata(struct device *dev,
 
 	sdhci_msm_pm_qos_parse(dev, pdata);
 
+	//<20150311>wangyanhui for sdcard support
 	if (of_get_property(np, "qcom,core_3_0v_support", NULL))
 		pdata->core_3_0v_support = true;
 

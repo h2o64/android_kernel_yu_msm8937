@@ -1344,7 +1344,8 @@ static int mmc_blk_cmd_recovery(struct mmc_card *card, struct request *req,
 	 * and why there was no response.  If the first attempt fails,
 	 * we can't be sure the returned status is for the r/w command.
 	 */
-	for (retry = 2; retry >= 0; retry--) {
+	 //LINE<JIRA_ID><DATE20160822><inc the retry number to 5>zenghaihui
+	for (retry = 5/*2*/; retry >= 0; retry--) {
 		err = get_card_status(card, &status, 0);
 		if (!err)
 			break;
@@ -4084,7 +4085,9 @@ static const struct mmc_fixup blk_fixups[] =
 
 	END_FIXUP
 };
-
+//added start for adding flash information in *#0661#
+int emmc_capacity=0;
+//added end
 static int mmc_blk_probe(struct mmc_card *card)
 {
 	struct mmc_blk_data *md, *part_md;
@@ -4104,9 +4107,14 @@ static int mmc_blk_probe(struct mmc_card *card)
 
 	string_get_size((u64)get_capacity(md->disk) << 9, STRING_UNITS_2,
 			cap_str, sizeof(cap_str));
-	pr_info("%s: %s %s %s %s\n",
+
+//added start for adding flash information in *#0661#
+	if(emmc_capacity ==0)
+		emmc_capacity = get_capacity(md->disk);
+	printk("%s: %s %s %s %s  %d\n",
 		md->disk->disk_name, mmc_card_id(card), mmc_card_name(card),
-		cap_str, md->read_only ? "(ro)" : "");
+		cap_str, md->read_only ? "(ro)" : "", emmc_capacity);
+//added end
 
 	if (mmc_blk_alloc_parts(card, md))
 		goto out;
