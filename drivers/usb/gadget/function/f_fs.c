@@ -37,6 +37,8 @@
 #include "u_os_desc.h"
 #include "configfs.h"
 
+extern int tinno_usb_sync_flag;
+
 #define FUNCTIONFS_MAGIC	0xa647361 /* Chosen by a honest dice roll ;) */
 
 /* Reference counter handling */
@@ -1585,7 +1587,7 @@ static void ffs_data_clear(struct ffs_data *ffs)
 	ffs_closed(ffs);
 
 	/* Dump ffs->gadget and ffs->flags */
-	if (ffs->gadget)
+//	if (ffs->gadget)
 		pr_err("%s: ffs:%p ffs->gadget= %p, ffs->flags= %lu\n",
 				__func__, ffs, ffs->gadget, ffs->flags);
 	BUG_ON(ffs->gadget);
@@ -2802,7 +2804,6 @@ static inline struct f_fs_opts *ffs_do_functionfs_bind(struct usb_function *f,
 	struct f_fs_opts *ffs_opts =
 		container_of(f->fi, struct f_fs_opts, func_inst);
 	int ret;
-
 	ENTER();
 
 	/*
@@ -2814,7 +2815,12 @@ static inline struct f_fs_opts *ffs_do_functionfs_bind(struct usb_function *f,
 	 */
 	if (!ffs_opts->no_configfs)
 		ffs_dev_lock();
+
 	ret = ffs_opts->dev->desc_ready ? 0 : -ENODEV;
+	printk("ffs_do_functionfs_bind ret =%d \n",ret);
+
+
+
 	func->ffs = ffs_opts->dev->ffs_data;
 	if (!ffs_opts->no_configfs)
 		ffs_dev_unlock();
@@ -3532,6 +3538,8 @@ static int ffs_ready(struct ffs_data *ffs)
 	}
 
 	ffs_obj->desc_ready = true;
+	tinno_usb_sync_flag=1;
+	printk("ffs_ready !ffs_obj->desc_ready = true \n");
 	ffs_obj->ffs_data = ffs;
 
 	if (ffs_obj->ffs_ready_callback) {
@@ -3559,6 +3567,9 @@ static void ffs_closed(struct ffs_data *ffs)
 		goto done;
 
 	ffs_obj->desc_ready = false;
+
+	tinno_usb_sync_flag=0;
+	printk("ffs_ready !ffs_obj->desc_ready = false \n");
 
 	if (test_and_clear_bit(FFS_FL_CALL_CLOSED_CALLBACK, &ffs->flags) &&
 	    ffs_obj->ffs_closed_callback)
