@@ -1957,9 +1957,33 @@ static struct platform_driver msm_hsl_platform_driver = {
 	},
 };
 
+static int tinno_printk_uart = 0;
+int __init tinno_enable_printk_uart(char *enable)
+{
+	if (enable && strlen(enable))
+	{
+		printk("tinno_enable_printk uart %s\n", enable);
+		if(!strcmp(enable,"1"))
+			tinno_printk_uart = 1;
+			return 0;
+	}
+	else
+	{
+		return -1;
+	}
+}
+early_param("printk.enable_uart", tinno_enable_printk_uart);
+
 static int __init msm_serial_hsl_init(void)
 {
 	int ret;
+	if(tinno_printk_uart ==0)
+	{
+		pr_err("user version not register msm_serial_hsl_init\n");
+		return 0;
+	}
+
+	pr_err("register msm_serial_hsl_init\n");
 
 	ret = uart_register_driver(&msm_hsl_uart_driver);
 	if (unlikely(ret))
