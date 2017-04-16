@@ -105,7 +105,8 @@
 #define QPNP_VADC_CONV_TIME_MIN					1000
 #define QPNP_VADC_CONV_TIME_MAX					1100
 #define QPNP_ADC_COMPLETION_TIMEOUT				HZ
-#define QPNP_VADC_ERR_COUNT					20
+// Jake.L, DATE20160704, case 02529778, DATE20160704-01 LINE
+#define QPNP_VADC_ERR_COUNT					200 // 20
 #define QPNP_OP_MODE_SHIFT					3
 
 #define QPNP_VADC_THR_LSB_MASK(val)				(val & 0xff)
@@ -1808,6 +1809,9 @@ int32_t qpnp_vadc_read(struct qpnp_vadc_chip *vadc,
 		return 0;
 	}
 
+    // Jake.L, DATE20160702, NOTE, DATE20160702-01 LINE
+    pr_err("reading die_temp, channel=%d\n", channel);
+
 	if (channel == VBAT_SNS) {
 		rc = qpnp_vadc_conv_seq_request(vadc, ADC_SEQ_NONE,
 				channel, result);
@@ -1853,7 +1857,7 @@ int32_t qpnp_vadc_read(struct qpnp_vadc_chip *vadc,
 		rc = qpnp_vadc_conv_seq_request(vadc, ADC_SEQ_NONE,
 				channel, result);
 		if (rc < 0)
-			pr_err("Error reading die_temp\n");
+			pr_err("Error reading die_temp, channel=%d\n", channel);
 
 		ret.intval = 0;
 		rc = vadc->vadc_chg_vote->set_property(vadc->vadc_chg_vote,
