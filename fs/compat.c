@@ -7,7 +7,7 @@
  *  Copyright (C) 2002       Stephen Rothwell, IBM Corporation
  *  Copyright (C) 1997-2000  Jakub Jelinek  (jakub@redhat.com)
  *  Copyright (C) 1998       Eddie C. Dost  (ecd@skynet.be)
- *  Copyright (C) 2001,2002  Andi Kleen, SuSE Labs 
+ *  Copyright (C) 2001,2002  Andi Kleen, SuSE Labs
  *  Copyright (C) 2003       Pavel Machek (pavel@ucw.cz)
  *
  *  This program is free software; you can redistribute it and/or modify
@@ -211,7 +211,7 @@ COMPAT_SYSCALL_DEFINE2(newfstat, unsigned int, fd,
 
 static int put_compat_statfs(struct compat_statfs __user *ubuf, struct kstatfs *kbuf)
 {
-	
+
 	if (sizeof ubuf->f_blocks == 4) {
 		if ((kbuf->f_blocks | kbuf->f_bfree | kbuf->f_bavail |
 		     kbuf->f_bsize | kbuf->f_frsize) & 0xffffffff00000000ULL)
@@ -536,7 +536,7 @@ COMPAT_SYSCALL_DEFINE5(io_getevents, compat_aio_context_t, ctx_id,
 		ut = compat_alloc_user_space(sizeof(*ut));
 		if (copy_to_user(ut, &t, sizeof(t)) )
 			return -EFAULT;
-	} 
+	}
 	return sys_io_getevents(ctx_id, min_nr, nr, events, ut);
 }
 
@@ -636,7 +636,7 @@ copy_iocb(long nr, u32 __user *ptr32, struct iocb __user * __user *ptr64)
 COMPAT_SYSCALL_DEFINE3(io_submit, compat_aio_context_t, ctx_id,
 		       int, nr, u32 __user *, iocb)
 {
-	struct iocb __user * __user *iocb64; 
+	struct iocb __user * __user *iocb64;
 	long ret;
 
 	if (unlikely(nr < 0))
@@ -644,7 +644,7 @@ COMPAT_SYSCALL_DEFINE3(io_submit, compat_aio_context_t, ctx_id,
 
 	if (nr > MAX_AIO_SUBMITS)
 		nr = MAX_AIO_SUBMITS;
-	
+
 	iocb64 = compat_alloc_user_space(nr * sizeof(*iocb64));
 	ret = copy_iocb(nr, iocb, iocb64);
 	if (!ret)
@@ -820,7 +820,6 @@ COMPAT_SYSCALL_DEFINE5(mount, const char __user *, dev_name,
 				goto out3;
 		}
 	}
-
 	retval = do_mount(kernel_dev, dir_name, kernel_type,
 			flags, (void*)data_page);
 
