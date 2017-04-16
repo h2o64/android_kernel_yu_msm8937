@@ -28,3 +28,6 @@ obj-$(CONFIG_INPUT_APMPOWER)	+= apm-power.o
 obj-$(CONFIG_INPUT_KEYRESET)	+= keyreset.o
 obj-$(CONFIG_INPUT_KEYCOMBO)	+= keycombo.o
 
+#zenghaihui add for fingerprint
+obj-$(CONFIG_INPUT_FINGERPRINT)	+= fingerprint/
+
