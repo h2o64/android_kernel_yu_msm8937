@@ -118,6 +118,48 @@ enum flash_update_mode {
 
 static int fwu_wait_for_idle(int timeout_ms);
 
+//Begin<BUG><JABALL-27><20150407>store tp  info;xiongdajun
+#ifdef CONFIG_DEV_INFO
+extern int store_tp_info(const char *const str);
+
+static int save_tp_info(char *product_id, char *config_id, int id, int rev_id)
+{
+	char buf[80];
+#if 0
+	sprintf(buf, "S%d rev %d_FW_VER %x.%x.%x.%x_%s",
+		id, rev_id,  config_id[0], config_id[1], config_id[2], config_id[3], product_id);
+#else
+       //printk("%s : config_id=%s, product_id=%s,  id=%d, rev_id=%d\n", __func__, config_id, product_id, id, rev_id);
+        //深越（TTOUCH）的固件版本号是十进制的，界面（JTOUCH）的固件版本号是ASCI的，故界面的做减法。
+        if(!strncmp(product_id, "TTOUCH", sizeof("TTOUCH"))){
+	//LINE<FFBAKK-502><20141104>Modify TP information;xiongdajun
+            sprintf(buf, "SHENYUE-%s-S%d--V%d%d",
+                    CONFIG_PRODUCT_NAME , id, config_id[2]-0x30, config_id[3]-0x30);
+        }
+        else if(!strncmp(product_id, "BOEN", sizeof("BOEN"))){
+            sprintf(buf, "BOEN-%s-S%d--V%d%d",
+                    CONFIG_PRODUCT_NAME , id, config_id[2]-0x30, config_id[3]-0x30);
+        }
+	else if(!strncmp(product_id, "DJTOUCH", sizeof("DJTOUCH"))){
+            sprintf(buf, "DIJING-%s-S%d--V%d%d",
+                    CONFIG_PRODUCT_NAME , id, config_id[2], config_id[3]);
+        }
+	else if(!strncmp(product_id, "YEJI", sizeof("YEJI"))){ //LINE<20160617><add tp info for p7201>wangyanhui
+            sprintf(buf, "YEJI-%s-S%d--V%d%d",
+                    CONFIG_PRODUCT_NAME ,  id, config_id[2]-0x30, config_id[3]-0x30);
+        }
+        else{
+	//LINE<FFBAKK-502><20141104>Modify TP information;xiongdajun
+            sprintf(buf, "JIEMIAN-%s-S%d--V%d%d",
+                    CONFIG_PRODUCT_NAME , id, config_id[2]-0x30, config_id[3]-0x30);
+        }
+#endif
+	store_tp_info(buf);
+	//pr_info("%s : config_id=%s, product_id=%s,  id=%d, rev_id=%d\n", __func__, config_id, product_id, id, rev_id);
+	return 0;
+}
+#endif
+//Begin<BUG><JABALL-27><20150407>store tp  info;xiongdajun
 struct image_header_data {
 	union {
 		struct {
@@ -764,6 +806,9 @@ static enum flash_area fwu_go_nogo(void)
 
 	imagePR = kzalloc(sizeof(MAX_FIRMWARE_ID_LEN), GFP_KERNEL);
 	if (!imagePR) {
+		dev_err(&i2c_client->dev,
+			"%s: Failed to alloc mem for image pointer\n",
+			__func__);
 		flash_area = NONE;
 		return flash_area;
 	}
@@ -771,8 +816,30 @@ static enum flash_area fwu_go_nogo(void)
 	if (fwu->force_update) {
 		flash_area = UI_FIRMWARE;
 		goto exit;
+	} else {
+		// TINNO: don't upgrade fw in FTM mode
+		#define STRING_BOOT_FTM_MODE "androidboot.mode=ffbm-01"
+		if (strstr(saved_command_line, STRING_BOOT_FTM_MODE)) {
+			flash_area = NONE;
+			goto exit;
+		}
+	}
+//Begin<REQ><20150409><TP update if in flash prog mode>;xiongdajun
+	retval = fwu_read_f01_device_status(&f01_device_status);
+	if (retval < 0) {
+		flash_area = NONE;
+		goto exit;
 	}
 
+	/* Force update firmware when device is in bootloader mode */
+	if (f01_device_status.flash_prog) {
+		dev_info(&i2c_client->dev,
+			"%s: In flash prog mode\n",
+			__func__);
+		flash_area = UI_FIRMWARE;
+		goto exit;
+	}
+//end<REQ><20150409><TP update if in flash prog mode>;xiongdajun
 	if (img->is_contain_build_info) {
 		/* if package id does not match, do not update firmware */
 		fwu->fn_ptr->read(fwu->rmi4_data,
@@ -810,21 +877,6 @@ static enum flash_area fwu_go_nogo(void)
 			fwu->config_block_count * fwu->block_size,
 			img->config_size);
 		flash_area = NONE;
-		goto exit;
-	}
-
-	retval = fwu_read_f01_device_status(&f01_device_status);
-	if (retval < 0) {
-		flash_area = NONE;
-		goto exit;
-	}
-
-	/* Force update firmware when device is in bootloader mode */
-	if (f01_device_status.flash_prog) {
-		dev_info(&i2c_client->dev,
-			"%s: In flash prog mode\n",
-			__func__);
-		flash_area = UI_FIRMWARE;
 		goto exit;
 	}
 
@@ -1585,7 +1637,9 @@ static int fwu_start_reflash(void)
 	const struct firmware *fw_entry = NULL;
 	struct f01_device_status f01_device_status;
 	enum flash_area flash_area;
-
+#ifdef CONFIG_DEV_INFO
+	unsigned char fw_config_id[4];
+#endif
 	pr_notice("%s: Start of reflash process\n", __func__);
 
 	if (fwu->ext_data_source)
@@ -1678,6 +1732,8 @@ static int fwu_start_reflash(void)
 
 	/* reset device */
 	fwu_reset_device();
+	msleep(200);
+	fwu_scan_pdt();
 
 	/* check device status */
 	retval = fwu_read_f01_device_status(&f01_device_status);
@@ -1701,6 +1757,26 @@ exit:
 		release_firmware(fw_entry);
 
 	pr_notice("%s: End of reflash process\n", __func__);
+//Begin<BUG><JABALL-27><20150407>store tp  info;xiongdajun
+#ifdef CONFIG_DEV_INFO
+	/* device config id */
+	retval = fwu->fn_ptr->read(fwu->rmi4_data,
+				fwu->f34_fd.ctrl_base_addr,
+				fw_config_id,
+				sizeof(fw_config_id));
+	if (retval < 0) {
+		fw_config_id[0] = 1;
+		fw_config_id[1] = 1;
+		fw_config_id[2] = 1;
+		fw_config_id[3] = 1;
+	}
+	//printk("limi.zhang %s : fwu->f34_fd.ctrl_base_addr=0x%x\n", __func__, fwu->f34_fd.ctrl_base_addr);
+	//printk("limi.zhang %s : %x.%x.%x.%x\n", __func__, fw_config_id[0], fw_config_id[1], fw_config_id[2], fw_config_id[3]);
+	save_tp_info(fwu->product_id, fw_config_id, fwu->rmi4_data->rmi4_mod_info.package_id,
+		fwu->rmi4_data->rmi4_mod_info.package_id_rev);
+#endif
+//END<BUG><JABALL-27><20150407>store tp  info;xiongdajun
+
 	fwu->rmi4_data->stay_awake = false;
 	return retval;
 }
