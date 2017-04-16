@@ -59,6 +59,11 @@
 extern void printascii(char *);
 #endif
 
+//++TN:peter add kernel log info
+#ifdef PRINTK_DEBUG_PREFIX
+static DEFINE_PER_CPU(char, printk_state);
+#endif
+//--TN:peter
 int console_printk[4] = {
 	CONSOLE_LOGLEVEL_DEFAULT,	/* console_loglevel */
 	MESSAGE_LOGLEVEL_DEFAULT,	/* default_message_loglevel */
@@ -429,10 +434,31 @@ static int log_store(int facility, int level,
 	struct printk_log *msg;
 	u32 size, pad_len;
 	u16 trunc_msg_len = 0;
+//++TN:peter add kernel log info
+#ifdef PRINTK_DEBUG_PREFIX
+	int this_cpu = smp_processor_id();
+	char state = __raw_get_cpu_var(printk_state);
+	char tbuf[50];
+	unsigned tlen;
+if (state == 0) {
+		__raw_get_cpu_var(printk_state) = ' ';
+		state = ' ';
+	}
+
+	if (console_suspended == 0)
+		tlen = snprintf(tbuf, sizeof(tbuf), "%c(%x)[%d:%s]", state, this_cpu, current->pid, current->comm);
+	else
+		tlen = snprintf(tbuf, sizeof(tbuf), "%c%x)", state, this_cpu);
+
+		/* number of '\0' padding bytes to next message */
+	size = msg_used_size(text_len + tlen, dict_len, &pad_len);
+
+#else
 
 	/* number of '\0' padding bytes to next message */
 	size = msg_used_size(text_len, dict_len, &pad_len);
-
+#endif
+//--TN:peter
 	if (log_make_free_space(size)) {
 		/* truncate the message if it is too long for empty buffer */
 		size = truncate_msg(&text_len, &trunc_msg_len,
@@ -455,7 +481,18 @@ static int log_store(int facility, int level,
 
 	/* fill message */
 	msg = (struct printk_log *)(log_buf + log_next_idx);
+//++TN:peter add kernel log info
+#ifdef PRINTK_DEBUG_PREFIX
+    memcpy(log_text(msg), tbuf, tlen);
+	if (tlen + text_len > LOG_LINE_MAX)
+		text_len = LOG_LINE_MAX - tlen;
+
+	memcpy(log_text(msg) + tlen, text, text_len);
+    text_len += tlen;
+#else
 	memcpy(log_text(msg), text, text_len);
+#endif
+//--TN:peter
 	msg->text_len = text_len;
 	if (trunc_msg_len) {
 		memcpy(log_text(msg) + text_len, trunc_msg, trunc_msg_len);
@@ -1640,6 +1677,11 @@ asmlinkage int vprintk_emit(int facility, int level,
 	bool in_sched = false;
 	/* cpu currently holding logbuf_lock in this function */
 	static volatile unsigned int logbuf_cpu = UINT_MAX;
+	//++TN:peter add kernel log info
+#ifdef PRINTK_DEBUG_PREFIX
+		int in_irq_disable = irqs_disabled();
+#endif
+	//--TN:peter
 
 	if (level == SCHED_MESSAGE_LOGLEVEL) {
 		level = -1;
@@ -1731,7 +1773,14 @@ asmlinkage int vprintk_emit(int facility, int level,
 
 	if (dict)
 		lflags |= LOG_PREFIX|LOG_NEWLINE;
-
+	//++TN:peter add kernel log info
+#ifdef PRINTK_DEBUG_PREFIX
+    if (in_irq_disable)
+        __raw_get_cpu_var(printk_state) = '-';
+    else
+        __raw_get_cpu_var(printk_state) = ' ';
+#endif
+//--TN:peter
 	if (!(lflags & LOG_NEWLINE)) {
 		/*
 		 * Flush the conflicting buffer. An earlier newline was missing,
