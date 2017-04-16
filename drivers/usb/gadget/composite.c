@@ -2274,7 +2274,7 @@ composite_suspend(struct usb_gadget *gadget)
 	cdev->suspended = 1;
 	spin_unlock_irqrestore(&cdev->lock, flags);
 
-	usb_gadget_vbus_draw(gadget, 2);
+	usb_gadget_vbus_draw(gadget, 500);//LINE<BUG><HHABM-1319><When usb suspend, always vote 500mA current then usb won't disconnect.><20160614>huiyong.yin
 }
 
 static void
