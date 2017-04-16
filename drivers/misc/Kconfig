@@ -3,7 +3,11 @@
 #
 
 menu "Misc devices"
-
+#BEGIN<REQ><FCEBL-64><20150901>Add store lcd  info;xiongdajun
+config DEV_INFO
+	tristate "peripheral ic info"
+	default n
+#END<REQ><FCEBL-64><20150901>Add store lcd  info;xiongdajun
 config SENSORS_LIS3LV02D
 	tristate
 	depends on INPUT
@@ -535,6 +539,12 @@ config VEXPRESS_SYSCFG
 	  bus. System Configuration interface is one of the possible means
 	  of generating transactions on this bus.
 
+config TINNO_KE_DBUG
+   tristate "support tinno kernel debug!"
+   default y
+   help
+    This option enables support tinno kernel debug.
+
 config UID_CPUTIME
 	tristate "Per-UID cpu time statistics"
 	depends on PROFILING
@@ -580,6 +590,11 @@ config QPNP_MISC
 	  peripheral. The MISC peripheral holds the USB ID interrupt
 	  and the driver provides an API to check if this interrupt
 	  is available on the current PMIC chip.
+
+config TINNO_DEV_INFO
+   tristate "support tinno dev info!"
+   help
+    This option enables support tinno dev info.
 
 source "drivers/misc/c2port/Kconfig"
 source "drivers/misc/eeprom/Kconfig"
