@@ -2353,7 +2353,6 @@ static int mdss_mdp_probe(struct platform_device *pdev)
 	pm_runtime_enable(&pdev->dev);
 	if (!pm_runtime_enabled(&pdev->dev))
 		mdss_mdp_footswitch_ctrl(mdata, true);
-<<<<<<< HEAD
 
 	rc = mdss_mdp_bus_scale_register(mdata);
 	if (rc) {
