@@ -191,6 +191,10 @@ static struct device_attribute power_supply_attrs[] = {
 	POWER_SUPPLY_ATTR(capacity_alert_max),
 	POWER_SUPPLY_ATTR(capacity_level),
 	POWER_SUPPLY_ATTR(capacity_raw),
+	//add for Battery information
+	POWER_SUPPLY_ATTR(batt_vol),
+       //add end
+    POWER_SUPPLY_ATTR(charge_speed),
 	POWER_SUPPLY_ATTR(temp),
 	POWER_SUPPLY_ATTR(temp_max),
 	POWER_SUPPLY_ATTR(temp_min),
