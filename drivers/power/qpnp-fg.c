@@ -36,6 +36,12 @@
 #include <linux/alarmtimer.h>
 #include <linux/qpnp/qpnp-revid.h>
 
+#ifdef CONFIG_TINNO_NO_BATID
+const char* Tinno_battery_name;
+#endif
+
+#define CONFIG_TNMB_SPECIAL_BATSOC
+
 /* Register offsets */
 
 /* Interrupt offsets */
@@ -613,6 +619,10 @@ struct fg_chip {
 	struct delayed_work	check_sanity_work;
 	struct fg_wakeup_source	sanity_wakeup_source;
 	u8			last_beat_count;
+#ifdef CONFIG_TNMB_SPECIAL_BATSOC
+	bool			spebatenabled;
+	u32			spebatsoc[3];
+#endif
 };
 
 /* FG_MEMIF DEBUGFS structures */
@@ -1931,11 +1941,11 @@ static void fg_handle_battery_insertion(struct fg_chip *chip)
 }
 
 
-static int soc_to_setpoint(int soc)
+/*static int soc_to_setpoint(int soc)
 {
 	return DIV_ROUND_CLOSEST(soc * 255, 100);
 }
-
+*/
 static void batt_to_setpoint_adc(int vbatt_mv, u8 *data)
 {
 	int val;
@@ -2137,8 +2147,10 @@ static int get_monotonic_soc_raw(struct fg_chip *chip)
 		return -EINVAL;
 	}
 
+#ifndef CONFIG_TNMB_SPECIAL_BATSOC
 	if (fg_debug_mask & FG_POWER_SUPPLY)
 		pr_info_ratelimited("raw: 0x%02x\n", cap[0]);
+#endif
 	return cap[0];
 }
 
@@ -2151,23 +2163,53 @@ static int get_prop_capacity(struct fg_chip *chip)
 {
 	int msoc, rc;
 	bool vbatt_low_sts;
+#ifdef CONFIG_TNMB_SPECIAL_BATSOC
+	int nsoc;
+#endif
 
 	if (chip->use_last_soc && chip->last_soc) {
 		if (chip->last_soc == FULL_SOC_RAW)
 			return FULL_CAPACITY;
+//modify by alik
+printk("get_prop_capacity 1 !\n");
+#ifdef CONFIG_TNMB_SPECIAL_BATSOC
+	if (chip->spebatenabled) {
+		msoc = chip->last_soc;
+		if (msoc == 0) {
+			return EMPTY_CAPACITY;
+		} else if (msoc <= (int)chip->spebatsoc[0]) {
+		        nsoc = DIV_ROUND_CLOSEST((msoc - 1) * ((int)chip->spebatsoc[1] - 2), (int)chip->spebatsoc[0] - 2) + 1;
+		        if(nsoc < EMPTY_CAPACITY) nsoc = EMPTY_CAPACITY;
+			return nsoc;
+		}
+		nsoc = DIV_ROUND_CLOSEST((msoc - 1 - (int)chip->spebatsoc[0]) * (FULL_CAPACITY - (int)chip->spebatsoc[1] - 1), (int)chip->spebatsoc[2] - (int)chip->spebatsoc[0]) + (int)chip->spebatsoc[1];
+		if(nsoc > FULL_CAPACITY) nsoc = FULL_CAPACITY;
+		return nsoc;
+        } else {
 		return DIV_ROUND_CLOSEST((chip->last_soc - 1) *
-				(FULL_CAPACITY - 2),
+				(FULL_CAPACITY - 1),
 				FULL_SOC_RAW - 2) + 1;
+        }
+#else
+		return DIV_ROUND_CLOSEST((chip->last_soc - 1) *
+				(FULL_CAPACITY - 1),
+				FULL_SOC_RAW - 2) + 1;
+#endif
 	}
 
 	if (chip->battery_missing)
 		return MISSING_CAPACITY;
 
 	if (!chip->profile_loaded && !chip->use_otp_profile)
-		return DEFAULT_CAPACITY;
+		//return DEFAULT_CAPACITY;
+        return DIV_ROUND_CLOSEST((get_monotonic_soc_raw(chip) - 1) * (FULL_CAPACITY - 1),FULL_SOC_RAW - 2) + 1;//LINE<BUG><><Battery soc hopping form 1% to 50% after power on ><20160906>huiyong.yin
 
 	if (chip->charge_full)
 		return FULL_CAPACITY;
+
+printk("get_prop_capacity 2 !\n");
+
+
 
 	if (chip->soc_empty) {
 		if (fg_debug_mask & FG_POWER_SUPPLY)
@@ -2198,9 +2240,24 @@ static int get_prop_capacity(struct fg_chip *chip)
 	} else if (msoc == FULL_SOC_RAW) {
 		return FULL_CAPACITY;
 	}
+#ifdef CONFIG_TNMB_SPECIAL_BATSOC  //LIUJ20160625ADDO
+        else if (chip->spebatenabled && msoc <= (int)chip->spebatsoc[0]) {
+                nsoc = DIV_ROUND_CLOSEST((msoc - 1) * ((int)chip->spebatsoc[1] - 2), (int)chip->spebatsoc[0] - 2) + 1;
+	        return nsoc;
+        }
+	if (chip->spebatenabled) {
+		nsoc = DIV_ROUND_CLOSEST((msoc - 1 - (int)chip->spebatsoc[0]) * (FULL_CAPACITY - (int)chip->spebatsoc[1] - 1), (int)chip->spebatsoc[2] - (int)chip->spebatsoc[0]) + (int)chip->spebatsoc[1];
+		if(nsoc > FULL_CAPACITY) nsoc = FULL_CAPACITY;
+		return nsoc;
+        } else
+	return DIV_ROUND_CLOSEST((msoc - 1) * (FULL_CAPACITY - 1),FULL_SOC_RAW - 2) + 1;
+#else
+//modiy by alik
+//	return DIV_ROUND_CLOSEST((msoc - 1) * (FULL_CAPACITY - 2),
+//			FULL_SOC_RAW - 2) + 1;
 
-	return DIV_ROUND_CLOSEST((msoc - 1) * (FULL_CAPACITY - 2),
-			FULL_SOC_RAW - 2) + 1;
+	return DIV_ROUND_CLOSEST((msoc - 1) * (FULL_CAPACITY - 1),FULL_SOC_RAW - 2) + 1;
+#endif
 }
 
 #define HIGH_BIAS	3
@@ -2891,8 +2948,10 @@ static void update_cycle_count(struct work_struct *work)
 		/* Find out which bucket the SOC falls in */
 		bucket = batt_soc / BUCKET_SOC_PCT;
 
+#ifndef CONFIG_TNMB_SPECIAL_BATSOC
 		if (fg_debug_mask & FG_STATUS)
 			pr_info("batt_soc: %x bucket: %d\n", reg[2], bucket);
+#endif
 
 		/*
 		 * If we've started counting for the previous bucket,
@@ -3265,6 +3324,7 @@ static int fg_power_get_property(struct power_supply *psy,
 		break;
 	case POWER_SUPPLY_PROP_CAPACITY:
 		val->intval = get_prop_capacity(chip);
+		printk("POWER_SUPPLY_PROP_CAPACITY  read soc= %d  \n",val->intval );
 		break;
 	case POWER_SUPPLY_PROP_CAPACITY_RAW:
 		val->intval = get_sram_prop_now(chip, FG_DATA_BATT_SOC);
@@ -3827,10 +3887,12 @@ static int fg_cap_learning_check(struct fg_chip *chip)
 			}
 		}
 		battery_soc = get_battery_soc_raw(chip);
+#ifndef CONFIG_TNMB_SPECIAL_BATSOC
 		if (fg_debug_mask & FG_AGING)
 			pr_info("checking battery soc (%d vs %d)\n",
 				battery_soc * 100 / FULL_PERCENT_3B,
 				chip->learning_data.max_start_soc);
+#endif
 		/* check if the battery is low enough to start soc learning */
 		if (battery_soc * 100 / FULL_PERCENT_3B
 				> chip->learning_data.max_start_soc) {
@@ -5924,7 +5986,10 @@ static int fg_batt_profile_init(struct fg_chip *chip)
 	const char *data, *batt_type_str;
 	bool tried_again = false, vbat_in_range, profiles_same;
 	u8 reg = 0;
-
+	#ifdef TINNO_BAT_EST_DIFF_DETECT
+	int detect_count=0;
+	union power_supply_propval tinno_system_level = {0, };
+	#endif
 wait:
 	fg_stay_awake(&chip->profile_wakeup_source);
 	ret = wait_for_completion_interruptible_timeout(&chip->batt_id_avail,
@@ -6066,8 +6131,54 @@ wait:
 		goto reschedule;
 	}
 
+#ifdef TINNO_BAT_EST_DIFF_DETECT
+	printk("FG_DATA_VOLTAGE =%d \n",fg_data[FG_DATA_VOLTAGE].value);
+	if(fg_data[FG_DATA_VOLTAGE].value>TINNO_BAT_LOW_VOLTAGE_LIMIT)
+	{
+	//set input current 0.
+			tinno_system_level.intval=3;
+			chip->batt_psy->set_property(chip->batt_psy,
+			POWER_SUPPLY_PROP_SYSTEM_TEMP_LEVEL,
+			&tinno_system_level);
+	}else {
+
+	}
+//update sram data
+	      cancel_delayed_work(&chip->update_sram_data);
+	      schedule_delayed_work(
+		&chip->update_sram_data,
+		msecs_to_jiffies(0));
+		msleep(500);
+#endif
+
+
+
 	vbat_in_range = get_vbat_est_diff(chip)
 			< settings[FG_MEM_VBAT_EST_DIFF].value * 1000;
+
+#ifdef TINNO_BAT_EST_DIFF_DETECT
+//set input current 3000
+	while((!vbat_in_range)&&(detect_count<TINNO_BAT_EST_DETECT_TIMES))
+	{
+			cancel_delayed_work(&chip->update_sram_data);
+			schedule_delayed_work(
+			&chip->update_sram_data,
+			msecs_to_jiffies(0));
+			msleep(1500);
+			vbat_in_range = get_vbat_est_diff(chip) < settings[FG_MEM_VBAT_EST_DIFF].value * 1000;
+			detect_count++;
+		       printk("FG_DATA_VOLTAGE=%d  FG_DATA_CPRED_VOLTAGE=%d \n",fg_data[FG_DATA_VOLTAGE].value
+				,fg_data[FG_DATA_CPRED_VOLTAGE].value);
+
+	}
+			tinno_system_level.intval=0;
+			chip->batt_psy->set_property(chip->batt_psy,
+			POWER_SUPPLY_PROP_SYSTEM_TEMP_LEVEL,
+			&tinno_system_level);
+#endif
+
+
+
 	profiles_same = memcmp(chip->batt_profile, data,
 					PROFILE_COMPARE_LEN) == 0;
 	if (reg & PROFILE_INTEGRITY_BIT) {
@@ -6315,9 +6426,12 @@ static void charge_full_work(struct work_struct *work)
 		pr_err("Unable to read battery soc: %d\n", rc);
 		goto out;
 	}
-	if (buffer[2] <= resume_soc_raw) {
+// modify by alik ,if the battery soc raw <resume soc raw ,it must in recharging  process.
+	if (buffer[2] <= (resume_soc_raw-4)) {
 		if (fg_debug_mask & FG_STATUS)
 			pr_info("bsoc = 0x%02x <= resume = 0x%02x\n",
+					buffer[2], resume_soc_raw);
+		printk("charge_full_work bsoc = 0x%02x <= resume = 0x%02x\n",
 					buffer[2], resume_soc_raw);
 		disable = true;
 	}
@@ -6352,8 +6466,10 @@ static void charge_full_work(struct work_struct *work)
 	fg_mem_read(chip, &reg, PROFILE_INTEGRITY_REG, 1, 0, 0);
 out:
 	fg_mem_release(chip);
-	if (disable)
+	if (disable){
+		printk("charge_full_work set charge_full false!\n");
 		chip->charge_full = false;
+		}
 }
 
 static void update_bcl_thresholds(struct fg_chip *chip)
@@ -6808,6 +6924,22 @@ static int fg_of_init(struct fg_chip *chip)
 			chip->batt_temp_low_limit, chip->batt_temp_high_limit);
 
 	OF_READ_PROPERTY(chip->cc_soc_limit_pct, "fg-cc-soc-limit-pct", rc, 0);
+
+#ifdef CONFIG_TNMB_SPECIAL_BATSOC
+	if (of_find_property(chip->spmi->dev.of_node, "qcom,tnmb-spebat", NULL)) {
+		rc = of_property_read_u32_array(chip->spmi->dev.of_node, "qcom,tnmb-spebat", chip->spebatsoc, 3);
+		if (rc) {
+			chip->spebatenabled = false;
+		} else
+                        chip->spebatenabled = true;
+	} else {
+                chip->spebatenabled = false;
+	}
+	//if (fg_debug_mask & FG_STATUS) {
+	    if (chip->spebatenabled) printk("spebat %d %d %d\n", chip->spebatsoc[0], chip->spebatsoc[1], chip->spebatsoc[2] );
+            else printk("spebat disable\n" );
+        //}
+#endif
 
 	if (fg_debug_mask & FG_STATUS)
 		pr_info("cc-soc-limit-pct: %d\n", chip->cc_soc_limit_pct);
@@ -7614,7 +7746,7 @@ static int fg_common_hw_init(struct fg_chip *chip)
 	}
 
 	rc = fg_mem_masked_write(chip, settings[FG_MEM_DELTA_SOC].address, 0xFF,
-			soc_to_setpoint(settings[FG_MEM_DELTA_SOC].value),
+			/*soc_to_setpoint(settings[FG_MEM_DELTA_SOC].value)-1*/1,
 			settings[FG_MEM_DELTA_SOC].offset);
 	if (rc) {
 		pr_err("failed to write delta soc rc=%d\n", rc);
