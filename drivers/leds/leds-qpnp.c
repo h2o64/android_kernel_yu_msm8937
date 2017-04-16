@@ -904,23 +904,33 @@ static int qpnp_mpp_set(struct qpnp_led_data *led)
 			}
 		}
 		if (led->mpp_cfg->pwm_mode == PWM_MODE) {
-			/*config pwm for brightness scaling*/
-			period_us = led->mpp_cfg->pwm_cfg->pwm_period_us;
-			if (period_us > INT_MAX / NSEC_PER_USEC) {
-				duty_us = (period_us * led->cdev.brightness) /
-					LED_FULL;
-				rc = pwm_config_us(
-					led->mpp_cfg->pwm_cfg->pwm_dev,
-					duty_us,
-					period_us);
-			} else {
-				duty_ns = ((period_us * NSEC_PER_USEC) /
-					LED_FULL) * led->cdev.brightness;
+			if(led->cdev.brightness > 250){
 				rc = pwm_config(
-					led->mpp_cfg->pwm_cfg->pwm_dev,
-					duty_ns,
-					period_us * NSEC_PER_USEC);
+						led->mpp_cfg->pwm_cfg->pwm_dev,
+						1000000,
+						1000000);
+			}//<20160329><add for green led output high not wait 2s>wangyanhui add
+			else
+			{
+				/*config pwm for brightness scaling*/
+				period_us = led->mpp_cfg->pwm_cfg->pwm_period_us;
+				if (period_us > INT_MAX / NSEC_PER_USEC) {
+					duty_us = (period_us * led->cdev.brightness) /
+						LED_FULL;
+					rc = pwm_config_us(
+						led->mpp_cfg->pwm_cfg->pwm_dev,
+						duty_us,
+						period_us);
+				} else {
+					duty_ns = ((period_us * NSEC_PER_USEC) /
+						LED_FULL) * led->cdev.brightness;
+					rc = pwm_config(
+						led->mpp_cfg->pwm_cfg->pwm_dev,
+						duty_ns,
+						period_us * NSEC_PER_USEC);
+				}
 			}
+
 			if (rc < 0) {
 				dev_err(&led->spmi_dev->dev, "Failed to " \
 					"configure pwm for new values\n");
@@ -2612,8 +2622,13 @@ restore:
 static void led_blink(struct qpnp_led_data *led,
 			struct pwm_config_data *pwm_cfg)
 {
-	int rc;
+	//int rc;
+//BEGIN<20160324><blinking use pwm>wangyanhui modify
+	if(led->cdev.brightness>0)
+		led->cdev.brightness = 153;
 
+	qpnp_mpp_set(led);
+#if 0
 	flush_work(&led->work);
 	mutex_lock(&led->lock);
 	if (pwm_cfg->use_blink) {
@@ -2654,6 +2669,8 @@ static void led_blink(struct qpnp_led_data *led,
 		}
 	}
 	mutex_unlock(&led->lock);
+#endif
+//END<20160324><blinking use pwm>wangyanhui modify
 }
 
 static ssize_t blink_store(struct device *dev,
@@ -3430,7 +3447,8 @@ static int qpnp_get_config_pwm(struct pwm_config_data *pwm_cfg,
 	pwm_cfg->use_blink =
 		of_property_read_bool(node, "qcom,use-blink");
 
-	if (pwm_cfg->mode == LPG_MODE || pwm_cfg->use_blink) {
+	//if (pwm_cfg->mode == LPG_MODE || pwm_cfg->use_blink) {
+	if (pwm_cfg->mode == LPG_MODE) {//<20160324><blinking use pwm not LGP>wangyanhui modify
 		pwm_cfg->duty_cycles =
 			devm_kzalloc(&spmi_dev->dev,
 			sizeof(struct pwm_duty_cycles), GFP_KERNEL);
