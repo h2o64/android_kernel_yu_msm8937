@@ -25,6 +25,9 @@
 #include "bus.h"
 #include "mmc_ops.h"
 #include "sd_ops.h"
+//added start for adding flash information in *#0661#
+#include <linux/string.h>
+//added end
 
 static const unsigned int tran_exp[] = {
 	10000,		100000,		1000000,	10000000,
@@ -812,6 +815,69 @@ MMC_DEV_ATTR(raw_rpmb_size_mult, "%#x\n", card->ext_csd.raw_rpmb_size_mult);
 MMC_DEV_ATTR(enhanced_rpmb_supported, "%#x\n",
 		card->ext_csd.enhanced_rpmb_supported);
 MMC_DEV_ATTR(rel_sectors, "%#x\n", card->ext_csd.rel_sectors);
+//added start for adding flash information in *#0661#
+extern int emmc_capacity;
+static ssize_t mmc_chipinfo_show (struct device *dev, struct device_attribute *attr, char *buf)
+{
+    struct mmc_card *card = mmc_dev_to_card(dev);
+    char tempID[40] = "";
+    char vendorName[16] = "";
+    char romsize[8] = "";
+    char ramsize[8] = "";
+    struct sysinfo si;
+
+    si_meminfo(&si);
+
+    if(si.totalram > 1572864 )				   // 6G = 1572864 	(256 *1024)*6
+   		strcpy(ramsize , "8G");
+    else if(si.totalram > 1048576)			  // 4G = 786432 	(256 *1024)*4
+    		strcpy(ramsize , "6G");
+    else if(si.totalram > 786432)			 // 3G = 786432 	(256 *1024)*3
+    		strcpy(ramsize , "4G");
+    else if(si.totalram > 524288)			// 2G = 524288 	(256 *1024)*2
+    		strcpy(ramsize , "3G");
+    else if(si.totalram > 262144)               // 1G = 262144		(256 *1024)     4K page size
+    		strcpy(ramsize , "2G");
+    else
+    		strcpy(ramsize , "1G");
+
+    if(emmc_capacity > 67108864)
+		strcpy(romsize , "64G");
+    else if(emmc_capacity > 33554432)  // 33554432 = 16G *1024*1024*1024 /512            512 page
+		strcpy(romsize , "32G");
+    else if(emmc_capacity > 16777216)  // 16777216 = 8G *1024*1024*1024 /512            512 page
+		strcpy(romsize , "16G");
+    else if(emmc_capacity > 8388608)  // 8388608 = 4G *1024*1024*1024 /512            512 page
+		strcpy(romsize , "8G");
+    else
+		strcpy(romsize , "4G");
+
+    memset(tempID, 0, sizeof(tempID));
+
+    sprintf(tempID, "%4x%4x%4x%4x", card->raw_cid[0],
+    	                                                   card->raw_cid[1],
+    	                                                   card->raw_cid[2],
+    	                                                   card->raw_cid[3]);
+
+    printk("FlashID is %s, totalram= %ld, emmc_capacity =%d\n",tempID, si.totalram, emmc_capacity);
+
+    if(strnicmp((const char *)tempID, "90014A", 6) == 0)           // 90014A is OEMid for Hynix
+   		strcpy(vendorName , "Hynix");
+    else if(strnicmp((const char *)tempID, "150100", 6) == 0)		// 150100 is OEMid for Samsung
+   		strcpy(vendorName , "Samsung");
+    else if(strnicmp((const char *)tempID, "450100", 6) == 0)		// 450100 is OEMid for Sandisk
+   		strcpy(vendorName , "Sandisk");
+    else
+		strcpy(vendorName , "Unknown");
+
+    memset(tempID, 0, sizeof(tempID));
+    sprintf(tempID,"%s_%s+%s", 	vendorName,	romsize,	ramsize);
+
+    printk("Exit in show_chipinfo_value\n");
+    return sprintf(buf,"%s", tempID);
+}
+static DEVICE_ATTR(chipinfo, S_IRUGO, mmc_chipinfo_show, NULL);
+//added end
 
 static struct attribute *mmc_std_attrs[] = {
 	&dev_attr_cid.attr,
@@ -831,6 +897,9 @@ static struct attribute *mmc_std_attrs[] = {
 	&dev_attr_raw_rpmb_size_mult.attr,
 	&dev_attr_enhanced_rpmb_supported.attr,
 	&dev_attr_rel_sectors.attr,
+//added start for adding flash information in *#0661#
+    	&dev_attr_chipinfo.attr,
+//added end
 	NULL,
 };
 ATTRIBUTE_GROUPS(mmc_std);
