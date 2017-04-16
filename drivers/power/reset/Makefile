@@ -17,3 +17,9 @@ obj-$(CONFIG_POWER_RESET_VEXPRESS) += vexpress-poweroff.o
 obj-$(CONFIG_POWER_RESET_XGENE) += xgene-reboot.o
 obj-$(CONFIG_POWER_RESET_KEYSTONE) += keystone-reset.o
 obj-$(CONFIG_POWER_RESET_SYSCON) += syscon-reboot.o
+
+
+# zenghaihui forbid download mode
+ifeq ($(TARGET_BUILD_VARIANT),user)
+ccflags-y  += -D__BUILD_TYPE_USER__
+endif
