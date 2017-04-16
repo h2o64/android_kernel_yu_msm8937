@@ -253,6 +253,7 @@ struct synaptics_rmi4_data {
 	bool irq_enabled;
 	bool touch_stopped;
 	bool fingers_on_2d;
+       bool suspend;//Line<REQ><><20150815>Add WAKEUP_GESTURE for synaptics;xiongdajun
 	bool sensor_sleep;
 	bool flip_x;
 	bool flip_y;
@@ -260,6 +261,11 @@ struct synaptics_rmi4_data {
 	bool suspended;
 	wait_queue_head_t wait;
 	bool stay_awake;
+      //Begin<REQ><><20150815>Add WAKEUP_GESTURE for synaptics;xiongdajun
+    	bool f11_wakeup_gesture;
+       bool f12_wakeup_gesture;
+       bool enable_wakeup_gesture;
+       //End<REQ><><20150815>Add WAKEUP_GESTURE for synaptics;xiongdajun
 	bool staying_awake;
 	int (*i2c_read)(struct synaptics_rmi4_data *pdata, unsigned short addr,
 			unsigned char *data, unsigned short length);
@@ -288,7 +294,150 @@ struct synaptics_rmi4_data {
 	struct clk *iface_clk;
 #endif
 };
+ //Begin<REQ><><20150902>Add WAKEUP_GESTURE for synaptics;xiongdajun
+#ifdef CONFIG_SYNA_TGESTURE_FUNCTION
 
+/*
+ * struct synaptics_rmi4_f11_extra_data - extra data of F$11
+ * @data38_offset: offset to F11_2D_DATA38 register
+ */
+struct synaptics_rmi4_f11_extra_data {
+	unsigned char data38_offset;
+};
+
+struct synaptics_rmi4_f11_query_0_5 {
+	union {
+		struct {
+			/* query 0 */
+			unsigned char f11_query0_b0__2:3;
+			unsigned char has_query_9:1;
+			unsigned char has_query_11:1;
+			unsigned char has_query_12:1;
+			unsigned char has_query_27:1;
+			unsigned char has_query_28:1;
+
+			/* query 1 */
+			unsigned char num_of_fingers:3;
+			unsigned char has_rel:1;
+			unsigned char has_abs:1;
+			unsigned char has_gestures:1;
+			unsigned char has_sensitibity_adjust:1;
+			unsigned char f11_query1_b7:1;
+
+			/* query 2 */
+			unsigned char num_of_x_electrodes;
+
+			/* query 3 */
+			unsigned char num_of_y_electrodes;
+
+			/* query 4 */
+			unsigned char max_electrodes:7;
+			unsigned char f11_query4_b7:1;
+
+			/* query 5 */
+			unsigned char abs_data_size:2;
+			unsigned char has_anchored_finger:1;
+			unsigned char has_adj_hyst:1;
+			unsigned char has_dribble:1;
+			unsigned char has_bending_correction:1;
+			unsigned char has_large_object_suppression:1;
+			unsigned char has_jitter_filter:1;
+		} __packed;
+		unsigned char data[6];
+	};
+};
+
+
+struct synaptics_rmi4_f11_query_7_8 {
+	union {
+		struct {
+			/* query 7 */
+			unsigned char has_single_tap:1;
+			unsigned char has_tap_and_hold:1;
+			unsigned char has_double_tap:1;
+			unsigned char has_early_tap:1;
+			unsigned char has_flick:1;
+			unsigned char has_press:1;
+			unsigned char has_pinch:1;
+			unsigned char has_chiral_scroll:1;
+
+			/* query 8 */
+			unsigned char has_palm_detect:1;
+			unsigned char has_rotate:1;
+			unsigned char has_touch_shapes:1;
+			unsigned char has_scroll_zones:1;
+			unsigned char individual_scroll_zones:1;
+			unsigned char has_multi_finger_scroll:1;
+			unsigned char has_multi_finger_scroll_edge_motion:1;
+			unsigned char has_multi_finger_scroll_inertia:1;
+		} __packed;
+		unsigned char data[2];
+	};
+};
+
+struct synaptics_rmi4_f11_query_9 {
+	union {
+		struct {
+			unsigned char has_pen:1;
+			unsigned char has_proximity:1;
+			unsigned char has_large_object_sensitivity:1;
+			unsigned char has_suppress_on_large_object_detect:1;
+			unsigned char has_two_pen_thresholds:1;
+			unsigned char has_contact_geometry:1;
+			unsigned char has_pen_hover_discrimination:1;
+			unsigned char has_pen_hover_and_edge_filters:1;
+		} __packed;
+		unsigned char data[1];
+	};
+};
+
+struct synaptics_rmi4_f11_query_12 {
+	union {
+		struct {
+			unsigned char has_small_object_detection:1;
+			unsigned char has_small_object_detection_tuning:1;
+			unsigned char has_8bit_w:1;
+			unsigned char has_2d_adjustable_mapping:1;
+			unsigned char has_general_information_2:1;
+			unsigned char has_physical_properties:1;
+			unsigned char has_finger_limit:1;
+			unsigned char has_linear_cofficient_2:1;
+		} __packed;
+		unsigned char data[1];
+	};
+};
+
+struct synaptics_rmi4_f11_query_27 {
+	union {
+		struct {
+			unsigned char f11_query27_b0:1;
+			unsigned char has_pen_position_correction:1;
+			unsigned char has_pen_jitter_filter_coefficient:1;
+			unsigned char has_group_decomposition:1;
+			unsigned char has_wakeup_gesture:1;
+			unsigned char has_small_finger_correction:1;
+			unsigned char has_data_37:1;
+			unsigned char f11_query27_b7:1;
+		} __packed;
+		unsigned char data[1];
+	};
+};
+
+struct synaptics_rmi4_f11_ctrl_6_9 {
+	union {
+		struct {
+			unsigned char sensor_max_x_pos_7_0;
+			unsigned char sensor_max_x_pos_11_8:4;
+			unsigned char f11_ctrl7_b4__7:4;
+			unsigned char sensor_max_y_pos_7_0;
+			unsigned char sensor_max_y_pos_11_8:4;
+			unsigned char f11_ctrl9_b4__7:4;
+		} __packed;
+		unsigned char data[4];
+	};
+};
+#endif
+ //Begin<REQ><><20150902>Add WAKEUP_GESTURE for synaptics;xiongdajun
 enum exp_fn {
 	RMI_DEV = 0,
 	RMI_F34,
