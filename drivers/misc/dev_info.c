@@ -4,17 +4,11 @@
 #include <linux/module.h>
 #include <linux/init.h>
 
-//#define CONFIG_DEV_INFO_DEBUG
-
 #ifdef CDBG
 #undef CDBG
 #endif
 
-#ifdef CONFIG_DEV_INFO_DEBUG
-#define CDBG(fmt, args...) pr_err("[dev_info] " fmt, ##args)
-#else
 #define CDBG(fmt, args...) do { } while (0)
-#endif
 
 #define INFO_LEN  80
 
