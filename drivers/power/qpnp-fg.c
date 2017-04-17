@@ -36,10 +36,6 @@
 #include <linux/alarmtimer.h>
 #include <linux/qpnp/qpnp-revid.h>
 
-#ifdef CONFIG_TINNO_NO_BATID
-const char* Tinno_battery_name;
-#endif
-
 #define CONFIG_TNMB_SPECIAL_BATSOC
 
 /* Register offsets */
