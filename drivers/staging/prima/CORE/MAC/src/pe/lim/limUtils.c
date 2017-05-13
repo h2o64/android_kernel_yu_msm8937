@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2016. The Linux Foundation. All rights reserved.
+ * Copyright (c) 2011-2017 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -643,6 +643,13 @@ char *limMsgStr(tANI_U32 msgType)
 #ifdef WLAN_FEATURE_VOWIFI_11R
         case SIR_LIM_FT_PREAUTH_RSP_TIMEOUT:
             return "SIR_LIM_FT_PREAUTH_RSP_TIMEOUT";
+#endif
+
+#ifdef WLAN_FEATURE_LFR_MBB
+        case SIR_LIM_PREAUTH_MBB_RSP_TIMEOUT:
+            return "SIR_LIM_PREAUTH_MBB_RSP_TIMEOUT";
+        case SIR_LIM_REASSOC_MBB_RSP_TIMEOUT:
+            return "SIR_LIM_REASSOC_MBB_RSP_TIMEOUT";
 #endif
 
         case SIR_HAL_APP_SETUP_NTF:
@@ -8555,22 +8562,53 @@ bool lim_is_robust_mgmt_action_frame(uint8 action_catagory)
 }
 
 /**
- * lim_is_ext_cap_ie_present - checks if ext ie is present
+ * lim_compute_ext_cap_ie_length - compute the length of ext cap ie
+ * based on the bits set
  * @ext_cap: extended IEs structure
  *
- * Return: true if ext IEs are present else false
+ * Return: length of the ext cap ie, 0 means should not present
  */
-bool lim_is_ext_cap_ie_present (tDot11fIEExtCap *ext_cap)
+tANI_U8 lim_compute_ext_cap_ie_length (tDot11fIEExtCap *ext_cap) {
+    tANI_U8 i = DOT11F_IE_EXTCAP_MAX_LEN;
+
+    while (i) {
+        if (ext_cap->bytes[i-1]) {
+            break;
+        }
+        i --;
+    }
+
+    return i;
+}
+
+/**
+ * lim_update_caps_info_for_bss - Update capability info for this BSS
+ *
+ * @mac_ctx: mac context
+ * @caps: Pointer to capability info to be updated
+ * @bss_caps: Capability info of the BSS
+ *
+ * Update the capability info in Assoc/Reassoc request frames and reset
+ * the spectrum management, short preamble, immediate block ack bits
+ * if the BSS doesnot support it
+ *
+ * Return: None
+ */
+void lim_update_caps_info_for_bss(tpAniSirGlobal mac_ctx,
+                                  uint16_t *caps, uint16_t bss_caps)
 {
-    int i, size;
-    uint8_t *tmp_buf;
+    if (!(bss_caps & LIM_SPECTRUM_MANAGEMENT_BIT_MASK)) {
+          *caps &= (~LIM_SPECTRUM_MANAGEMENT_BIT_MASK);
+          limLog(mac_ctx, LOG1, FL("Clearing spectrum management:no AP support"));
+    }
 
-    tmp_buf = (uint8_t *) ext_cap;
-    size = sizeof(*ext_cap);
+    if (!(bss_caps & LIM_SHORT_PREAMBLE_BIT_MASK)) {
+          *caps &= (~LIM_SHORT_PREAMBLE_BIT_MASK);
+          limLog(mac_ctx, LOG1, FL("Clearing short preamble:no AP support"));
+    }
 
-    for (i = 0; i < size; i++)
-        if (tmp_buf[i])
-            return true;
-
-    return false;
+    if (!(bss_caps & LIM_IMMEDIATE_BLOCK_ACK_MASK)) {
+          *caps &= (~LIM_IMMEDIATE_BLOCK_ACK_MASK);
+          limLog(mac_ctx, LOG1, FL("Clearing Immed Blk Ack:no AP support"));
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2017 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -54,7 +54,7 @@
 #include "limSendSmeRspMessages.h"
 #include "limIbssPeerMgmt.h"
 #include "limSessionUtils.h"
-
+#include "lim_mbb.h"
 
 /**
  * limSendSmeRsp()
@@ -657,9 +657,9 @@ limSendSmeStartBssRsp(tpAniSirGlobal pMac,
 
 
                 //subtracting size of length indicator itself and size of pointer to ieFields
-                pSirSmeRsp->bssDescription.length = sizeof(tSirBssDescription) -
-                                                sizeof(tANI_U16) - sizeof(tANI_U32) +
-                                                ieLen;
+                pSirSmeRsp->bssDescription.length =
+                         ((uintptr_t)OFFSET_OF(tSirBssDescription, ieFields))
+                         - sizeof(pSirSmeRsp->bssDescription.length) + ieLen;
                 //This is the size of the message, subtracting the size of the pointer to ieFields
                 size += ieLen - sizeof(tANI_U32);
         }
@@ -1369,7 +1369,12 @@ limSendSmeDisassocNtf(tpAniSirGlobal pMac,
             vos_mem_copy(pSirSmeDisConDoneInd->peerMacAddr, peerMacAddr,
                          sizeof(tSirMacAddr));
             pSirSmeDisConDoneInd->sessionId   = smesessionId;
-            pSirSmeDisConDoneInd->reasonCode  = reasonCode;
+
+            if (reasonCode == eSIR_SME_LOST_LINK_WITH_PEER_RESULT_CODE)
+                pSirSmeDisConDoneInd->reasonCode = 0;
+            else
+                pSirSmeDisConDoneInd->reasonCode = reasonCode;
+
             pMsg = (tANI_U32 *)pSirSmeDisConDoneInd;
             break;
 
@@ -1505,6 +1510,8 @@ limSendSmeDeauthInd(tpAniSirGlobal pMac, tpDphHashNode pStaDs, tpPESession psess
 {
     tSirMsgQ  mmhMsg;
     tSirSmeDeauthInd  *pSirSmeDeauthInd;
+
+    limSendTLPauseInd(pMac, pStaDs->staIndex);
 
     pSirSmeDeauthInd = vos_mem_malloc(sizeof(tSirSmeDeauthInd));
     if ( NULL == pSirSmeDeauthInd )
@@ -1806,7 +1813,12 @@ limSendSmeDeauthNtf(tpAniSirGlobal pMac, tSirMacAddr peerMacAddr, tSirResultCode
             vos_mem_copy(pSirSmeDisConDoneInd->peerMacAddr, peerMacAddr,
                     sizeof(tSirMacAddr));
             pSirSmeDisConDoneInd->sessionId   = smesessionId;
-            pSirSmeDisConDoneInd->reasonCode  = reasonCode;
+
+            if (reasonCode == eSIR_SME_LOST_LINK_WITH_PEER_RESULT_CODE)
+                pSirSmeDisConDoneInd->reasonCode = 0;
+            else
+                pSirSmeDisConDoneInd->reasonCode = reasonCode;
+
             pMsg = (tANI_U32 *)pSirSmeDisConDoneInd;
             break;
 
@@ -2803,10 +2815,8 @@ void limHandleDeleteBssRsp(tpAniSirGlobal pMac,tpSirMsgQ MsgQ)
     {
          limProcessSmeDelBssRsp(pMac, MsgQ->bodyval,psessionEntry);
     }
-           
     else
          limProcessMlmDelBssRsp(pMac,MsgQ,psessionEntry);
-    
 }
 
 #ifdef WLAN_FEATURE_VOWIFI_11R

@@ -816,6 +816,7 @@ void hdd_conf_ns_offload(hdd_adapter_t *pAdapter, int fenable)
         in6_dev = __in6_dev_get(pAdapter->dev);
         if (NULL != in6_dev)
         {
+            read_lock_bh(&in6_dev->lock);
             list_for_each(p, &in6_dev->addr_list)
             {
                 if (i >= slot_index)
@@ -856,6 +857,7 @@ void hdd_conf_ns_offload(hdd_adapter_t *pAdapter, int fenable)
                     i++;
                 }
             }
+            read_unlock_bh(&in6_dev->lock);
 
             vos_mem_zero(&offLoadRequest, sizeof(offLoadRequest));
             for (i =0; i < slot_index; i++)
@@ -1207,7 +1209,7 @@ VOS_STATUS hdd_conf_arp_offload(hdd_adapter_t *pAdapter, int fenable)
        }
        else
        {
-           hddLog(VOS_TRACE_LEVEL_ERROR, FL("IP Address is not assigned"));
+           hddLog(VOS_TRACE_LEVEL_WARN, FL("IP Address is not assigned"));
            return VOS_STATUS_E_AGAIN;
        }
 
@@ -1479,7 +1481,7 @@ void hdd_suspend_wlan(void)
 
    if (pHddCtx->hdd_wlan_suspended)
    {
-      hddLog(VOS_TRACE_LEVEL_ERROR,
+      hddLog(VOS_TRACE_LEVEL_INFO,
              "%s: Ignore suspend wlan, Already suspended!", __func__);
       return;
    }
@@ -1967,13 +1969,14 @@ VOS_STATUS hdd_wlan_shutdown(void)
    }
 
    //Stop the traffic monitor timer
-   if ( VOS_TIMER_STATE_RUNNING ==
-                        vos_timer_getCurrentState(&pHddCtx->tx_rx_trafficTmr))
+   if ((pHddCtx->cfg_ini->dynSplitscan)&& (VOS_TIMER_STATE_RUNNING ==
+                        vos_timer_getCurrentState(&pHddCtx->tx_rx_trafficTmr)))
    {
         vos_timer_stop(&pHddCtx->tx_rx_trafficTmr);
    }
 
    vos_flush_delayed_work(&pHddCtx->spoof_mac_addr_work);
+   vos_flush_work(&pHddCtx->sap_start_work);
    hdd_reset_all_adapters(pHddCtx);
 
    /* set default value of Tcp delack and stop timer */
@@ -2305,6 +2308,9 @@ VOS_STATUS hdd_wlan_re_init(void)
 
     /* Restart all adapters */
    hdd_start_all_adapters(pHddCtx);
+   pHddCtx->last_scan_reject_session_id = 0xFF;
+   pHddCtx->last_scan_reject_reason = 0;
+   pHddCtx->last_scan_reject_timestamp = 0;
    pHddCtx->hdd_mcastbcast_filter_set = FALSE;
    pHddCtx->btCoexModeSet = FALSE;
    hdd_register_mcast_bcast_filter(pHddCtx);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2015 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2016 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -182,7 +182,8 @@ enum log_event_indicator {
  * @WLAN_LOG_REASON_EXIT_IMPS_BMPS_FAIL: Exit IMPS/BMPS rsp failure
  * @WLAN_LOG_REASON_HDD_TIME_OUT: Wait for event Timeout in HDD layer
  * @WLAN_LOG_REASON_MGMT_FRAME_TIMEOUT:Management frame timedout
-   @WLAN_LOG_REASON_SME_OUT_OF_CMD_BUFL sme out of cmd buffer
+ * @WLAN_LOG_REASON_SME_OUT_OF_CMD_BUFL sme out of cmd buffer
+ * @WLAN_LOG_REASON_SCAN_NOT_ALLOWED: scan not allowed due to connection states
  * This enum contains the different reason codes for bug report
  */
 enum log_event_host_reason_code {
@@ -204,6 +205,7 @@ enum log_event_host_reason_code {
 	WLAN_LOG_REASON_HDD_TIME_OUT,
 	WLAN_LOG_REASON_MGMT_FRAME_TIMEOUT,
 	WLAN_LOG_REASON_SME_OUT_OF_CMD_BUF,
+	WLAN_LOG_REASON_SCAN_NOT_ALLOWED,
 };
 
 /*------------------------------------------------------------------------- 
@@ -501,7 +503,20 @@ void get_rate_and_MCS(per_packet_stats *stats, uint32 rateindex);
 v_BOOL_t vos_isUnloadInProgress(void);
 v_BOOL_t vos_isLoadUnloadInProgress(void);
 
+bool vos_get_rx_wow_dump(void);
+void vos_set_rx_wow_dump(bool value);
+
 void vos_probe_threads(void);
 void vos_per_pkt_stats_to_user(void *perPktStat);
 void vos_updatePktStatsInfo(void * pktStat);
+bool vos_is_wlan_logging_enabled(void);
+
+v_BOOL_t vos_is_probe_rsp_offload_enabled(void);
+
+bool vos_check_arp_target_ip(void *pSkb, bool conversion);
+bool vos_check_arp_req_target_ip(void *pSkb, bool conversion);
+bool vos_check_arp_src_ip(void *pSkb, bool conversion);
+bool vos_check_arp_rsp_src_ip(void *pSkb, bool conversion);
+void vos_update_arp_fw_tx_delivered(void);
+void vos_update_arp_rx_drop_reorder(void);
 #endif // if !defined __VOS_NVITEM_H
