@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2016 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2017 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -721,7 +721,16 @@ typedef VOS_STATUS (*WLANTL_STARxCBType)( v_PVOID_t              pvosGCtx,
                                           vos_pkt_t*             vosDataBuff,
                                           v_U8_t                 ucSTAId,
                                           WLANTL_RxMetaInfoType* pRxMetaInfo);
-
+/**
+ * WLANTL_FwdEapolCBType() - Call back to forward Eapol packet
+ * @pvosGCtx : pointer to vos global context
+ * @vosDataBuff: pointer to vos packet
+ *
+ * Return: None
+ *
+ */
+typedef void (*WLANTL_FwdEapolCBType) (v_PVOID_t pvosGCtx,
+                                             vos_pkt_t* vosDataBuff);
 
 /*----------------------------------------------------------------------------
     INTERACTION WITH BAP
@@ -3288,6 +3297,17 @@ WLANTL_FatalError
 (
  v_VOID_t
 );
+
+#ifdef WLAN_FEATURE_ROAM_SCAN_OFFLOAD
+void WLANTL_StartRxRateMonitor(v_PVOID_t pvosGCtx, wpt_uint8 staId,
+                  wpt_uint16 minRate,
+                  wpt_uint16 maxRate, wpt_uint8 minPercentage,
+                  wpt_uint16 minPktRequired, void *hHal,
+                  wpt_uint64 timeToWait,
+                  void (*triggerRoamScanfn) (void *, wpt_uint8));
+
+void WLANTL_StopRxRateMonitor(v_PVOID_t pvosGCtx);
+#endif
 #ifdef WLAN_FEATURE_RMC
 VOS_STATUS
 WLANTL_EnableRMC
@@ -3341,4 +3361,59 @@ WLANTL_SetMcastDuplicateDetection
 );
 #endif /* WLAN_FEATURE_RMC */
 
+/*
+ * WLANTL_ResetRxSSN - reset last rx ssn
+ * @pvosGCtx: global vos context
+ * @ucSTAId: station id
+ *
+ * This function resets the last ssn of all tids of the station
+ * for whom BA reorder session exists.
+ *
+ * Return: none
+ */
+void WLANTL_ResetRxSSN(v_PVOID_t pvosGCtx, uint8_t ucSTAId);
+
+/*
+ * WLANTL_SetDataPktFilter - Set data filter flag
+ * @pvosGCtx: global vos context
+ * @ucSTAId: station id
+ * @flag: packet data filter flag
+ *
+ * This function sets the data pkt filter flag of all tids
+ * of the station for whom BA reorder session exists.
+ *
+ * Return: none
+ */
+void WLANTL_SetDataPktFilter(v_PVOID_t pvosGCtx, uint8_t ucSTAId, bool flag);
+
+/*
+ * WLANTL_EnablePreAssocCaching - Enable caching during pre-assoc
+ * @staid: sta client where frames are cached
+ *
+ * Return: none
+ */
+void WLANTL_EnablePreAssocCaching(void);
+
+/*
+ * WLANTL_PreAssocForward - Forward the cached packets
+ *
+ * This function forwards or flushes the packets after
+ * pre assoc success/failure.
+ *
+ * Return: none
+ */
+void WLANTL_PreAssocForward(bool flag);
+
+/* make before break */
+void WLANTL_RegisterFwdEapol(v_PVOID_t pvosGCtx,
+                             WLANTL_FwdEapolCBType pfnFwdEapol);
+
+/**
+ * WLANTL_SetARPFWDatapath() - keep or remove FW in data path for ARP
+ * @pvosGCtx: global vos context
+ * @flag: value to keep or remove FW from data path
+ *
+ * Return: void
+ */
+void WLANTL_SetARPFWDatapath(void * pvosGCtx, bool flag);
 #endif /* #ifndef WLAN_QCT_WLANTL_H */

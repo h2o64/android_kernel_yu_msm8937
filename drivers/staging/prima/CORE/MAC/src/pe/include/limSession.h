@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2016 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2017 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -360,7 +360,7 @@ typedef struct sPESession           // Added to Support BT-AMP
     tANI_U8  isKeyInstalled;
     tANI_BOOLEAN is11Gonly;
     tANI_BOOLEAN addBssfailed;
-    tANI_BOOLEAN is_ext_caps_present;
+    tDot11fIEExtCap ExtCap;
 }tPESession, *tpPESession;
 
 #define LIM_MAX_ACTIVE_SESSIONS 4
@@ -421,6 +421,7 @@ tpPESession peFindSessionByBssid(tpAniSirGlobal pMac,  tANI_U8*  bssid,    tANI_
 tpPESession peFindSessionByBssIdx(tpAniSirGlobal pMac,  tANI_U8 bssIdx);
 
 
+tANI_S8 limGetInfraSessionId(tpAniSirGlobal pMac);
 
 
 /*--------------------------------------------------------------------------

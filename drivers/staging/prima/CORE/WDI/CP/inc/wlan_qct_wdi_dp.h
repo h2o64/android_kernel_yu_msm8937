@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, 2016 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2014, 2016-2017 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -306,6 +306,7 @@ when        who    what, where, why
 //LFR scan related
 #define WDI_RX_BD_GET_OFFLOADSCANLEARN( _pvBDHeader )         (((WDI_RxBdType*)_pvBDHeader)->offloadScanLearn)
 #define WDI_RX_BD_GET_ROAMCANDIDATEIND( _pvBDHeader )         (((WDI_RxBdType*)_pvBDHeader)->roamCandidateInd)
+#define WDI_RX_BD_GET_PER_ROAMCANDIDATEIND( _pvBDHeader )     (((WDI_RxBdType*)_pvBDHeader)->perRoamCndInd)
 #endif
 #ifdef WLAN_FEATURE_EXTSCAN
 #define WDI_RX_BD_GET_EXTSCANFULLSCANRESIND( _pvBDHeader ) (((WDI_RxBdType*)_pvBDHeader)->extscanBuffer)
@@ -434,6 +435,7 @@ WDI_FillTxBd
     wpt_uint8              ucProtMgmtFrame,
     wpt_uint32             uTimeStamp,
     wpt_uint8              isEapol,
+    wpt_uint8              isArp,
     wpt_uint8*             staIndex,
     wpt_uint32             txBdToken
 );

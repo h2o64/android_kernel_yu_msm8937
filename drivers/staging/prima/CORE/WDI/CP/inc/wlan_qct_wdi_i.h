@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2016 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2017 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -489,6 +489,14 @@ typedef enum
   WDI_STOP_RSSI_MONITOR_REQ                      = 114,
   WDI_WIFI_CONFIG_SET_REQ                        = 115,
 
+#ifdef WLAN_FEATURE_ROAM_SCAN_OFFLOAD
+  WDI_PER_ROAM_SCAN_OFFLOAD_REQ                  = 116,
+  WDI_PER_ROAM_SCAN_TRIGGER_REQ                  = 117,
+#endif
+/* ARP DEBUG STATS */
+  WDI_FW_ARP_STATS_REQ                           = 118,
+  WDI_FW_GET_ARP_STATS_REQ                       = 119,
+
   WDI_MAX_REQ,
 
   /*Send a suspend Indication down to HAL*/
@@ -551,7 +559,10 @@ typedef enum
     such that we keep them separate */
   WDI_ANTENNA_DIVERSITY_SELECTION_REQ = WDI_MAX_REQ + 21,
   WDI_MODIFY_ROAM_PARAMS_IND = WDI_MAX_REQ + 22,
-  WDI_MAX_UMAC_IND = WDI_MAX_REQ + 23,
+  WDI_SET_ALLOWED_ACTION_FRAMES_IND = WDI_MAX_REQ + 23,
+
+  WDI_MAX_UMAC_IND = WDI_MAX_REQ + 24
+
 }WDI_RequestEnumType;
 
 /*--------------------------------------------------------------------------- 
@@ -858,6 +869,12 @@ typedef enum
   WDI_STOP_RSSI_MONITOR_RSP                      = 114,
 
   WDI_WIFI_CONFIG_SET_RSP                        = 115,
+#ifdef WLAN_FEATURE_ROAM_SCAN_OFFLOAD
+  WDI_PER_ROAM_SCAN_OFFLOAD_RSP                  = 116,
+  WDI_PER_ROAM_SCAN_TRIGGER_RSP                  = 117,
+#endif
+  WDI_FW_ARP_STATS_RSP                           = 118,
+  WDI_FW_GET_ARP_STATS_RSP                       = 119,
 
   /*-------------------------------------------------------------------------
     Indications
@@ -5573,6 +5590,14 @@ WDI_ProcessRoamScanOffloadReq
   WDI_ControlBlockType*  pWDICtx,
   WDI_EventInfoType*     pEventData
 );
+
+WDI_Status
+WDI_ProcessPERRoamScanOffloadReq(WDI_ControlBlockType *pWDICtx,
+                                 WDI_EventInfoType *pEventData);
+
+WDI_Status
+WDI_ProcessPERRoamScanTriggerReq(WDI_ControlBlockType *pWDICtx,
+                                 WDI_EventInfoType *pEventData);
 /**
  @brief Process Start Roam Candidate Lookup Response function (called when a
         response is being received over the bus from HAL)
@@ -5585,6 +5610,20 @@ WDI_ProcessRoamScanOffloadReq
 */
 WDI_Status
 WDI_ProcessRoamScanOffloadRsp
+(
+  WDI_ControlBlockType*  pWDICtx,
+  WDI_EventInfoType*     pEventData
+);
+
+WDI_Status
+WDI_ProcessPERRoamScanOffloadRsp
+(
+  WDI_ControlBlockType*  pWDICtx,
+  WDI_EventInfoType*     pEventData
+);
+
+WDI_Status
+WDI_ProcessPERRoamScanTriggerRsp
 (
   WDI_ControlBlockType*  pWDICtx,
   WDI_EventInfoType*     pEventData
@@ -6623,6 +6662,49 @@ WDI_ProcessGetCurrentAntennaIndexRsp
 */
 WDI_Status
 WDI_ProcessBcnMissPenaltyCount
+(
+  WDI_ControlBlockType*  pWDICtx,
+  WDI_EventInfoType*     pEventData
+);
+
+/**
+ *  WDI_ProcessSetAllowedActionFramesInd - Process Set allowed action
+ *                                         frames command
+ *
+ *  @pWDICtx: pointer to the WLAN DAL context
+ *  @pEventData: pointer to the event information structure
+ *
+ */
+WDI_Status
+WDI_ProcessSetAllowedActionFramesInd
+(
+  WDI_ControlBlockType*  pWDICtx,
+  WDI_EventInfoType*     pEventData
+);
+
+WDI_Status
+WDI_ProcessSetArpStatsReq
+(
+  WDI_ControlBlockType*  pWDICtx,
+  WDI_EventInfoType*     pEventData
+);
+
+WDI_Status
+WDI_ProcessSetArpStatsResp
+(
+  WDI_ControlBlockType*  pWDICtx,
+  WDI_EventInfoType*     pEventData
+);
+
+WDI_Status
+WDI_ProcessGetArpStatsReq
+(
+  WDI_ControlBlockType*  pWDICtx,
+  WDI_EventInfoType*     pEventData
+);
+
+WDI_Status
+WDI_ProcessGetArpStatsResp
 (
   WDI_ControlBlockType*  pWDICtx,
   WDI_EventInfoType*     pEventData
