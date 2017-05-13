@@ -1377,7 +1377,7 @@ VOS_STATUS vos_nv_open(void)
        vos_mem_free(pnvData);
     }
 
-    VOS_TRACE(VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_ERROR,
+    VOS_TRACE(VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_INFO,
         "INFO: NV version = %d is loaded, driver supports NV version = %d",
         gnvEFSTable->halnv.fields.nvVersion, WLAN_NV_VERSION);
 
@@ -1397,7 +1397,7 @@ VOS_STATUS vos_nv_open(void)
            else if ((WLAN_NV_VERSION == NV_VERSION_CH144_CONFIG) &&
                     (((VosContextType*)(pVosContext))->nvVersion == E_NV_V2))
            {
-               VOS_TRACE(VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_ERROR,
+               VOS_TRACE(VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_INFO,
                    "INFO: Driver supports NV3 CH144 by default, "
                    "NV2 is currently loaded, NV2 will be used.");
            }
@@ -1619,6 +1619,14 @@ VOS_STATUS vos_nv_close(void)
     vos_mem_vfree(pEncodedBuf);
     vos_mem_free(pDictFile);
     vos_mem_vfree(pnvEncodedBuf);
+   /*
+    * Reset the linux_reg identifier to allow
+    * driver to send fresh regulatory hint to
+    * the kernel in case of a static driver reload
+    * under strict regulatory domain.
+    */
+    linux_reg_cc[0] = '0';
+    linux_reg_cc[1] = '0';
 
     gnvEFSTable=NULL;
     return VOS_STATUS_SUCCESS;

@@ -1745,7 +1745,8 @@ void vos_send_fatal_event_done(void)
      */
     if ((WLAN_LOG_INDICATOR_HOST_DRIVER == indicator) &&
         (WLAN_LOG_REASON_SME_COMMAND_STUCK == reason_code ||
-         WLAN_LOG_REASON_SME_OUT_OF_CMD_BUF == reason_code))
+         WLAN_LOG_REASON_SME_OUT_OF_CMD_BUF == reason_code ||
+         WLAN_LOG_REASON_SCAN_NOT_ALLOWED == reason_code))
     {
          VOS_TRACE(VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_ERROR,
            "Do SSR for reason_code=%d", reason_code);
@@ -1809,20 +1810,27 @@ VOS_STATUS __vos_fatal_event_logs_req( uint32_t is_fatal,
     {
         VOS_TRACE(VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_ERROR,
             "%s: vos context is Invalid", __func__);
-        return eHAL_STATUS_FAILURE;
+        return VOS_STATUS_E_FAILURE;
     }
     pHddCtx = (hdd_context_t *)vos_get_context(VOS_MODULE_ID_HDD, vos_context );
     if(!pHddCtx) {
        VOS_TRACE(VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_FATAL,
                 "%s: HDD context is Null", __func__);
-       return eHAL_STATUS_FAILURE;
+       return VOS_STATUS_E_FAILURE;
+    }
+
+    if(!pHddCtx->cfg_ini->wlanLoggingEnable)
+    {
+       VOS_TRACE(VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_INFO,
+            "%s: Wlan logging not enabled", __func__);
+        return VOS_STATUS_E_FAILURE;
     }
 
     if(!pHddCtx->cfg_ini->enableFatalEvent)
     {
        VOS_TRACE(VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_INFO,
             "%s: Fatal event not enabled", __func__);
-        return eHAL_STATUS_FAILURE;
+        return VOS_STATUS_E_FAILURE;
     }
 
     if (pHddCtx->isLoadUnloadInProgress ||
@@ -1830,7 +1838,7 @@ VOS_STATUS __vos_fatal_event_logs_req( uint32_t is_fatal,
     {
        VOS_TRACE(VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_ERROR,
             "%s: un/Load/SSR in progress", __func__);
-        return eHAL_STATUS_FAILURE;
+        return VOS_STATUS_E_FAILURE;
     }
 
     if (vos_is_log_report_in_progress() == true)
@@ -3202,6 +3210,61 @@ v_BOOL_t vos_isUnloadInProgress(void)
 }
 
 /**
+ *vos_get_rx_wow_dump()
+ *
+ * Return true/flase to dump RX packet
+ *
+ */
+bool vos_get_rx_wow_dump(void)
+{
+    hdd_context_t *pHddCtx = NULL;
+    v_CONTEXT_t pVosContext = vos_get_global_context(VOS_MODULE_ID_SYS, NULL);
+
+    if(!pVosContext)
+    {
+       hddLog(VOS_TRACE_LEVEL_FATAL,"%s: Global VOS context is Null", __func__);
+       return FALSE;
+    }
+
+    pHddCtx = (hdd_context_t *)vos_get_context(VOS_MODULE_ID_HDD, pVosContext );
+    if(!pHddCtx) {
+       VOS_TRACE(VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_FATAL,
+                "%s: HDD context is Null", __func__);
+       return FALSE;
+    }
+
+    return pHddCtx->rx_wow_dump;
+}
+
+/**
+ *vos_set_rx_wow_dump() - Set RX wow pkt dump
+ *@value: Value of RX wow pkt dump
+ *
+ * Return none.
+ *
+ */
+void vos_set_rx_wow_dump(bool value)
+{
+    hdd_context_t *pHddCtx = NULL;
+    v_CONTEXT_t pVosContext = vos_get_global_context(VOS_MODULE_ID_SYS, NULL);
+
+    if(!pVosContext)
+    {
+       hddLog(VOS_TRACE_LEVEL_FATAL,"%s: Global VOS context is Null", __func__);
+       return;
+    }
+
+    pHddCtx = (hdd_context_t *)vos_get_context(VOS_MODULE_ID_HDD, pVosContext );
+    if(!pHddCtx) {
+       VOS_TRACE(VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_FATAL,
+                "%s: HDD context is Null", __func__);
+       return;
+    }
+
+    pHddCtx->rx_wow_dump = value;
+}
+
+/**
  * vos_probe_threads() - VOS API to post messages
  * to all the threads to detect if they are active or not
  *
@@ -3480,4 +3543,335 @@ bool vos_isPktStatsEnabled(void)
     bool value;
     value = wlan_isPktStatsEnabled();
     return (value);
+}
+
+bool vos_is_wlan_logging_enabled(void)
+{
+    v_CONTEXT_t vos_ctx = vos_get_global_context(VOS_MODULE_ID_SYS, NULL);
+    hdd_context_t *hdd_ctx;
+
+    if(!vos_ctx)
+    {
+       hddLog(VOS_TRACE_LEVEL_FATAL,"%s: Global VOS context is Null", __func__);
+       return false;
+    }
+
+    hdd_ctx = vos_get_context(VOS_MODULE_ID_HDD, vos_ctx);
+
+    if(!hdd_ctx)
+    {
+       hddLog(VOS_TRACE_LEVEL_FATAL,"%s: HDD context is Null", __func__);
+       return false;
+    }
+
+    if (!hdd_ctx->cfg_ini->wlanLoggingEnable)
+    {
+       hddLog(VOS_TRACE_LEVEL_FATAL,"%s: Logging framework not enabled!", __func__);
+       return false;
+    }
+
+    return true;
+}
+
+/**---------------------------------------------------------------------------
+
+  \brief vos_is_probe_rsp_offload_enabled -
+
+  API to check if probe response offload feature is enabled from ini
+
+  \param  -  None
+
+  \return -  0: probe response offload is disabled
+             1: probe response offload is enabled
+
+  --------------------------------------------------------------------------*/
+v_BOOL_t vos_is_probe_rsp_offload_enabled(void)
+{
+	hdd_context_t *pHddCtx = NULL;
+	v_CONTEXT_t pVosContext = NULL;
+
+	/* Get the Global VOSS Context */
+	pVosContext = vos_get_global_context(VOS_MODULE_ID_SYS, NULL);
+	if (!pVosContext) {
+		hddLog(VOS_TRACE_LEVEL_FATAL,
+		       "%s: Global VOS context is Null", __func__);
+		return FALSE;
+	}
+
+	/* Get the HDD context */
+	pHddCtx = (hdd_context_t *)vos_get_context(VOS_MODULE_ID_HDD,
+						   pVosContext);
+	if (!pHddCtx) {
+		hddLog(VOS_TRACE_LEVEL_FATAL,
+		       "%s: HDD context is Null", __func__);
+		return FALSE;
+	}
+
+	return pHddCtx->cfg_ini->sap_probe_resp_offload;
+}
+
+/**
+ * vos_check_arp_target_ip() - check if the Target IP is gateway IP
+ * @pPacket: pointer to vos packet
+ * @conversion: 802.3 to 802.11 frame conversion
+ *
+ * Return: true if the IP is of gateway or false otherwise
+ */
+bool vos_check_arp_target_ip(void *pSkb, bool conversion)
+{
+   v_CONTEXT_t pVosContext = vos_get_global_context(VOS_MODULE_ID_SYS, NULL);
+   hdd_context_t *pHddCtx = NULL;
+   struct sk_buff *skb;
+   uint8_t offset;
+
+   if(!pVosContext)
+   {
+      hddLog(VOS_TRACE_LEVEL_FATAL,"%s: Global VOS context is Null", __func__);
+      return false;
+   }
+
+   pHddCtx = (hdd_context_t *)vos_get_context(VOS_MODULE_ID_HDD, pVosContext );
+   if(!pHddCtx) {
+      VOS_TRACE(VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_FATAL,
+               "%s: HDD context is Null", __func__);
+      return false;
+   }
+
+   if (unlikely(NULL == pSkb))
+   {
+      VOS_TRACE(VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_FATAL,
+                "%s: NULL pointer", __func__);
+      return false;
+   }
+
+   skb = (struct sk_buff *)pSkb;
+
+   if (conversion)
+      offset = VOS_ARP_TARGET_IP_OFFSET + VOS_80211_8023_HEADER_OFFSET;
+   else
+      offset = VOS_ARP_TARGET_IP_OFFSET;
+
+   if (pHddCtx->track_arp_ip ==
+                      (v_U32_t)(*(v_U32_t *)(skb->data + offset)))
+      return true;
+
+   return false;
+}
+
+/**
+ * vos_check_arp_req_target_ip() - check if the ARP is request and
+                                   target IP is gateway
+ * @pPacket: pointer to vos packet
+ * @conversion: 802.3 to 802.11 frame conversion
+ *
+ * Return: true if the IP is of gateway or false otherwise
+ */
+bool vos_check_arp_req_target_ip(void *pSkb, bool conversion)
+{
+   v_CONTEXT_t pVosContext = vos_get_global_context(VOS_MODULE_ID_SYS, NULL);
+   struct sk_buff *skb;
+   uint8_t offset;
+
+   if(!pVosContext)
+   {
+      hddLog(VOS_TRACE_LEVEL_FATAL,"%s: Global VOS context is Null", __func__);
+      return false;
+   }
+
+   if (unlikely(NULL == pSkb))
+   {
+      VOS_TRACE(VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_FATAL,
+                "%s: NULL pointer", __func__);
+      return false;
+   }
+
+   skb = (struct sk_buff *)pSkb;
+
+   if (conversion)
+      offset = VOS_PKT_ARP_OPCODE_OFFSET + VOS_80211_8023_HEADER_OFFSET;
+   else
+      offset = VOS_PKT_ARP_OPCODE_OFFSET;
+
+   if (htons(VOS_PKT_ARPOP_REQUEST) ==
+			       (uint16_t)(*(uint16_t *)(skb->data + offset)))
+   {
+      if (vos_check_arp_target_ip(skb, conversion))
+         return true;
+   }
+
+   return false;
+}
+
+/**
+ * vos_check_arp_src_ip() - check if the ARP response src IP is gateway IP
+ * @pPacket: pointer to vos packet
+ * @conversion: 802.3 to 802.11 frame conversion
+ *
+ * Return: true if the IP is of gateway or false otherwise
+ */
+bool vos_check_arp_src_ip(void *pSkb, bool conversion)
+{
+   v_CONTEXT_t pVosContext = vos_get_global_context(VOS_MODULE_ID_SYS, NULL);
+   hdd_context_t *pHddCtx = NULL;
+   struct sk_buff *skb;
+   uint8_t offset;
+
+   if(!pVosContext)
+   {
+      hddLog(VOS_TRACE_LEVEL_FATAL,"%s: Global VOS context is Null", __func__);
+      return false;
+   }
+
+   pHddCtx = (hdd_context_t *)vos_get_context(VOS_MODULE_ID_HDD, pVosContext );
+   if(!pHddCtx) {
+      VOS_TRACE(VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_FATAL,
+               "%s: HDD context is Null", __func__);
+      return false;
+   }
+
+   if (unlikely(NULL == pSkb))
+   {
+      VOS_TRACE(VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_FATAL,
+                "%s: NULL pointer", __func__);
+      return false;
+   }
+
+   skb = (struct sk_buff *)pSkb;
+
+   if (conversion)
+      offset = VOS_ARP_SRC_IP_OFFSET + VOS_80211_8023_HEADER_OFFSET;
+   else
+      offset = VOS_ARP_SRC_IP_OFFSET;
+
+   if (pHddCtx->track_arp_ip ==
+                      (v_U32_t)(*(v_U32_t *)(skb->data + offset)))
+      return true;
+
+   return false;
+}
+
+/**
+ * vos_check_arp_rsp_src_ip() - check if the ARP is request and
+                                   target IP is gateway
+ * @pPacket: pointer to vos packet
+ * @conversion: 802.3 to 802.11 frame conversion
+ *
+ * Return: true if the IP is of gateway or false otherwise
+ */
+bool vos_check_arp_rsp_src_ip(void *pSkb, bool conversion)
+{
+   v_CONTEXT_t pVosContext = vos_get_global_context(VOS_MODULE_ID_SYS, NULL);
+   struct sk_buff *skb;
+   uint8_t offset;
+
+   if(!pVosContext)
+   {
+      hddLog(VOS_TRACE_LEVEL_FATAL,"%s: Global VOS context is Null", __func__);
+      return false;
+   }
+
+   if (unlikely(NULL == pSkb))
+   {
+      VOS_TRACE(VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_FATAL,
+                "%s: NULL pointer", __func__);
+      return false;
+   }
+
+   skb = (struct sk_buff *)pSkb;
+
+   if (conversion)
+      offset = VOS_PKT_ARP_OPCODE_OFFSET + VOS_80211_8023_HEADER_OFFSET;
+   else
+      offset = VOS_PKT_ARP_OPCODE_OFFSET;
+
+   if (htons(VOS_PKT_ARPOP_REPLY) ==
+			       (uint16_t)(*(uint16_t *)(skb->data + offset)))
+   {
+      if (vos_check_arp_src_ip(skb, conversion))
+         return true;
+   }
+
+   return false;
+}
+
+/**
+ * vos_update_arp_fw_tx_delivered() - update the ARP stats host to FW deliver
+ *                                    count
+ *
+ * Return: None
+ */
+void vos_update_arp_fw_tx_delivered(void)
+{
+   v_CONTEXT_t pVosContext = vos_get_global_context(VOS_MODULE_ID_SYS, NULL);
+   hdd_context_t *pHddCtx = NULL;
+   hdd_adapter_t * pAdapter;
+   hdd_adapter_list_node_t *pAdapterNode = NULL, *pNext = NULL;
+   uint8_t status;
+
+   if(!pVosContext) {
+      hddLog(VOS_TRACE_LEVEL_FATAL,"%s: Global VOS context is Null", __func__);
+      return;
+   }
+
+   pHddCtx = (hdd_context_t *)vos_get_context(VOS_MODULE_ID_HDD, pVosContext );
+   if(!pHddCtx) {
+      VOS_TRACE(VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_FATAL,
+               "%s: HDD context is Null", __func__);
+      return;
+   }
+
+   status = hdd_get_front_adapter(pHddCtx, &pAdapterNode);
+
+   while (NULL != pAdapterNode && 0 == status)
+   {
+      pAdapter = pAdapterNode->pAdapter;
+      if (pAdapter->device_mode == WLAN_HDD_INFRA_STATION)
+         break;
+
+      status = hdd_get_next_adapter (pHddCtx, pAdapterNode, &pNext);
+      pAdapterNode = pNext;
+   }
+
+   pAdapter->hdd_stats.hddArpStats.tx_host_fw_sent++;
+}
+
+/**
+ * vos_update_arp_rx_drop_reorder() - update the RX ARP stats drop due
+ *                                    reorder logic at host
+ *
+ * Return: None
+ */
+void vos_update_arp_rx_drop_reorder(void)
+{
+   v_CONTEXT_t pVosContext = vos_get_global_context(VOS_MODULE_ID_SYS, NULL);
+   hdd_context_t *pHddCtx = NULL;
+   hdd_adapter_t * pAdapter;
+   hdd_adapter_list_node_t *pAdapterNode = NULL, *pNext = NULL;
+   uint8_t status;
+
+   if(!pVosContext) {
+      hddLog(VOS_TRACE_LEVEL_FATAL,"%s: Global VOS context is Null", __func__);
+      return;
+   }
+
+   pHddCtx = (hdd_context_t *)vos_get_context(VOS_MODULE_ID_HDD, pVosContext );
+   if(!pHddCtx) {
+      VOS_TRACE(VOS_MODULE_ID_VOSS, VOS_TRACE_LEVEL_FATAL,
+               "%s: HDD context is Null", __func__);
+      return;
+   }
+
+   status = hdd_get_front_adapter(pHddCtx, &pAdapterNode);
+
+   while (NULL != pAdapterNode && 0 == status)
+   {
+      pAdapter = pAdapterNode->pAdapter;
+      if (pAdapter->device_mode == WLAN_HDD_INFRA_STATION)
+         break;
+
+      status = hdd_get_next_adapter (pHddCtx, pAdapterNode, &pNext);
+      pAdapterNode = pNext;
+   }
+
+   pAdapter->hdd_stats.hddArpStats.rx_host_drop_reorder++;
 }
