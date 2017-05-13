@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2016 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2011-2017 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -206,7 +206,7 @@ typedef enum
     eCsrLostLink1Abort,
     eCsrLostLink2Abort,
     eCsrLostLink3Abort,
-
+    ecsr_mbb_perform_preauth_reassoc,
 }eCsrRoamReason;
 
 typedef enum
@@ -588,8 +588,10 @@ typedef struct tagCsrConfig
 
     tANI_U32  nInitialDwellTime;     //in units of milliseconds
 
-    tANI_U32  nActiveMinChnTimeBtc;     //in units of milliseconds
-    tANI_U32  nActiveMaxChnTimeBtc;     //in units of milliseconds
+    uint32_t  min_chntime_btc_esco;     //in units of milliseconds
+    uint32_t  max_chntime_btc_esco;     //in units of milliseconds
+    uint32_t  min_chntime_btc_sco;
+    uint32_t  max_chntime_btc_sco;
     tANI_U8   disableAggWithBtc;
 #ifdef WLAN_AP_STA_CONCURRENCY
     tANI_U32  nPassiveMinChnTimeConc;    //in units of milliseconds
@@ -623,7 +625,20 @@ typedef struct tagCsrConfig
 #ifdef WLAN_FEATURE_ROAM_SCAN_OFFLOAD
     tANI_U8      isRoamOffloadScanEnabled;
     tANI_BOOLEAN bFastRoamInConIniFeatureEnabled;
+    v_BOOL_t     isPERRoamEnabled;
+    v_BOOL_t     isPERRoamCCAEnabled;
+    v_S15_t      PERRoamFullScanThreshold;
+    v_S15_t      PERMinRssiThresholdForRoam;
+    tANI_U32     rateUpThreshold;
+    tANI_U32     rateDownThreshold;
+    tANI_U32     waitPeriodForNextPERScan;
+    tANI_U32     PERtimerThreshold;
+    tANI_U32     PERroamTriggerPercent;
 #endif
+#endif
+
+#ifdef WLAN_FEATURE_LFR_MBB
+    tANI_BOOLEAN enable_lfr_mbb;
 #endif
 
 #ifdef FEATURE_WLAN_ESE
@@ -687,6 +702,19 @@ typedef struct tagCsrConfig
     tANI_BOOLEAN disableP2PMacSpoofing;
     tANI_BOOLEAN enableFatalEvent;
     tANI_U8 max_chan_for_dwell_time_cfg;
+    uint32_t enable_edca_params;
+    uint32_t edca_vo_cwmin;
+    uint32_t edca_vi_cwmin;
+    uint32_t edca_bk_cwmin;
+    uint32_t edca_be_cwmin;
+    uint32_t edca_vo_cwmax;
+    uint32_t edca_vi_cwmax;
+    uint32_t edca_bk_cwmax;
+    uint32_t edca_be_cwmax;
+    uint32_t edca_vo_aifs;
+    uint32_t edca_vi_aifs;
+    uint32_t edca_bk_aifs;
+    uint32_t edca_be_aifs;
 }tCsrConfig;
 
 typedef struct tagCsrChannelPowerInfo
@@ -1457,3 +1485,18 @@ void csrDisableDfsChannel(tpAniSirGlobal pMac);
 eHalStatus csrEnableRMC(tpAniSirGlobal pMac, tANI_U32 sessionId);
 eHalStatus csrDisableRMC(tpAniSirGlobal pMac, tANI_U32 sessionId);
 #endif /* WLAN_FEATURE_RMC */
+
+eHalStatus csrRoamStopNetwork(tpAniSirGlobal pMac, tANI_U32 sessionId,
+    tCsrRoamProfile *pProfile, tSirBssDescription *pBssDesc,
+    tDot11fBeaconIEs *pIes);
+
+eHalStatus csrRoamSaveSecurityRspIE(tpAniSirGlobal pMac,
+    tANI_U32 sessionId, eCsrAuthType authType,
+    tSirBssDescription *pSirBssDesc,
+    tDot11fBeaconIEs *pIes);
+
+void csrRoamSubstateChange(tpAniSirGlobal pMac,
+    eCsrRoamSubState NewSubstate, tANI_U32 sessionId);
+
+eHalStatus csrRoamFreeConnectedInfo(tpAniSirGlobal pMac,
+   tCsrRoamConnectedInfo *pConnectedInfo);
