@@ -21,6 +21,13 @@
 #undef CDBG
 #define CDBG(fmt, args...) pr_debug(fmt, ##args)
 
+static uint32_t g_camera_id = 0;
+
+uint32_t get_camera_id(void)
+{
+	return g_camera_id;
+}
+
 static void msm_sensor_adjust_mclk(struct msm_camera_power_ctrl_t *ctrl)
 {
 	int idx;
@@ -108,19 +115,6 @@ int32_t msm_sensor_free_sensor_data(struct msm_sensor_ctrl_t *s_ctrl)
 	return 0;
 }
 
-//BEGIN<20150826><add for dual flash >wangyanhui
-/*this function only used in leds-msm-gpio-dual-flash.c ,if don't use dual flash,  pls keep below code*/
-int  is_front_camera = 0;
-void msm_sensor_set_front_camera_status(int  status)
-{
-	is_front_camera = status;
-}
-int msm_sensor_is_front_camera(void)
-{
-     return is_front_camera;
-}
-//END<20150826><add for dual flash >wangyanhui
-
 int msm_sensor_power_down(struct msm_sensor_ctrl_t *s_ctrl)
 {
 	struct msm_camera_power_ctrl_t *power_info;
@@ -132,7 +126,6 @@ int msm_sensor_power_down(struct msm_sensor_ctrl_t *s_ctrl)
 			__func__, __LINE__, s_ctrl);
 		return -EINVAL;
 	}
-	msm_sensor_set_front_camera_status(0);//LINE<20150826><add for dual flash >wangyanhui
 
 	if (s_ctrl->is_csid_tg_mode)
 		return 0;
@@ -340,14 +333,6 @@ int msm_sensor_match_id(struct msm_sensor_ctrl_t *s_ctrl)
 
 	pr_debug("%s: read id: 0x%x expected id 0x%x:\n",
 			__func__, chipid, slave_info->sensor_id);
-    pr_err("%s: xiongdajun add %d\n",
-			__func__, s_ctrl->id);
-      //BEGIN<20150826><add for dual flash >wangyanhui
-	if(s_ctrl->id == 2)
-	   	msm_sensor_set_front_camera_status(1);
-	else
-	   	msm_sensor_set_front_camera_status(0);
-	//END<20150826><add for dual flash >wangyanhui
 	if (msm_sensor_id_by_mask(s_ctrl, chipid) != slave_info->sensor_id) {
 		pr_err("%s chip id %x does not match %x\n",
 				__func__, chipid, slave_info->sensor_id);
@@ -834,6 +819,7 @@ static int msm_sensor_config32(struct msm_sensor_ctrl_t *s_ctrl,
 	}
 
 	case CFG_POWER_UP:
+		g_camera_id = s_ctrl->sensordata->cam_slave_info->camera_id;
 		if (s_ctrl->is_csid_tg_mode)
 			goto DONE;
 
@@ -861,6 +847,8 @@ static int msm_sensor_config32(struct msm_sensor_ctrl_t *s_ctrl,
 		}
 		break;
 	case CFG_POWER_DOWN:
+		/* Reset active camera to back camera for torch */
+		g_camera_id = 0;
 		if (s_ctrl->is_csid_tg_mode)
 			goto DONE;
 
