@@ -16,7 +16,7 @@
 #include "msm8937-audio-mtp.dtsi"
 
 &soc {
-	led_flash0: qcom,camera-flash {
+	led_flash0: qcom,camera-flash@0 {
 		cell-index = <0>;
 		compatible = "qcom,camera-flash";
 		qcom,flash-type = <1>;
