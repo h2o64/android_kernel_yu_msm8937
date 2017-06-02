@@ -1369,7 +1369,7 @@ static void qpnp_flash_led_work(struct work_struct *work)
 		}
 
 		if (flash_node->id == FLASH_LED_SWITCH) {
-			#if defined(CONFIG_PROJECT_P7201)
+			#if defined(CONFIG_PROJECT_GARLIC)
 				if(flash_node->prgm_current)
 					flash_node->prgm_current = 150;
 			#endif
@@ -1384,7 +1384,7 @@ static void qpnp_flash_led_work(struct work_struct *work)
 					"Torch reg write failed\n");
 				goto exit_flash_led_work;
 			}
-	    #if defined(CONFIG_PROJECT_P7201)
+	    #if defined(CONFIG_PROJECT_GARLIC)
 				if(flash_node->prgm_current2)
 					flash_node->prgm_current2 = 150;
 			#endif
@@ -1571,7 +1571,7 @@ static void qpnp_flash_led_work(struct work_struct *work)
 					(flash_node->prgm_current2 *
 					max_curr_avail_ma) / total_curr_ma;
 			}
-		    #if defined(CONFIG_PROJECT_P7201)
+		    #if defined(CONFIG_PROJECT_GARLIC)
 					if(flash_node->prgm_current)
 					    flash_node->prgm_current = 750;
 		    #endif
@@ -1584,7 +1584,7 @@ static void qpnp_flash_led_work(struct work_struct *work)
 					"Current register write failed\n");
 				goto exit_flash_led_work;
 			}
-		    #if  defined(CONFIG_PROJECT_P7201)
+		    #if  defined(CONFIG_PROJECT_GARLIC)
 					if(flash_node->prgm_current2)
 					    flash_node->prgm_current2 = 750;
 		    #endif

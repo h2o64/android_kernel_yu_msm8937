@@ -1,1 +1,1 @@
-#define MTP_NAME "p7201"
+#define MTP_NAME "garlic"
