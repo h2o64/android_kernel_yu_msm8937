@@ -219,7 +219,7 @@ int msm_sensor_match_id(struct msm_sensor_ctrl_t *s_ctrl)
 {
 	int rc = 0;
 	uint16_t chipid = 0;
-    #ifdef CONFIG_PROJECT_P7201
+    #ifdef CONFIG_PROJECT_GARLIC
        uint16_t mid = 0;
        uint16_t flag = 0;
     #endif
@@ -253,7 +253,7 @@ int msm_sensor_match_id(struct msm_sensor_ctrl_t *s_ctrl)
 	}
 
 //BEGIN<20160602><add camera otp>wangyanhui add
-#ifdef CONFIG_PROJECT_P7201
+#ifdef CONFIG_PROJECT_GARLIC
         pr_err("%s: sensor_name is %s\n", __func__, sensor_name);
         if((!strncmp(s_ctrl->sensordata->sensor_name, "imx258_guangbao_p7201", sizeof("imx258_guangbao_p7201"))))
         {

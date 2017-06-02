@@ -119,7 +119,7 @@
 #define FTS_CTP_VENDOR_DIJING       (0x67)
 #define FTS_CTP_VENDOR_DEFAULT      (0x79)
 #define FTS_CTP_VENDOR_SHENYUE      (0xA0)
-#define FTS_CTP_VENDOR_BOEN          (0x3B) //LINE<20160617><add tp info for p7201>wangyanhui
+#define FTS_CTP_VENDOR_BOEN          (0x3B) //LINE<20160617><add tp info for garlic>wangyanhui
 extern int store_tp_info(const char *const str);
 #endif
 //Begin<BUG><JABALL-0><20150831>store tp  info;xiongdajun
@@ -134,7 +134,7 @@ extern int store_tp_info(const char *const str);
 static unsigned char CTPM_FW[] = {
 
 
-#ifdef CONFIG_PROJECT_P7201
+#ifdef CONFIG_PROJECT_GARLIC
 	#include "FT5346_BOEN_TL_7201_V21_D01_20160805_app.i"
 #else
 	#include "FT_Upgrade_App.i"
@@ -479,7 +479,7 @@ void fts_get_upgrade_array(void)
 	ret = fts_read_reg(fts_i2c_client, FTS_REG_ID,&chip_id);
 	printk("%s chip_id = %x\n", __func__, chip_id);
 //begin <add for update failed><20160627><>;xiongdajun
-#if defined(CONFIG_PROJECT_P7201)
+#if defined(CONFIG_PROJECT_GARLIC)
 	if (chip_id == 0)
 		chip_id = 0x54;
 #endif
@@ -3205,7 +3205,7 @@ static int save_ft5xx_tp_info(int product_id, char *config_id, int id)
 {
 	char buf[80];
        char ic_name[16];
-	#if defined(CONFIG_PROJECT_P7201)
+	#if defined(CONFIG_PROJECT_GARLIC)
          if ((id==0x54))
 	{
 		sprintf(ic_name, "FT%d3%d",5,46);
@@ -3222,7 +3222,7 @@ static int save_ft5xx_tp_info(int product_id, char *config_id, int id)
             sprintf(buf, "YEJI-%s-%s--V%d",
                     CONFIG_PRODUCT_NAME , ic_name, config_id[0]);
         }
-        else if(product_id ==  FTS_CTP_VENDOR_BOEN) //LINE<20160617><add tp info for p7201>wangyanhui
+        else if(product_id ==  FTS_CTP_VENDOR_BOEN) //LINE<20160617><add tp info for garlic>wangyanhui
         {
             sprintf(buf, "BOEN-%s-%s--V%X",
                     CONFIG_PRODUCT_NAME , ic_name, config_id[0]);
