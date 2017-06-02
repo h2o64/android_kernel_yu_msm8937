@@ -1,2 +1,2 @@
-#define PRODUCT_STRING "p7201"
-#define MANUFACTURER_STRING "p7201"
+#define PRODUCT_STRING "garlic"
+#define MANUFACTURER_STRING "garlic"

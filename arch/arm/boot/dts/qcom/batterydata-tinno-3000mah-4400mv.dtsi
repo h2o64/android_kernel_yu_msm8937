@@ -1,6 +1,6 @@
 
 qcom,tinno-3000mah {
-	/* #2515179_HYHY_P7201AN_3000mAh_averaged_MasterSlave_Aug8th2016*/
+	/* #2515179_HYHY_GARLICAN_3000mAh_averaged_MasterSlave_Aug8th2016*/
 	qcom,max-voltage-uv = <4400000>;
 	qcom,nom-batt-capacity-mah = <3000>;
 	qcom,batt-id-kohm = <10>;
