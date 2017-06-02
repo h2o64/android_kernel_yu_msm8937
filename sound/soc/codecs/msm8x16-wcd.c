@@ -83,7 +83,7 @@
 #define ADSP_STATE_READY_TIMEOUT_MS 50
 
 //yangliang add for external padac for spk;20150708
-#ifdef CONFIG_PROJECT_P7201
+#ifdef CONFIG_PROJECT_GARLIC
 bool current_ext_spk_pa_state = false;
 #endif
 
@@ -463,7 +463,7 @@ static bool msm8x16_adj_ref_current(struct snd_soc_codec *codec,
 }
 
 //yangliang add for external padac for spk;20150708
-#ifdef CONFIG_PROJECT_P7201
+#ifdef CONFIG_PROJECT_GARLIC
 extern int ext_spk_pa_gpio;
 #endif
 
@@ -2150,7 +2150,7 @@ static int msm8x16_wcd_hph_mode_set(struct snd_kcontrol *kcontrol,
 
 
 //yangliang add for external padac for spk;20150708
-#ifdef CONFIG_PROJECT_P7201
+#ifdef CONFIG_PROJECT_GARLIC
 static int msm8x16_wcd_ext_spk_get(struct snd_kcontrol *kcontrol,
  struct snd_ctl_elem_value *ucontrol)
 {
@@ -2647,7 +2647,7 @@ static const struct soc_enum msm8x16_wcd_hph_mode_ctl_enum[] = {
 
 
 //yangliang add for external padac for spk;20150708
-#ifdef CONFIG_PROJECT_P7201
+#ifdef CONFIG_PROJECT_GARLIC
 static const char * const msm8x16_wcd_ext_spk_ctrl_text[] = {
 	"DISABLE", "ENABLE"};
 static const struct soc_enum msm8x16_wcd_ext_spk_ctl_enum[] = {
@@ -2699,7 +2699,7 @@ static const struct snd_kcontrol_new msm8x16_wcd_snd_controls[] = {
 		msm8x16_wcd_loopback_mode_get, msm8x16_wcd_loopback_mode_put),
 
 	//yangliang add for external padac for spk;20150708
-	#ifdef CONFIG_PROJECT_P7201
+	#ifdef CONFIG_PROJECT_GARLIC
 	SOC_ENUM_EXT("Speaker Ext", msm8x16_wcd_ext_spk_ctl_enum[0],
 	msm8x16_wcd_ext_spk_get, msm8x16_wcd_ext_spk_set),
 	#endif

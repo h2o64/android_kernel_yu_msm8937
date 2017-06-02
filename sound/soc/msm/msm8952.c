@@ -52,7 +52,7 @@
 #define MSM_DT_MAX_PROP_SIZE 80
 
 //++ camera selfie stick TN:peter
-#ifdef CONFIG_PROJECT_P7201
+#ifdef CONFIG_PROJECT_GARLIC
 #define CAMERA_SELFIE_STICK
 #endif
 //-- camera selfie stick
@@ -78,7 +78,7 @@ static atomic_t quin_mi2s_clk_ref;
 static atomic_t auxpcm_mi2s_clk_ref;
 
 //yangliang add for external padac for spk;20150708
-#ifdef CONFIG_PROJECT_P7201
+#ifdef CONFIG_PROJECT_GARLIC
 int ext_spk_pa_gpio = -1;
 #endif
 
@@ -97,8 +97,8 @@ static int msm8952_wsa_switch_event(struct snd_soc_dapm_widget *w,
  * Need to report LINEIN
  * if R/L channel impedance is larger than 5K ohm
  */
-#if defined(CONFIG_PROJECT_P7201)
-static struct wcd_mbhc_config mbhc_cfg = {//yangliang mask and add for p7201 linear hph20160729
+#if defined(CONFIG_PROJECT_GARLIC)
+static struct wcd_mbhc_config mbhc_cfg = {//yangliang mask and add for garlic linear hph20160729
 	.read_fw_bin = false,
 	.calibration = NULL,
 	.detect_extn_cable = true,
@@ -109,7 +109,7 @@ static struct wcd_mbhc_config mbhc_cfg = {//yangliang mask and add for p7201 lin
 	//.key_code[1] = KEY_VOICECOMMAND,
 	.key_code[1] = KEY_VOLUMEUP,
 	.key_code[2] = KEY_VOLUMEDOWN,
-	.key_code[3] = 0,////yangliang mask and add for p7201 linear hph20160729
+	.key_code[3] = 0,////yangliang mask and add for garlic linear hph20160729
 	.key_code[4] = 0,
 	.key_code[5] = 0,
 	.key_code[6] = 0,
@@ -280,7 +280,7 @@ int is_ext_spk_gpio_support(struct platform_device *pdev,
 
 	pdata->spk_ext_pa_gpio = of_get_named_gpio(pdev->dev.of_node,
 				spk_ext_pa, 0);
-	#ifdef CONFIG_PROJECT_P7201
+	#ifdef CONFIG_PROJECT_GARLIC
 		ext_spk_pa_gpio = pdata->spk_ext_pa_gpio;//yangliang add
 	#endif
 
@@ -352,7 +352,7 @@ static int enable_spk_ext_pa(struct snd_soc_codec *codec, int enable)
 					__func__, "ext_spk_gpio");
 			return ret;
 		}*/
-		#ifdef CONFIG_PROJECT_P7201
+		#ifdef CONFIG_PROJECT_GARLIC
 			printk(KERN_ERR"goto mode-2");
 			ext_spk_pa_current_state = true;//yangliang add to feedback ext pa-spk used state for insert hph of spk-voice and out hph resulting in spk-voice no downlink 20160530
 			//gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, 0);
@@ -1611,8 +1611,8 @@ static void *def_msm8952_wcd_mbhc_cal(void)
 	 * 210-290 == Button 2
 	 * 360-680 == Button 3
 	 */
-	//yangliang mask and add for p7201 linear hph20160729
-	#if defined(CONFIG_PROJECT_P7201)
+	//yangliang mask and add for garlic linear hph20160729
+	#if defined(CONFIG_PROJECT_GARLIC)
  	btn_low[0] = 100;
 	btn_high[0] = 100;
 	btn_low[1] = 250;
@@ -3271,7 +3271,7 @@ static int msm8952_asoc_machine_remove(struct platform_device *pdev)
 	int i;
 
 	//yangliang add for external padac for spk;20150708
-	#ifdef CONFIG_PROJECT_P7201
+	#ifdef CONFIG_PROJECT_GARLIC
 	if (gpio_is_valid(ext_spk_pa_gpio))
 		gpio_free(ext_spk_pa_gpio);
 	#endif

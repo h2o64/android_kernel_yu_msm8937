@@ -63,7 +63,7 @@ static void scm_disable_sdi(void);
 //zenghaihui forbid download mode for 7701 MP
 #ifdef __BUILD_TYPE_USER__
 
-#ifdef CONFIG_PROJECT_P7201
+#ifdef CONFIG_PROJECT_GARLIC
 static int download_mode = 0;
 #else
 static int download_mode = 1;
