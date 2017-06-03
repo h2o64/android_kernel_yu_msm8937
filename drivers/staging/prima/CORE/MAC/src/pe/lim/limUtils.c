@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2011-2016 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -643,13 +643,6 @@ char *limMsgStr(tANI_U32 msgType)
 #ifdef WLAN_FEATURE_VOWIFI_11R
         case SIR_LIM_FT_PREAUTH_RSP_TIMEOUT:
             return "SIR_LIM_FT_PREAUTH_RSP_TIMEOUT";
-#endif
-
-#ifdef WLAN_FEATURE_LFR_MBB
-        case SIR_LIM_PREAUTH_MBB_RSP_TIMEOUT:
-            return "SIR_LIM_PREAUTH_MBB_RSP_TIMEOUT";
-        case SIR_LIM_REASSOC_MBB_RSP_TIMEOUT:
-            return "SIR_LIM_REASSOC_MBB_RSP_TIMEOUT";
 #endif
 
         case SIR_HAL_APP_SETUP_NTF:
@@ -2598,15 +2591,22 @@ void limProcessChannelSwitchTimeout(tpAniSirGlobal pMac)
     tpPESession psessionEntry = NULL;
     tANI_U8    channel; // This is received and stored from channelSwitch Action frame
    
-    if((psessionEntry = peFindSessionBySessionId(pMac, pMac->lim.limTimers.gLimChannelSwitchTimer.sessionId))== NULL) 
-    {
-        limLog(pMac, LOGP,FL("Session Does not exist for given sessionID"));
+    if ((psessionEntry = peFindSessionBySessionId(pMac,
+       pMac->lim.limTimers.gLimChannelSwitchTimer.sessionId))== NULL) {
+        limLog(pMac, LOGW,FL("Session Does not exist for given sessionID"));
         return;
     }
 
     if (psessionEntry->limSystemRole != eLIM_STA_ROLE)
     {
         PELOGW(limLog(pMac, LOGW, "Channel switch can be done only in STA role, Current Role = %d", psessionEntry->limSystemRole);)
+        return;
+    }
+    if (psessionEntry->gLimSpecMgmt.dot11hChanSwState !=
+                                  eLIM_11H_CHANSW_RUNNING) {
+        limLog(pMac, LOGW,
+            FL("Channel switch timer should not have been running in state %d"),
+            psessionEntry->gLimSpecMgmt.dot11hChanSwState);
         return;
     }
     channel = psessionEntry->gLimChannelSwitch.primaryChannel;
@@ -2672,9 +2672,14 @@ void limProcessChannelSwitchTimeout(tpAniSirGlobal pMac)
          * then we cannot switch the channel. Just disassociate from AP. 
          * We will find a better AP !!!
          */
-        limTearDownLinkWithAp(pMac, 
+        if ((psessionEntry->limMlmState == eLIM_MLM_LINK_ESTABLISHED_STATE) &&
+           (psessionEntry->limSmeState != eLIM_SME_WT_DISASSOC_STATE)&&
+           (psessionEntry->limSmeState != eLIM_SME_WT_DEAUTH_STATE)) {
+              limLog(pMac, LOGE, FL("Invalid channel!! Disconnect.."));
+              limTearDownLinkWithAp(pMac,
                         pMac->lim.limTimers.gLimChannelSwitchTimer.sessionId,
                         eSIR_MAC_UNSPEC_FAILURE_REASON);
+        }
         return;
     }
     limCovertChannelScanType(pMac, psessionEntry->currentOperChannel, false);

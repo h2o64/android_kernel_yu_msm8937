@@ -268,10 +268,6 @@ void csrRoamingStateMsgProcessor( tpAniSirGlobal pMac, void *pMsgBuf );
 void csrRoamJoinedStateMsgProcessor( tpAniSirGlobal pMac, void *pMsgBuf );
 tANI_BOOLEAN csrScanComplete( tpAniSirGlobal pMac, tSirSmeScanRsp *pScanRsp );
 void csrReleaseCommandRoam(tpAniSirGlobal pMac, tSmeCmd *pCommand);
-tpCsrNeighborRoamBSSInfo csrNeighborRoamGetRoamableAPListNextEntry(tpAniSirGlobal pMac,
-                                        tDblLinkList *pList, tpCsrNeighborRoamBSSInfo pNeighborEntry);
-v_U8_t *csrNeighborRoamStateToString(v_U8_t state);
-void csrReleaseCommandPreauth(tpAniSirGlobal pMac, tSmeCmd *pCommand);
 void csrReleaseCommandScan(tpAniSirGlobal pMac, tSmeCmd *pCommand);
 void csrReleaseCommandWmStatusChange(tpAniSirGlobal pMac, tSmeCmd *pCommand);
 //pIes2 can be NULL
@@ -401,10 +397,6 @@ void csrRoamRemoveDuplicateCommand(tpAniSirGlobal pMac, tANI_U32 sessionId, tSme
 eHalStatus csrSendJoinReqMsg( tpAniSirGlobal pMac, tANI_U32 sessionId, tSirBssDescription *pBssDescription, 
                               tCsrRoamProfile *pProfile, tDot11fBeaconIEs *pIes, tANI_U16 messageType );
 eHalStatus csrSendMBDisassocReqMsg( tpAniSirGlobal pMac, tANI_U32 sessionId, tSirMacAddr bssId, tANI_U16 reasonCode );
-#ifdef WLAN_FEATURE_LFR_MBB
-eHalStatus csr_fill_reassoc_req(tpAniSirGlobal pMac, tANI_U32 sessionId, tSirBssDescription *pBssDescription,
-                                  tDot11fBeaconIEs *pIes, tSirSmeJoinReq **reassoc_req);
-#endif
 eHalStatus csrSendMBDeauthReqMsg( tpAniSirGlobal pMac, tANI_U32 sessionId, tSirMacAddr bssId, tANI_U16 reasonCode );
 eHalStatus csrSendMBDisassocCnfMsg( tpAniSirGlobal pMac, tpSirSmeDisassocInd pDisassocInd );
 eHalStatus csrSendMBDeauthCnfMsg( tpAniSirGlobal pMac, tpSirSmeDeauthInd pDeauthInd );
@@ -1112,6 +1104,6 @@ void csr_remove_bssid_from_scan_list(tpAniSirGlobal pMac,
 eHalStatus csrSetHT2040Mode(tpAniSirGlobal pMac, tANI_U32 sessionId, tANI_U8 cbMode);
 #endif
 void csrValidateScanChannels(tpAniSirGlobal pMac, tCsrScanRequest *pDstReq,
-               tCsrScanRequest *pSrcReq, int new_index, tANI_U8 ch144_support);
+               tCsrScanRequest *pSrcReq, tANI_U32 *new_index, tANI_U8 ch144_support);
 #endif
 

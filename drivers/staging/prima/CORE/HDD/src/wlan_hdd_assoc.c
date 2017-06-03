@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2017 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2016 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -1028,7 +1028,7 @@ static eHalStatus hdd_DisConnectHandler( hdd_adapter_t *pAdapter, tCsrRoamInfo *
     /* HDD has initiated disconnect, do not send disconnect indication
      * to kernel. Sending disconnected event to kernel for userspace
      * initiated disconnect will be handled by diconnect handler call
-     * to cfg80211_disconnected.
+     * to cfg80211_disconnected
      */
     if ((eConnectionState_Disconnecting == pHddStaCtx->conn_info.connState) ||
         (eConnectionState_NotConnected == pHddStaCtx->conn_info.connState))
@@ -2459,79 +2459,6 @@ static eHalStatus roamIbssConnectHandler( hdd_adapter_t *pAdapter, tCsrRoamInfo 
 
    return( eHAL_STATUS_SUCCESS );
 }
-/**============================================================================
- *
-  @brief hdd_ReConfigSuspendDataClearedDuringRoaming() - Reconfigure the
-  suspend related data which was cleared during roaming in FWR.
-
-  ===========================================================================*/
-static void hdd_ReConfigSuspendDataClearedDuringRoaming(hdd_context_t *pHddCtx)
-{
-    VOS_STATUS vstatus = VOS_STATUS_E_FAILURE;
-    hdd_adapter_t *pAdapter;
-    hdd_adapter_list_node_t *pAdapterNode = NULL, *pNext = NULL;
-    ENTER();
-
-    spin_lock(&pHddCtx->filter_lock);
-    if (VOS_FALSE == pHddCtx->sus_res_mcastbcast_filter_valid)
-    {
-        pHddCtx->sus_res_mcastbcast_filter =
-            pHddCtx->configuredMcastBcastFilter;
-        pHddCtx->sus_res_mcastbcast_filter_valid = VOS_TRUE;
-        hddLog(VOS_TRACE_LEVEL_INFO, FL("offload: callback to associated"));
-        hddLog(VOS_TRACE_LEVEL_INFO,
-            FL("saving configuredMcastBcastFilter = %d"),
-            pHddCtx->configuredMcastBcastFilter);
-        hddLog(VOS_TRACE_LEVEL_INFO,
-            FL("offload: calling hdd_conf_mcastbcast_filter"));
-    }
-    spin_unlock(&pHddCtx->filter_lock);
-
-    hdd_conf_mcastbcast_filter(pHddCtx, TRUE);
-    if(pHddCtx->hdd_mcastbcast_filter_set != TRUE)
-        hddLog(VOS_TRACE_LEVEL_ERROR, FL("Not able to set mcast/bcast filter "));
-
-    vstatus = hdd_get_front_adapter ( pHddCtx, &pAdapterNode );
-    //No need to configure GTK Offload from here because it might possible
-    //cfg80211_set_rekey_data might not yet came, anyway GTK offload will
-    //be handled as part of cfg80211_set_rekey_data processing.
-    while ( NULL != pAdapterNode && VOS_STATUS_SUCCESS == vstatus )
-    {
-        pAdapter = pAdapterNode->pAdapter;
-        if( pAdapter &&
-        (( pAdapter->device_mode == WLAN_HDD_INFRA_STATION)  ||
-          (pAdapter->device_mode == WLAN_HDD_P2P_CLIENT)))
-        {
-            if (pHddCtx->cfg_ini->fhostArpOffload)
-            {
-                //Configure ARPOFFLOAD
-                vstatus = hdd_conf_arp_offload(pAdapter, TRUE);
-                if (!VOS_IS_STATUS_SUCCESS(vstatus))
-                {
-                    hddLog(VOS_TRACE_LEVEL_ERROR,
-                        FL("Failed to disable ARPOffload Feature %d"), vstatus);
-                }
-            }
-#ifdef WLAN_NS_OFFLOAD
-            //Configure NSOFFLOAD
-            if (pHddCtx->cfg_ini->fhostNSOffload)
-            {
-                hdd_conf_ns_offload(pAdapter, TRUE);
-            }
-#endif
-#ifdef WLAN_FEATURE_PACKET_FILTERING
-            /* During suspend, configure MC Addr list filter to the firmware
-             * function takes care of checking necessary conditions before
-             * configuring.
-             */
-            wlan_hdd_set_mc_addr_list(pAdapter, TRUE);
-#endif
-        }
-        vstatus = hdd_get_next_adapter ( pHddCtx, pAdapterNode, &pNext );
-        pAdapterNode = pNext;
-    }
-    EXIT();
-}
 
 /**============================================================================
  *
@@ -3312,6 +3239,7 @@ eHalStatus hdd_smeRoamCallback( void *pContext, tCsrRoamInfo *pRoamInfo, tANI_U3
     hdd_wext_state_t *pWextState = NULL;
     hdd_station_ctx_t *pHddStaCtx = NULL;
     VOS_STATUS status = VOS_STATUS_SUCCESS;
+    struct cfg80211_bss *bss_status;
     hdd_context_t *pHddCtx = NULL;
 
     VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO_HIGH,
@@ -3676,6 +3604,20 @@ eHalStatus hdd_smeRoamCallback( void *pContext, tCsrRoamInfo *pRoamInfo, tANI_U3
             pAdapter->maxRateFlags = roamResult;
             break;
          }
+       case eCSR_ROAM_UPDATE_SCAN_RESULT:
+         if (pRoamInfo && pRoamInfo->pBssDesc) {
+              bss_status = wlan_hdd_cfg80211_inform_bss_frame(pAdapter,
+                                pRoamInfo->pBssDesc);
+              if (bss_status)
+                  cfg80211_put_bss(
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 9, 0)) || defined(WITH_BACKPORTS)
+                                   (WLAN_HDD_GET_CTX(pAdapter))->wiphy,
+#endif
+                                   bss_status);
+              else
+                  hddLog(LOG1, FL("UPDATE_SCAN_RESULT returned NULL"));
+         }
+         break;
        default:
             break;
     }
@@ -4153,19 +4095,6 @@ int hdd_set_csr_auth_type ( hdd_adapter_t  *pAdapter, eCsrAuthType RSNAuthType)
 
    EXIT();
     return 0;
-}
-
-/**
- * hdd_rx_fwd_eapol() - forward cached eapol frames
- * @vosContext : pointer to vos global context
- * @pVosPacket: pointer to vos packet
- *
- * Return: None
- *
- */
-void hdd_assoc_registerFwdEapolCB(void *pContext)
-{
-     WLANTL_RegisterFwdEapol(pContext, hdd_rx_fwd_eapol);
 }
 
 /**---------------------------------------------------------------------------

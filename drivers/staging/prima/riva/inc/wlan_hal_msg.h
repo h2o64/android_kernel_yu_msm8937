@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2012-2016 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2017 The Linux Foundation. All rights reserved.
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
  *
@@ -823,9 +823,6 @@ typedef enum eSriLinkState {
 #endif
 #ifdef WLAN_FEATURE_ROAM_OFFLOAD
     eSIR_LINK_FT_PREASSOC_STATE = 16,
-#endif
-#ifdef WLAN_FEATURE_LFR_MBB
-    eSIR_LINK_PRE_AUTH_REASSOC_STATE = 17,
 #endif
     eSIR_LINK_MAX = WLAN_HAL_MAX_ENUM_SIZE
 } tSirLinkState;
@@ -5901,6 +5898,8 @@ typedef PACKED_PRE struct PACKED_POST
 #define WLAN_COEX_IND_TYPE_ENABLE_UAPSD (6)
 #define WLAN_COEX_IND_TYPE_DISABLE_UAPSD (7)
 #define WLAN_COEX_IND_TYPE_CXM_FEATURES_NOTIFICATION (8)
+#define WLAN_COEX_IND_TYPE_HID_CONNECTED_WLAN_CONNECTED_IN_2p4 (9)
+#define WLAN_COEX_IND_TYPE_HID_DISCONNECTED_WLAN_CONNECTED_IN_2p4 (10)
 
 typedef PACKED_PRE struct PACKED_POST
 {
@@ -6884,7 +6883,6 @@ typedef enum {
     WIFI_CONFIG            = 61,
     ANTENNA_DIVERSITY_SELECTION  = 62,
     PER_BASED_ROAMING      = 63,
-    MAKE_BEFORE_BREAK      = 67,
     NUD_DEBUG              = 68,
     MAX_FEATURE_SUPPORTED  = 128,
 } placeHolderInCapBitmap;
