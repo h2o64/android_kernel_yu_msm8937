@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2017 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2016 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -302,8 +302,6 @@ typedef enum
   /* Forwarding RX cached frames */
   WLANTL_RX_FWD_CACHED  = 0,
 
-  /* Forward pre assoc cached frames */
-  WLANTL_RX_FWD_PRE_ASSOC_CACHED = 1,
 }WLANTL_RxSignalsType;
 
 /*---------------------------------------------------------------------------
@@ -969,9 +967,6 @@ typedef struct
   WLANTL_RoamMonitorType gDsRxRoamStats;
 #endif
 
-  bool preassoc_caching;
-  vos_pkt_t* vosEapolCachedFrame;
-  WLANTL_FwdEapolCBType pfnEapolFwd;
   uint8_t track_arp;
   uint32_t txbd_token;
 }WLANTL_CbType;

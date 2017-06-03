@@ -2884,15 +2884,6 @@ REG_VARIABLE( CFG_EXTSCAN_ENABLE, WLAN_PARAM_Integer,
                  CFG_PER_ROAM_BAD_RSSI_MAX),
 #endif
 
-#ifdef WLAN_FEATURE_LFR_MBB
-   REG_VARIABLE(CFG_ENABLE_LFR_MBB, WLAN_PARAM_Integer,
-                hdd_config_t, enable_lfr_mbb,
-                VAR_FLAGS_OPTIONAL | VAR_FLAGS_RANGE_CHECK_ASSUME_DEFAULT,
-                CFG_ENABLE_LFR_MBB_DEFAULT,
-                CFG_ENABLE_LFR_MBB_MIN,
-                CFG_ENABLE_LFR_MBB_MAX ),
-#endif
-
    REG_VARIABLE( CFG_ENABLE_ADAPT_RX_DRAIN_NAME, WLAN_PARAM_Integer,
                  hdd_config_t, fEnableAdaptRxDrain,
                  VAR_FLAGS_OPTIONAL | VAR_FLAGS_RANGE_CHECK ,
@@ -3633,13 +3624,6 @@ REG_VARIABLE( CFG_EXTSCAN_ENABLE, WLAN_PARAM_Integer,
                CFG_SAR_BOFFSET_SET_CORRECTION_MIN,
                CFG_SAR_BOFFSET_SET_CORRECTION_MAX),
 
-  REG_VARIABLE( CFG_SEND_MGMT_PKT_VIA_WQ5_NAME , WLAN_PARAM_Integer,
-               hdd_config_t, sendMgmtPktViaWQ5,
-               VAR_FLAGS_OPTIONAL | VAR_FLAGS_RANGE_CHECK_ASSUME_DEFAULT,
-               CFG_SEND_MGMT_PKT_VIA_WQ5_DEF,
-               CFG_SEND_MGMT_PKT_VIA_WQ5_MIN,
-               CFG_SEND_MGMT_PKT_VIA_WQ5_MAX ),
-
   REG_VARIABLE(CFG_ENABLE_EDCA_INI_NAME, WLAN_PARAM_Integer,
                hdd_config_t, enable_edca_params,
                VAR_FLAGS_OPTIONAL |
@@ -3744,6 +3728,13 @@ REG_VARIABLE( CFG_EXTSCAN_ENABLE, WLAN_PARAM_Integer,
                CFG_EDCA_BE_AIFS_VALUE_MIN,
                CFG_EDCA_BE_AIFS_VALUE_MAX),
 
+  REG_VARIABLE( CFG_SEND_MGMT_PKT_VIA_WQ5_NAME , WLAN_PARAM_Integer,
+               hdd_config_t, sendMgmtPktViaWQ5,
+               VAR_FLAGS_OPTIONAL | VAR_FLAGS_RANGE_CHECK_ASSUME_DEFAULT,
+               CFG_SEND_MGMT_PKT_VIA_WQ5_DEF,
+               CFG_SEND_MGMT_PKT_VIA_WQ5_MIN,
+               CFG_SEND_MGMT_PKT_VIA_WQ5_MAX ),
+
   REG_VARIABLE(CFG_SAP_PROBE_RESP_OFFLOAD_NAME, WLAN_PARAM_Integer,
                hdd_config_t, sap_probe_resp_offload,
                VAR_FLAGS_OPTIONAL | VAR_FLAGS_RANGE_CHECK_ASSUME_DEFAULT,
@@ -3751,12 +3742,12 @@ REG_VARIABLE( CFG_EXTSCAN_ENABLE, WLAN_PARAM_Integer,
                CFG_SAP_PROBE_RESP_OFFLOAD_MIN,
                CFG_SAP_PROBE_RESP_OFFLOAD_MAX),
 
-  REG_VARIABLE(CFG_CH_AVOID_SAP_RESTART_NAME, WLAN_PARAM_Integer,
-               hdd_config_t, sap_restrt_ch_avoid,
+  REG_VARIABLE(CFG_SAP_INTERNAL_RESTART_NAME, WLAN_PARAM_Integer,
+               hdd_config_t, sap_internal_restart,
                VAR_FLAGS_OPTIONAL | VAR_FLAGS_RANGE_CHECK_ASSUME_DEFAULT,
-               CFG_CH_AVOID_SAP_RESTART_DEFAULT,
-               CFG_CH_AVOID_SAP_RESTART_MIN,
-               CFG_CH_AVOID_SAP_RESTART_MAX),
+               CFG_SAP_INTERNAL_RESTART_DEFAULT,
+               CFG_SAP_INTERNAL_RESTART_MIN,
+               CFG_SAP_INTERNAL_RESTART_MAX),
 
 };
 
@@ -4209,9 +4200,6 @@ static void print_hdd_cfg(hdd_context_t *pHddCtx)
   VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO_HIGH,
            "Name = [gTDLSEnableDeferTime] Value = [%u] ",
            pHddCtx->cfg_ini->tdls_enable_defer_time);
-  VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO_HIGH,
-          "Name = [gSendMgmtPktViaWQ5] Value = [%u] ",
-          pHddCtx->cfg_ini->sendMgmtPktViaWQ5);
 
   VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO_HIGH,
           "Name = [%s] Value = [%u] ",
@@ -4269,6 +4257,14 @@ static void print_hdd_cfg(hdd_context_t *pHddCtx)
           CFG_EDCA_BE_AIFS_VALUE_NAME,
           pHddCtx->cfg_ini->edca_be_aifs);
 
+  VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO_HIGH,
+          "Name = [gSendMgmtPktViaWQ5] Value = [%u] ",
+          pHddCtx->cfg_ini->sendMgmtPktViaWQ5);
+
+  VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO_HIGH,
+            "Name = [%s] Value = [%u] ", CFG_SAP_PROBE_RESP_OFFLOAD_NAME,
+            pHddCtx->cfg_ini->sap_probe_resp_offload);
+
 #ifdef WLAN_FEATURE_ROAM_SCAN_OFFLOAD
   VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO_HIGH,
           "Name = [gPERRoamStatsTime] Value = [%lu] ",
@@ -4314,21 +4310,9 @@ static void print_hdd_cfg(hdd_context_t *pHddCtx)
           "Name = [gPERRoamUpThresholdRate] Value = [%u] ",
           pHddCtx->cfg_ini->rateUpThreshold);
 #endif
-
   VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO_HIGH,
-            "Name = [%s] Value = [%u] ", CFG_SAP_PROBE_RESP_OFFLOAD_NAME,
-            pHddCtx->cfg_ini->sap_probe_resp_offload);
-
-  VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO_HIGH,
-        "Name = [sap_ch_avoid_restart] Value = [%u] ",
-         pHddCtx->cfg_ini->sap_restrt_ch_avoid);
-
-#ifdef WLAN_FEATURE_LFR_MBB
-   VOS_TRACE(VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO_HIGH,
-          "Name = [gEnableLFRMBB] Value = [%u] ",
-           pHddCtx->cfg_ini->enable_lfr_mbb);
-#endif
-
+        "Name = [gEnableSapInternalRestart] Value = [%u] ",
+         pHddCtx->cfg_ini->sap_internal_restart);
 }
 
 
@@ -5325,6 +5309,9 @@ v_BOOL_t hdd_update_config_dat( hdd_context_t *pHddCtx )
         hddLog(LOGE, "Could not pass on WNI_CFG_ENABLE_MC_ADDR_LIST to CCM");
      }
 
+     /* cache the value configured in fwr */
+     pHddCtx->mc_list_cfg_in_fwr = pConfig->fEnableMCAddrList;
+
 #ifdef WLAN_FEATURE_11AC
    /* Based on cfg.ini, update the Basic MCS set, RX/TX MCS map in the cfg.dat */
    /* valid values are 0(MCS0-7), 1(MCS0-8), 2(MCS0-9) */
@@ -6153,11 +6140,6 @@ VOS_STATUS hdd_set_sme_config( hdd_context_t *pHddCtx )
        smeConfig->csrConfig.bFastRoamInConIniFeatureEnabled = 0;
    }
 #endif
-
-#ifdef WLAN_FEATURE_LFR_MBB
-   smeConfig->csrConfig.enable_lfr_mbb = pConfig->enable_lfr_mbb;
-#endif
-
 #ifdef WLAN_FEATURE_NEIGHBOR_ROAMING
    smeConfig->csrConfig.neighborRoamConfig.nNeighborReassocRssiThreshold = pConfig->nNeighborReassocRssiThreshold;
    smeConfig->csrConfig.neighborRoamConfig.nNeighborLookupRssiThreshold = pConfig->nNeighborLookupRssiThreshold;
@@ -6225,8 +6207,6 @@ VOS_STATUS hdd_set_sme_config( hdd_context_t *pHddCtx )
    smeConfig->csrConfig.roamDelayStatsEnabled = pHddCtx->cfg_ini->gEnableRoamDelayStats;
    smeConfig->csrConfig.max_chan_for_dwell_time_cfg =
                         pHddCtx->cfg_ini->max_chan_for_dwell_time_cfg;
-   sme_set_mgmt_frm_via_wq5((tHalHandle)(pHddCtx->hHal),
-           pHddCtx->cfg_ini->sendMgmtPktViaWQ5);
 
    smeConfig->csrConfig.enable_edca_params =
                         pHddCtx->cfg_ini->enable_edca_params;
@@ -6257,6 +6237,10 @@ VOS_STATUS hdd_set_sme_config( hdd_context_t *pHddCtx )
                         pHddCtx->cfg_ini->edca_bk_aifs;
    smeConfig->csrConfig.edca_be_aifs =
                         pHddCtx->cfg_ini->edca_be_aifs;
+
+
+   sme_set_mgmt_frm_via_wq5((tHalHandle)(pHddCtx->hHal),
+           pHddCtx->cfg_ini->sendMgmtPktViaWQ5);
 
    vos_set_multicast_logging(pHddCtx->cfg_ini->multicast_host_msgs);
    halStatus = sme_UpdateConfig( pHddCtx->hHal, smeConfig);

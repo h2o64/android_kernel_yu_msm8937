@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2014, 2016 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2014, 2017 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -228,11 +228,6 @@ typedef struct sLimTimers
 
 #ifdef WLAN_FEATURE_VOWIFI_11R
     TX_TIMER           gLimFTPreAuthRspTimer;
-#endif
-
-#ifdef WLAN_FEATURE_LFR_MBB
-    TX_TIMER           glim_pre_auth_mbb_rsp_timer;
-    TX_TIMER           glim_reassoc_mbb_rsp_timer;
 #endif
 
 #ifdef FEATURE_WLAN_ESE
@@ -1098,6 +1093,7 @@ typedef struct sAniSirGlobal
     v_U32_t PERroamTimeout;
     v_U32_t currentBssScore;
 #endif
+   bool max_power_cmd_pending;
 } tAniSirGlobal;
 
 #ifdef FEATURE_WLAN_TDLS

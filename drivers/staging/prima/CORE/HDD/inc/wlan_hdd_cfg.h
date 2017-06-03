@@ -767,7 +767,7 @@ typedef enum
 #define CFG_INFRA_STA_KEEP_ALIVE_PERIOD_NAME          "gStaKeepAlivePeriod"
 #define CFG_INFRA_STA_KEEP_ALIVE_PERIOD_MIN           ( 0 )
 #define CFG_INFRA_STA_KEEP_ALIVE_PERIOD_MAX           ( 65535)
-#define CFG_INFRA_STA_KEEP_ALIVE_PERIOD_DEFAULT       ( 0 )
+#define CFG_INFRA_STA_KEEP_ALIVE_PERIOD_DEFAULT       ( 30 )
 
 //WMM configuration
 #define CFG_QOS_WMM_MODE_NAME                             "WmmIsEnabled"
@@ -931,7 +931,7 @@ typedef enum
  * Max: Max rate for 1x1 transmission
  */
 #define CFG_PER_ROAM_SCAN_RATE_UP_THRESHOLD           "gPERRoamUpThresholdRate"
-#define CFG_PER_ROAM_SCAN_RATE_UP_THRESHOLD_MIN       (10)
+#define CFG_PER_ROAM_SCAN_RATE_UP_THRESHOLD_MIN       (20)
 #define CFG_PER_ROAM_SCAN_RATE_UP_THRESHOLD_MAX       (3330)
 #define CFG_PER_ROAM_SCAN_RATE_UP_THRESHOLD_DEFAULT   (400)
 
@@ -950,13 +950,13 @@ typedef enum
  * Value : seconds
  */
 #define CFG_PER_ROAM_SCAN_WAIT_TIME                   "gPERRoamScanInterval"
-#define CFG_PER_ROAM_SCAN_WAIT_TIME_MIN               (0)
+#define CFG_PER_ROAM_SCAN_WAIT_TIME_MIN               (10)
 #define CFG_PER_ROAM_SCAN_WAIT_TIME_MAX               (3600)
 #define CFG_PER_ROAM_SCAN_WAIT_TIME_DEFAULT           (300)
 
 /* Time to collect stats to trigger roam scan for Tx path */
 #define CFG_PER_ROAM_SCAN_PER_TIME_THRESHOLD          "gPERRoamStatsTime"
-#define CFG_PER_ROAM_SCAN_PER_TIME_THRESHOLD_MIN      (0)
+#define CFG_PER_ROAM_SCAN_PER_TIME_THRESHOLD_MIN      (5)
 #define CFG_PER_ROAM_SCAN_PER_TIME_THRESHOLD_MAX      (25)
 #define CFG_PER_ROAM_SCAN_PER_TIME_THRESHOLD_DEFAULT  (10)
 
@@ -1189,7 +1189,7 @@ typedef enum
 #define CFG_ENABLE_LOGP_NAME                                "gEnableLogp"
 #define CFG_ENABLE_LOGP_MIN                                 ( 0 )
 #define CFG_ENABLE_LOGP_MAX                                 ( 1 )
-#define CFG_ENABLE_LOGP_DEFAULT                             ( 0 )
+#define CFG_ENABLE_LOGP_DEFAULT                             ( 1 )
 
 #define CFG_BTC_EXECUTION_MODE_NAME                         "BtcExecutionMode"
 #define CFG_BTC_EXECUTION_MODE_MIN                          ( 0 )
@@ -1488,12 +1488,12 @@ typedef enum
 #define CFG_ENABLE_HOST_ARPOFFLOAD_NAME         "hostArpOffload"
 #define CFG_ENABLE_HOST_ARPOFFLOAD_MIN          ( 0 )
 #define CFG_ENABLE_HOST_ARPOFFLOAD_MAX          ( 1 )
-#define CFG_ENABLE_HOST_ARPOFFLOAD_DEFAULT      ( 0 )
+#define CFG_ENABLE_HOST_ARPOFFLOAD_DEFAULT      ( 1 )
 
 #define CFG_ENABLE_HOST_NSOFFLOAD_NAME         "hostNSOffload"
 #define CFG_ENABLE_HOST_NSOFFLOAD_MIN          ( 0 )
 #define CFG_ENABLE_HOST_NSOFFLOAD_MAX          ( 1 )
-#define CFG_ENABLE_HOST_NSOFFLOAD_DEFAULT      ( 0 )
+#define CFG_ENABLE_HOST_NSOFFLOAD_DEFAULT      ( 1 )
 
 
 #define CFG_ENABLE_BTAMP_NAME                   "gEnableBtAmp"
@@ -1966,14 +1966,14 @@ static __inline tANI_U32 defHddRateToDefCfgRate( tANI_U32 defRateIndex )
 #define CFG_TDLS_IMPLICIT_TRIGGER_DEFAULT           ( 0 )
 
 #define CFG_TDLS_TX_STATS_PERIOD                    "gTDLSTxStatsPeriod"
-#define CFG_TDLS_TX_STATS_PERIOD_MIN                ( 10 )
+#define CFG_TDLS_TX_STATS_PERIOD_MIN                (1000)
 #define CFG_TDLS_TX_STATS_PERIOD_MAX                ( 4294967295UL )
-#define CFG_TDLS_TX_STATS_PERIOD_DEFAULT            ( 5000 )
+#define CFG_TDLS_TX_STATS_PERIOD_DEFAULT            (2000)
 
 #define CFG_TDLS_TX_PACKET_THRESHOLD                "gTDLSTxPacketThreshold"
 #define CFG_TDLS_TX_PACKET_THRESHOLD_MIN            ( 0 )
 #define CFG_TDLS_TX_PACKET_THRESHOLD_MAX            ( 4294967295UL )
-#define CFG_TDLS_TX_PACKET_THRESHOLD_DEFAULT        ( 100 )
+#define CFG_TDLS_TX_PACKET_THRESHOLD_DEFAULT        (40)
 
 #define CFG_TDLS_DISCOVERY_PERIOD                   "gTDLSDiscoveryPeriod"
 #define CFG_TDLS_DISCOVERY_PERIOD_MIN               ( 5000 )
@@ -1983,7 +1983,7 @@ static __inline tANI_U32 defHddRateToDefCfgRate( tANI_U32 defRateIndex )
 #define CFG_TDLS_MAX_DISCOVERY_ATTEMPT              "gTDLSMaxDiscoveryAttempt"
 #define CFG_TDLS_MAX_DISCOVERY_ATTEMPT_MIN          ( 1 )
 #define CFG_TDLS_MAX_DISCOVERY_ATTEMPT_MAX          ( 100 )
-#define CFG_TDLS_MAX_DISCOVERY_ATTEMPT_DEFAULT      ( 3 )
+#define CFG_TDLS_MAX_DISCOVERY_ATTEMPT_DEFAULT      (5)
 
 #define CFG_TDLS_IDLE_TIMEOUT                       "gTDLSIdleTimeout"
 #define CFG_TDLS_IDLE_TIMEOUT_MIN                   ( 2000 )
@@ -2033,7 +2033,7 @@ static __inline tANI_U32 defHddRateToDefCfgRate( tANI_U32 defRateIndex )
 #define CFG_TDLS_EXTERNAL_CONTROL                   "gTDLSExternalControl"
 #define CFG_TDLS_EXTERNAL_CONTROL_MIN               (0)
 #define CFG_TDLS_EXTERNAL_CONTROL_MAX               (1)
-#define CFG_TDLS_EXTERNAL_CONTROL_DEFAULT           (0)
+#define CFG_TDLS_EXTERNAL_CONTROL_DEFAULT           (1)
 
 #define CFG_TDLS_OFF_CHANNEL_SUPPORT_ENABLE          "gEnableTDLSOffChannel"
 #define CFG_TDLS_OFF_CHANNEL_SUPPORT_ENABLE_MIN      (0)
@@ -2051,13 +2051,13 @@ static __inline tANI_U32 defHddRateToDefCfgRate( tANI_U32 defRateIndex )
 #define CFG_TDLS_SCAN_COEX_SUPPORT_ENABLE_DEFAULT    (0)
 
 /* Enable/Disable Consecutive Beacon miss */
-#define CFG_ENABLE_CONSECUTIVE_BMISS_NAME        "gEnableconcBmiss"
+#define CFG_ENABLE_CONSECUTIVE_BMISS_NAME        "gEnableConcBmiss"
 #define CFG_ENABLE_CONSECUTIVE_BMISS_MIN         ( 2 )
 #define CFG_ENABLE_CONSECUTIVE_BMISS_MAX         ( 10 )
 #define CFG_ENABLE_CONSECUTIVE_BMISS_DEFAULT     ( 5 )
 
 /* Enable/Disable units of beacon wait time */
-#define CFG_ENABLE_UNITS_BEACON_WAIT_NAME        "gEnableunitBwait"
+#define CFG_ENABLE_UNITS_BEACON_WAIT_NAME        "gEnableUnitBwait"
 #define CFG_ENABLE_UNITS_BEACON_WAIT_MIN         ( 2 )
 #define CFG_ENABLE_UNITS_BEACON_WAIT_MAX         ( 10 )
 #define CFG_ENABLE_UNITS_BEACON_WAIT_DEFAULT     ( 2 )
@@ -2365,13 +2365,13 @@ This feature requires the dependent cfg.ini "gRoamPrefer5GHz" set to 1 */
 #define CFG_BTC_FAST_WLAN_CONN_PREF_MAX         ( 5 )
 
 #define CFG_BTC_STATIC_OPP_WLAN_IDLE_WLAN_LEN             "gBtcStaticOppWlanIdleWlanLen"
-#define CFG_BTC_STATIC_OPP_WLAN_IDLE_WLAN_LEN_DEFAULT     ( 40000 )
+#define CFG_BTC_STATIC_OPP_WLAN_IDLE_WLAN_LEN_DEFAULT     ( 30000 )
 #define CFG_BTC_STATIC_OPP_WLAN_IDLE_WLAN_LEN_MIN         ( 0 )
 #define CFG_BTC_STATIC_OPP_WLAN_IDLE_WLAN_LEN_MAX         ( 250000 )
 
 
 #define CFG_BTC_STATIC_OPP_WLAN_IDLE_BT_LEN             "gBtcStaticOppWlanIdleBtLen"
-#define CFG_BTC_STATIC_OPP_WLAN_IDLE_BT_LEN_DEFAULT     ( 40000 )
+#define CFG_BTC_STATIC_OPP_WLAN_IDLE_BT_LEN_DEFAULT     ( 120000 )
 #define CFG_BTC_STATIC_OPP_WLAN_IDLE_BT_LEN_MIN         ( 0 )
 #define CFG_BTC_STATIC_OPP_WLAN_IDLE_BT_LEN_MAX         ( 250000 )
 /*
@@ -2708,10 +2708,6 @@ This feature requires the dependent cfg.ini "gRoamPrefer5GHz" set to 1 */
 #define CFG_DISABLE_BAR_WAKEUP_HOST_MAX         1
 #define CFG_DISABLE_BAR_WAKEUP_HOST_DEFAULT     0
 
-#define CFG_CH_AVOID_SAP_RESTART_NAME    "sap_ch_avoid_restart"
-#define CFG_CH_AVOID_SAP_RESTART_MIN     (0)
-#define CFG_CH_AVOID_SAP_RESTART_MAX     (1)
-#define CFG_CH_AVOID_SAP_RESTART_DEFAULT (1)
 
 /*
  * gExtScanConcMode is used to manage EXT Scan during concurrency
@@ -2775,12 +2771,6 @@ This feature requires the dependent cfg.ini "gRoamPrefer5GHz" set to 1 */
 #define CFG_SAR_BOFFSET_SET_CORRECTION_MIN       (0)
 #define CFG_SAR_BOFFSET_SET_CORRECTION_MAX       (1)
 #define CFG_SAR_BOFFSET_SET_CORRECTION_DEFAULT   (0)
-
-/* If gSendMgmtPktViaWQ5 is enabled, mgmt packet will go via WQ5 */
-#define CFG_SEND_MGMT_PKT_VIA_WQ5_NAME    "gSendMgmtPktViaWQ5"
-#define CFG_SEND_MGMT_PKT_VIA_WQ5_MIN      ( 0 )
-#define CFG_SEND_MGMT_PKT_VIA_WQ5_MAX      ( 1)
-#define CFG_SEND_MGMT_PKT_VIA_WQ5_DEF      ( 0 )
 
 /*
  * If gEnableEdcaParams is set to 1, params gEdcaVoCwmin,
@@ -2866,6 +2856,12 @@ This feature requires the dependent cfg.ini "gRoamPrefer5GHz" set to 1 */
 #define CFG_EDCA_BE_AIFS_VALUE_MAX        (15)
 #define CFG_EDCA_BE_AIFS_VALUE_DEFAULT    (3)
 
+/* If gSendMgmtPktViaWQ5 is enabled, mgmt packet will go via WQ5 */
+#define CFG_SEND_MGMT_PKT_VIA_WQ5_NAME    "gSendMgmtPktViaWQ5"
+#define CFG_SEND_MGMT_PKT_VIA_WQ5_MIN      ( 0 )
+#define CFG_SEND_MGMT_PKT_VIA_WQ5_MAX      ( 1)
+#define CFG_SEND_MGMT_PKT_VIA_WQ5_DEF      ( 0 )
+
 /*
  * gSapProbeRespOffload: when set in sap, offloads the
  * probe response transmission to firmware
@@ -2875,15 +2871,10 @@ This feature requires the dependent cfg.ini "gRoamPrefer5GHz" set to 1 */
 #define CFG_SAP_PROBE_RESP_OFFLOAD_MAX     (1)
 #define CFG_SAP_PROBE_RESP_OFFLOAD_DEFAULT (1)
 
-/*
- * gEnableLFRMBB is used to disable/enable LFR Make before Break
- * 1: Enable LFR Make before Break
- * 0: Disable LFR Make before Break
- */
-#define CFG_ENABLE_LFR_MBB         "gEnableLFRMBB"
-#define CFG_ENABLE_LFR_MBB_MIN     (0)
-#define CFG_ENABLE_LFR_MBB_MAX     (1)
-#define CFG_ENABLE_LFR_MBB_DEFAULT (0)
+#define CFG_SAP_INTERNAL_RESTART_NAME    "gEnableSapInternalRestart"
+#define CFG_SAP_INTERNAL_RESTART_MIN     (0)
+#define CFG_SAP_INTERNAL_RESTART_MAX     (1)
+#define CFG_SAP_INTERNAL_RESTART_DEFAULT (1)
 
 /*--------------------------------------------------------------------------- 
   Type declarations
@@ -3115,11 +3106,6 @@ typedef struct
    v_U32_t                      PERtimerThreshold;
    v_U32_t                      PERroamRxPktsThreshold;
 #endif
-
-#ifdef WLAN_FEATURE_LFR_MBB
-   tANI_BOOLEAN enable_lfr_mbb;
-#endif
-
    hdd_wmm_classification_t     PktClassificationBasis; // DSCP or 802.1Q
    v_BOOL_t                     bImplicitQosEnabled;
 
@@ -3435,7 +3421,6 @@ typedef struct
    v_U8_t                      max_chan_for_dwell_time_cfg;
    v_U16_t                     tdls_enable_defer_time;
    v_U8_t                      boffset_correction_enable;
-   v_BOOL_t                    sendMgmtPktViaWQ5;
    uint32_t                    enable_edca_params;
    uint32_t                    edca_vo_cwmin;
    uint32_t                    edca_vi_cwmin;
@@ -3449,8 +3434,9 @@ typedef struct
    uint32_t                    edca_vi_aifs;
    uint32_t                    edca_bk_aifs;
    uint32_t                    edca_be_aifs;
+   v_BOOL_t                    sendMgmtPktViaWQ5;
    v_BOOL_t                    sap_probe_resp_offload;
-   v_BOOL_t                    sap_restrt_ch_avoid;
+   v_BOOL_t                    sap_internal_restart;
 } hdd_config_t;
 
 /*--------------------------------------------------------------------------- 
