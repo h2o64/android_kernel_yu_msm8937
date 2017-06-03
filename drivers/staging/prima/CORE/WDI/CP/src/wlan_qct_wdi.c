@@ -223,7 +223,7 @@ static placeHolderInCapBitmap supportEnabledFeatures[] =
    ,FEATURE_NOT_SUPPORTED          //64
    ,FEATURE_NOT_SUPPORTED          //65
    ,FEATURE_NOT_SUPPORTED          //66
-   ,MAKE_BEFORE_BREAK              //67
+   ,FEATURE_NOT_SUPPORTED          //67
    ,NUD_DEBUG                      //68
 };
 
@@ -1735,11 +1735,6 @@ void WDI_TraceHostFWCapabilities(tANI_U32 *capabilityBitmap)
                           snprintf(pCapStr, sizeof("PER_BASED_ROAMING"),
                                          "%s", "PER_BASED_ROAMING");
                           pCapStr += strlen("PER_BASED_ROAMING");
-                          break;
-                     case MAKE_BEFORE_BREAK:
-                          snprintf(pCapStr, sizeof("MAKE_BEFORE_BREAK"),
-                                         "%s", "MAKE_BEFORE_BREAK");
-                          pCapStr += strlen("MAKE_BEFORE_BREAK");
                           break;
                      case NUD_DEBUG:
                           snprintf(pCapStr, sizeof("NUD_DEBUG"),
@@ -22756,6 +22751,7 @@ WDI_RXMsgCTSCB
   }
 
   wdiEventData.wdiResponse = HAL_2_WDI_RSP_TYPE( pHalMsgHeader->msgType );
+  vos_log_wdi_event(wdiEventData.wdiResponse, VOS_WDI_READ);
 
   /*The message itself starts after the header*/
   wdiEventData.pEventData     = (wpt_uint8*)pMsg + sizeof(tHalMsgHeader);
@@ -25614,11 +25610,6 @@ WDI_2_HAL_LINK_STATE
   case WDI_LINK_SEND_ACTION_STATE:
     return eSIR_LINK_SEND_ACTION_STATE;
 
-#ifdef WLAN_FEATURE_LFR_MBB
-  case WDI_LINK_PRE_AUTH_REASSOC_STATE:
-    return eSIR_LINK_PRE_AUTH_REASSOC_STATE;
-#endif
-
   default:
     return eSIR_LINK_MAX;
   }
@@ -27291,10 +27282,17 @@ WDI_ProcessPERRoamScanOffloadReq(WDI_ControlBlockType *pWDICtx,
    WDI_PERRoamOffloadScanCb wdiPERRoamOffloadScancb = NULL;
    tSetPerRoamConfigReq halPERRoamConfigReq;
 
+   if (!pEventData) {
+       WPAL_TRACE( eWLAN_MODULE_DAL_CTRL, eWLAN_PAL_TRACE_LEVEL_WARN,
+                  "%s: *pEventdata is null", __func__);
+       WDI_ASSERT(0);
+       return WDI_STATUS_E_FAILURE;
+   }
+
    wdiPERRoamOffloadReq = (WDI_PERRoamOffloadScanInfo *)pEventData->pEventData;
    wdiPERRoamOffloadScancb   = (WDI_PERRoamOffloadScanCb)pEventData->pCBfnc;
 
-   if ((!pEventData) || (!wdiPERRoamOffloadReq)|| (!wdiPERRoamOffloadScancb)) {
+   if (!wdiPERRoamOffloadReq || !wdiPERRoamOffloadScancb) {
       WPAL_TRACE( eWLAN_MODULE_DAL_CTRL, eWLAN_PAL_TRACE_LEVEL_WARN,
                   "%s: Invalid parameters", __func__);
       WDI_ASSERT(0);
@@ -27364,10 +27362,17 @@ WDI_ProcessPERRoamScanTriggerReq(WDI_ControlBlockType *pWDICtx,
    WDI_PERRoamTriggerScanInfo *wdiPERRoamTriggerReq;
    tStartRoamScanReq halPERRoamTriggerReq;
 
+   if (!pEventData) {
+       WPAL_TRACE( eWLAN_MODULE_DAL_CTRL, eWLAN_PAL_TRACE_LEVEL_WARN,
+                  "%s: pEventdata is null", __func__);
+       WDI_ASSERT(0);
+       return WDI_STATUS_E_FAILURE;
+  }
+
    wdiPERRoamTriggerReq = (WDI_PERRoamTriggerScanInfo *) pEventData->pEventData;
    wdiPERRoamTriggerScancb   = (WDI_PERRoamTriggerScanCb)pEventData->pCBfnc;
 
-   if ((!pEventData) || (!wdiPERRoamTriggerReq) || (!wdiPERRoamTriggerScancb)) {
+   if (!wdiPERRoamTriggerReq || !wdiPERRoamTriggerScancb) {
       WPAL_TRACE( eWLAN_MODULE_DAL_CTRL, eWLAN_PAL_TRACE_LEVEL_WARN,
                   "%s: Invalid parameters", __func__);
       WDI_ASSERT(0);
@@ -37792,8 +37797,6 @@ WDI_StartOemDataReqIndNew
 {
    WDI_EventInfoType      wdiEventData;
 
-  VOS_TRACE( VOS_MODULE_ID_WDI, VOS_TRACE_LEVEL_ERROR,
-                  "%s: %d",__func__, __LINE__);
   /*------------------------------------------------------------------------
     Sanity Check
   ------------------------------------------------------------------------*/
@@ -37837,9 +37840,6 @@ WDI_ProcessStartOemDataReqIndNew
   wpt_uint16               usDataOffset        = 0;
   tpStartOemDataReqParamsNew   pHalStartOemDataReqParamsNew;
   WDI_Status wdiStatus = WDI_STATUS_SUCCESS;
-
-  VOS_TRACE( VOS_MODULE_ID_WDI, VOS_TRACE_LEVEL_ERROR,
-                  "%s: %d",__func__, __LINE__);
 
   if (( NULL == pWDICtx ) || ( NULL == pEventData ) ||
            ( NULL == pEventData->pEventData))

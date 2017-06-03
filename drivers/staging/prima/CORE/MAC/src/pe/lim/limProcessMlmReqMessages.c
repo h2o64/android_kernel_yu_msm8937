@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2017 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2016 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -58,9 +58,6 @@
 #endif
 #ifdef FEATURE_WLAN_DIAG_SUPPORT_LIM
 #include "vos_diag_core_log.h"
-#endif
-#ifdef WLAN_FEATURE_LFR_MBB
-#include "lim_mbb.h"
 #endif
 
 
@@ -157,14 +154,6 @@ limProcessMlmReqMessages(tpAniSirGlobal pMac, tpSirMsgQ Msg)
         case SIR_LIM_ASSOC_FAIL_TIMEOUT:    limProcessAssocFailureTimeout(pMac, Msg->bodyval);  break;
 #ifdef WLAN_FEATURE_VOWIFI_11R
         case SIR_LIM_FT_PREAUTH_RSP_TIMEOUT:limProcessFTPreauthRspTimeout(pMac); break;
-#endif
-#ifdef WLAN_FEATURE_LFR_MBB
-        case SIR_LIM_PREAUTH_MBB_RSP_TIMEOUT:
-             lim_process_preauth_mbb_rsp_timeout(pMac);
-             break;
-        case SIR_LIM_REASSOC_MBB_RSP_TIMEOUT:
-             lim_process_reassoc_mbb_rsp_timeout(pMac);
-             break;
 #endif
         case SIR_LIM_REMAIN_CHN_TIMEOUT:    limProcessRemainOnChnTimeout(pMac); break;
         case SIR_LIM_INSERT_SINGLESHOT_NOA_TIMEOUT:   
@@ -745,6 +734,14 @@ void limSetDFSChannelList(tpAniSirGlobal pMac,tANI_U8 channelNum, tSirDFSChannel
              limLog(pMac, LOG1, FL("Received first beacon on DFS channel: %d"), channelNum);
              limCovertChannelScanType(pMac,channelNum, passiveToActive);
           }
+
+          if (!pMac->fActiveScanOnDFSChannels &&
+             dfsChannelList->timeStamp[channelNum] &&
+             !limActiveScanAllowed(pMac, channelNum))
+               limLog(pMac, LOGE,
+                 FL("Received beacon on DFS channel %d with dfs time stamp %lu, but channel is still DFS"),
+                 channelNum, dfsChannelList->timeStamp[channelNum]);
+
           dfsChannelList->timeStamp[channelNum] = vos_timer_get_system_time();
        }
        else

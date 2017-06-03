@@ -5951,35 +5951,6 @@ WLANTL_ProcessFCFrame
 }
 
 
-/**
- * WLANTL_CacheEapol() - cache eapol frames
- * @pTLCb : pointer to TL context
- * @vosTempBuff: pointer to vos packet buff
- *
- * Return: None
- *
- */
-static void WLANTL_CacheEapol(WLANTL_CbType* pTLCb, vos_pkt_t* vosTempBuff)
-{
-   if ((NULL == pTLCb) || (NULL == vosTempBuff))
-   {
-      TLLOGE(VOS_TRACE( VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_ERROR,
-               "%s: Invalid input pointer", __func__));
-      return;
-   }
-
-   if (NULL == pTLCb->vosEapolCachedFrame) {
-      TLLOG1(VOS_TRACE( VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_INFO,
-               "%s: Cache Eapol frame", __func__));
-      pTLCb->vosEapolCachedFrame = vosTempBuff;
-   }
-   else {
-      TLLOG1(VOS_TRACE( VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_INFO,
-               "%s: Drop duplicate EAPOL frame", __func__));
-      vos_pkt_return_packet(vosTempBuff);
-   }
-}
-
 /*==========================================================================
 
   FUNCTION    WLANTL_RxFrames
@@ -6043,10 +6014,8 @@ WLANTL_RxFrames
 #ifdef WLAN_FEATURE_LINK_LAYER_STATS
   v_S7_t              currentAvgRSSI = 0;
   v_U8_t              ac;
+
 #endif
-  uint8_t            ucMPDUHLen;
-  uint16_t           seq_no;
-  uint16_t           usEtherType = 0;
 
   /*- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -*/
 
@@ -6084,7 +6053,7 @@ WLANTL_RxFrames
    ---------------------------------------------------------------------*/
   vosTempBuff = vosDataBuff;
 
-  while (NULL != vosDataBuff)
+  while ( NULL != vosTempBuff )
   {
     broadcast = VOS_FALSE;
     selfBcastLoopback = VOS_FALSE; 
@@ -6225,9 +6194,6 @@ WLANTL_RxFrames
     {
       ucSTAId = (v_U8_t)WDA_GET_RX_STAID( pvBDHeader );
       ucTid   = (v_U8_t)WDA_GET_RX_TID( pvBDHeader );
-      uDPUSig = WDA_GET_RX_DPUSIG(pvBDHeader);
-      ucMPDUHLen = (uint8_t)WDA_GET_RX_MPDU_HEADER_LEN(pvBDHeader);
-      seq_no = (uint16_t)WDA_GET_RX_REORDER_CUR_PKT_SEQ_NO(pvBDHeader);
 
       TLLOG2(VOS_TRACE( VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_INFO_HIGH,
                  "WLAN TL:Data packet received for STA %d", ucSTAId));
@@ -6251,28 +6217,6 @@ WLANTL_RxFrames
           selfBcastLoopback = VOS_TRUE; 
         }
       }/*if bcast*/
-
-      /* Pre assoc cache eapol */
-      if (pTLCb->preassoc_caching)
-      {
-         WLANTL_GetEtherType(pvBDHeader,vosTempBuff, ucMPDUHLen, &usEtherType);
-         if (WLANTL_LLC_8021X_TYPE != usEtherType)
-         {
-            VOS_TRACE(VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_INFO,
-                      "%s: RX Frame not EAPOL EtherType %d",
-                      __func__, usEtherType);
-            vos_pkt_return_packet(vosTempBuff);
-         }
-         else
-         {
-            WLANTL_CacheEapol(pTLCb, vosTempBuff);
-            TLLOG1(VOS_TRACE( VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_INFO,
-                "WLAN TL:TL preassoc_caching is enabled seq No: %d", seq_no));
-         }
-
-         vosTempBuff = vosDataBuff;
-         continue;
-      }
 
       if (WLANTL_STA_ID_INVALID(ucSTAId))
       {
@@ -6384,7 +6328,8 @@ WLANTL_RxFrames
            vosTempBuff = vosDataBuff;
            continue;
         }
-        /* Station has not yet been registered with TL - cache the frame */
+        uDPUSig = WDA_GET_RX_DPUSIG( pvBDHeader );
+          //Station has not yet been registered with TL - cache the frame
         TLLOGW(VOS_TRACE( VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_WARN,
                  "%s: staId %d exist %d tlState %d cache rx frame", __func__, ucSTAId,
                  pClientSTA->ucExists, pClientSTA->tlState));
@@ -6996,47 +6941,6 @@ WLANTL_RxCachedFrames
   return VOS_STATUS_SUCCESS;
 }/* WLANTL_RxCachedFrames */
 
-/**
- * WLANTL_ForwardPkts() - forward cached eapol frames
- * @pvosGCtx: pointer to vos global context
- * @data: value to indicate either forward or flush
- *
- * Return: None
- *
- */
-static VOS_STATUS WLANTL_ForwardPkts(void* pvosGCtx, uint32_t data)
-{
-   WLANTL_CbType*  pTLCb = NULL;
-
-   pTLCb = VOS_GET_TL_CB(pvosGCtx);
-   if (NULL == pTLCb) {
-      TLLOGE(VOS_TRACE(VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_ERROR,
-             "%s: Invalid input pointer", __func__));
-      return VOS_STATUS_E_FAULT;
-   }
-
-   if (!data) {
-      TLLOG2(VOS_TRACE(VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_INFO_HIGH,
-             "%s: Pre assoc fail flush cache", __func__));
-      WLANTL_FlushCachedFrames(pTLCb->vosEapolCachedFrame);
-      goto done;
-   }
-
-   /* forward packets to HDD */
-   if (NULL != pTLCb->vosEapolCachedFrame) {
-      TLLOG2(VOS_TRACE( VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_INFO_HIGH,
-             "%s: forward pre assoc cached frames", __func__));
-      WLANTL_MonTranslate80211To8023Header(pTLCb->vosEapolCachedFrame, pTLCb);
-      pTLCb->pfnEapolFwd(pvosGCtx, pTLCb->vosEapolCachedFrame);
-   }
-
-done:
-  pTLCb->vosEapolCachedFrame = NULL;
-  pTLCb->preassoc_caching = false;
-
-  return VOS_STATUS_SUCCESS;
-}
-
 /*==========================================================================
   FUNCTION    WLANTL_RxProcessMsg
 
@@ -7112,11 +7016,6 @@ WLANTL_RxProcessMsg
     ucBcastSig  = (v_U8_t)(( uData & 0x00FF0000)>>16);
     vosStatus   = WLANTL_ForwardSTAFrames( pvosGCtx, ucSTAId,
                                            ucUcastSig, ucBcastSig);
-    break;
-
-  case WLANTL_RX_FWD_PRE_ASSOC_CACHED:
-    uData = message->bodyval;
-    vosStatus = WLANTL_ForwardPkts(pvosGCtx, uData);
     break;
 
   default:
@@ -9086,7 +8985,7 @@ static void WLANTL_ClearOldPERStats(WLANTL_CbType *pTLCb, v_U8_t incrementCnt)
 static void WLANTL_updatePERStats(WLANTL_CbType *pTLCb,
                                   v_U8_t rateIndex)
 {
-   v_U8_t incrementCnt;
+   v_U8_t incrementCnt = 0;
    v_U64_t currentTime, timeDifference;
 
    /*
@@ -13929,112 +13828,6 @@ void WLANTL_ResetRxSSN(v_PVOID_t pvosGCtx, uint8_t ucSTAId)
   }
 }
 
-void WLANTL_SetDataPktFilter(v_PVOID_t pvosGCtx, uint8_t ucSTAId, bool flag)
-{
-   WLANTL_CbType*  pTLCb = NULL;
-   WLANTL_STAClientType* pClientSTA = NULL;
-   uint8_t i;
-
-   if (WLANTL_STA_ID_INVALID(ucSTAId)) {
-      TLLOGE(VOS_TRACE( VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_ERROR,
-            "%s: Invalid station id requested", __func__));
-      return;
-   }
-
-   pTLCb = VOS_GET_TL_CB(pvosGCtx);
-   if (NULL == pTLCb) {
-      TLLOGE(VOS_TRACE( VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_ERROR,
-             "%s: Invalid TL pointer from pvosGCtx", __func__));
-   return;
-   }
-
-   pClientSTA = pTLCb->atlSTAClients[ucSTAId];
-
-   for (i = 0; i < WLAN_MAX_TID ; i++) {
-      if (0 == pClientSTA->atlBAReorderInfo[i].ucExists)
-         continue;
-
-      TLLOG1(VOS_TRACE(VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_INFO,
-            "WLAN TL: Last RxSSN reset to zero for tid %d", i));
-      pClientSTA->atlBAReorderInfo[i].set_data_filter = flag;
-   }
-}
-
-/**
- * WLANTL_EnablePreAssocCaching() - Enable caching EAPOL frames
- *
- * Return: None
- *
- */
-void WLANTL_EnablePreAssocCaching(void)
-{
-   v_PVOID_t pvosGCtx= vos_get_global_context(VOS_MODULE_ID_TL,NULL);
-   WLANTL_CbType* pTLCb = VOS_GET_TL_CB(pvosGCtx);
-   if (NULL == pTLCb ) {
-      TLLOGE(VOS_TRACE(VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_ERROR,
-            "%s: Invalid TL pointer for global context", __func__));
-      return;
-   }
-
-   pTLCb->vosEapolCachedFrame = NULL;
-   pTLCb->preassoc_caching = true;
-}
-
-/**
- * WLANTL_ForwardPreAssoc() - forward cached eapol frames
- * @flag: Value to forward or flush
- *
- * Return: vos status
- *
- */
-static VOS_STATUS WLANTL_ForwardPreAssoc(bool flag)
-{
-  vos_msg_t sMessage;
-
-  VOS_TRACE(VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_ERROR,
-            " ---- Serializing TL for forwarding pre assoc cache frames");
-
-  vos_mem_zero( &sMessage, sizeof(vos_msg_t));
-  sMessage.type    = WLANTL_RX_FWD_PRE_ASSOC_CACHED;
-  sMessage.bodyval = flag;
-
-  return vos_rx_mq_serialize(VOS_MQ_ID_TL, &sMessage);
-}
-
-/**
- * WLANTL_PreAssocForward() - forward cached eapol frames
- * @flag: Value to forward or flush
- *
- * Return: None
- *
- */
-void WLANTL_PreAssocForward(bool flag)
-{
-  if(!VOS_IS_STATUS_SUCCESS(WLANTL_ForwardPreAssoc(flag)))
-  {
-    VOS_TRACE(VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_ERROR,
-       " %s fails to forward packets", __func__);
-  }
-}
-
-/**
- * WLANTL_RegisterFwdEapol() - register call back to forward cached eapol frame
- * @pvosGCtx : pointer to vos global context
- * @pfnFwdEapol: call back function pointer
- *
- * Return: None
- *
- */
-void WLANTL_RegisterFwdEapol(v_PVOID_t pvosGCtx,
-                             WLANTL_FwdEapolCBType pfnFwdEapol)
-{
-   WLANTL_CbType* pTLCb = NULL;
-   pTLCb = VOS_GET_TL_CB(pvosGCtx);
-
-   pTLCb->pfnEapolFwd = pfnFwdEapol;
-
-}
-
 /**
  * WLANTL_SetARPFWDatapath() - keep or remove FW in data path for ARP
  *
@@ -14671,3 +14464,34 @@ WLANTL_SetMcastDuplicateDetection
 }
 
 #endif /* WLAN_FEATURE_RMC */
+
+void WLANTL_SetDataPktFilter(v_PVOID_t pvosGCtx, uint8_t ucSTAId, bool flag)
+{
+   WLANTL_CbType*  pTLCb = NULL;
+   WLANTL_STAClientType* pClientSTA = NULL;
+   uint8_t i;
+
+   if (WLANTL_STA_ID_INVALID(ucSTAId)) {
+      TLLOGE(VOS_TRACE( VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_ERROR,
+            "%s: Invalid station id requested", __func__));
+      return;
+   }
+
+   pTLCb = VOS_GET_TL_CB(pvosGCtx);
+   if (NULL == pTLCb) {
+      TLLOGE(VOS_TRACE( VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_ERROR,
+             "%s: Invalid TL pointer from pvosGCtx", __func__));
+   return;
+   }
+
+   pClientSTA = pTLCb->atlSTAClients[ucSTAId];
+
+   for (i = 0; i < WLAN_MAX_TID ; i++) {
+      if (0 == pClientSTA->atlBAReorderInfo[i].ucExists)
+         continue;
+
+      TLLOG1(VOS_TRACE(VOS_MODULE_ID_TL, VOS_TRACE_LEVEL_INFO,
+            "WLAN TL: Last RxSSN reset to zero for tid %d", i));
+      pClientSTA->atlBAReorderInfo[i].set_data_filter = flag;
+   }
+}
