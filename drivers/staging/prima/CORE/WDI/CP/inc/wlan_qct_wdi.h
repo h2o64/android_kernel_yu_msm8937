@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2017 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2016 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -3304,9 +3304,6 @@ typedef enum
     WDI_LINK_FINISH_CAL_STATE        = 13,
     WDI_LINK_LISTEN_STATE            = 14,
     WDI_LINK_SEND_ACTION_STATE       = 15,
-#ifdef WLAN_FEATURE_LFR_MBB
-    WDI_LINK_PRE_AUTH_REASSOC_STATE  = 17,
-#endif
     WDI_LINK_MAX                     = 0x7FFFFFFF
 } WDI_LinkStateType;
 

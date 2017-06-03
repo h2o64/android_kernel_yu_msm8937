@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2011-2017 The Linux Foundation. All rights reserved.
+ * Copyright (c) 2011-2016 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -206,7 +206,7 @@ typedef enum
     eCsrLostLink1Abort,
     eCsrLostLink2Abort,
     eCsrLostLink3Abort,
-    ecsr_mbb_perform_preauth_reassoc,
+
 }eCsrRoamReason;
 
 typedef enum
@@ -400,7 +400,6 @@ typedef struct tagScanCmd
     csrScanCompleteCallback callback;
     void                    *pContext;
     eCsrScanReason          reason;
-    eCsrRoamState           lastRoamState[CSR_ROAM_SESSION_MAX];
     tCsrRoamProfile         *pToRoamProfile;
     tANI_U32                roamId;    //this is the ID related to the pToRoamProfile
     union
@@ -637,10 +636,6 @@ typedef struct tagCsrConfig
 #endif
 #endif
 
-#ifdef WLAN_FEATURE_LFR_MBB
-    tANI_BOOLEAN enable_lfr_mbb;
-#endif
-
 #ifdef FEATURE_WLAN_ESE
     tANI_U8   isEseIniFeatureEnabled;
 #endif
@@ -841,6 +836,8 @@ typedef struct tagCsrScanStruct
     csrScanCompleteCallback callback11dScanDone;
     eCsrBand  scanBandPreference;  //This defines the band perference for scan
     bool fcc_constraint;
+    /* flag to defer updated chanel list */
+    bool defer_update_channel_list;
 }tCsrScanStruct;
 
 
@@ -1012,6 +1009,7 @@ typedef struct tagCsrRoamStruct
     tCsrChannel base40MHzChannels;   //center channels for 40MHz channels
     eCsrRoamState curState[CSR_ROAM_SESSION_MAX];
     eCsrRoamSubState curSubState[CSR_ROAM_SESSION_MAX];
+    eCsrRoamState prev_state[CSR_ROAM_SESSION_MAX];
     //This may or may not have the up-to-date valid channel list
     //It is used to get WNI_CFG_VALID_CHANNEL_LIST and not allocate memory all the time
     tSirMacChanNum validChannelList[WNI_CFG_VALID_CHANNEL_LIST_LEN];
@@ -1485,18 +1483,3 @@ void csrDisableDfsChannel(tpAniSirGlobal pMac);
 eHalStatus csrEnableRMC(tpAniSirGlobal pMac, tANI_U32 sessionId);
 eHalStatus csrDisableRMC(tpAniSirGlobal pMac, tANI_U32 sessionId);
 #endif /* WLAN_FEATURE_RMC */
-
-eHalStatus csrRoamStopNetwork(tpAniSirGlobal pMac, tANI_U32 sessionId,
-    tCsrRoamProfile *pProfile, tSirBssDescription *pBssDesc,
-    tDot11fBeaconIEs *pIes);
-
-eHalStatus csrRoamSaveSecurityRspIE(tpAniSirGlobal pMac,
-    tANI_U32 sessionId, eCsrAuthType authType,
-    tSirBssDescription *pSirBssDesc,
-    tDot11fBeaconIEs *pIes);
-
-void csrRoamSubstateChange(tpAniSirGlobal pMac,
-    eCsrRoamSubState NewSubstate, tANI_U32 sessionId);
-
-eHalStatus csrRoamFreeConnectedInfo(tpAniSirGlobal pMac,
-   tCsrRoamConnectedInfo *pConnectedInfo);

@@ -101,6 +101,7 @@
 #define SOFTAP_BSS_STARTED     (4)
 #define DEVICE_IFACE_OPENED    (5)
 #define TDLS_INIT_DONE         (6)
+#define SOFTAP_INIT_DONE       (7)
 
 /** Maximum time(ms)to wait for disconnect to complete **/
 #define WLAN_WAIT_TIME_DISCONNECT  5000
@@ -695,6 +696,9 @@ typedef struct hdd_cfg80211_state_s
   struct sk_buff *skb;
   hdd_remain_on_chan_ctx_t* remain_on_chan_ctx;
   eP2PActionFrameState actionFrmState;
+  /*is_go_neg_ack_received flag is set to 1 when the
+    pending ack for GO negotiation req is received*/
+  v_BOOL_t is_go_neg_ack_received;
 }hdd_cfg80211_state_t;
 
 
@@ -704,7 +708,6 @@ typedef enum{
     HDD_SSR_DISABLED,
 }e_hdd_ssr_required;
 
-#ifdef WLAN_FEATURE_RMC
 /*---------------------------------------------------------------------------
   hdd_ibss_peer_info_params_t
 ---------------------------------------------------------------------------*/
@@ -763,7 +766,6 @@ typedef struct
     /** Peer Info parameters */
     hdd_ibss_peer_info_params_t  ibssPeerList[HDD_MAX_NUM_IBSS_STA];
 }hdd_ibss_peer_info_t;
-#endif
 
 struct hdd_station_ctx
 {
@@ -792,9 +794,7 @@ struct hdd_station_ctx
 
    /*Save the wep/wpa-none keys*/
    tCsrRoamSetKey ibss_enc_key;
-#ifdef WLAN_FEATURE_RMC
    hdd_ibss_peer_info_t ibss_peer_info;
-#endif
 
    v_BOOL_t hdd_ReassocScenario;
 
@@ -1595,6 +1595,8 @@ struct hdd_context_s
 
     v_BOOL_t sus_res_mcastbcast_filter_valid;
 
+    v_BOOL_t mc_list_cfg_in_fwr;
+
     /* debugfs entry */
     struct dentry *debugfs_phy;
 
@@ -1681,7 +1683,6 @@ struct hdd_context_s
     vos_timer_t tdls_source_timer;
 
     v_U64_t extscan_start_time_since_boot;
-
     v_U8_t last_scan_reject_session_id;
     scan_reject_states last_scan_reject_reason;
     v_TIME_t last_scan_reject_timestamp;
@@ -2034,4 +2035,9 @@ void wlan_hdd_defer_scan_init_work(hdd_context_t *pHddCtx,
 #endif
                                 struct cfg80211_scan_request *request,
                                 unsigned long delay);
+int hdd_reassoc(hdd_adapter_t *pAdapter, const tANI_U8 *bssid,
+			const tANI_U8 channel, const handoff_src src);
+
+void wlan_hdd_start_sap(hdd_adapter_t *ap_adapter);
+
 #endif    // end #if !defined( WLAN_HDD_MAIN_H )

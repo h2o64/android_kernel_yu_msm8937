@@ -178,10 +178,6 @@ ifeq ($(CONFIG_QCOM_TDLS),y)
 MAC_LIM_OBJS += $(MAC_SRC_DIR)/pe/lim/limProcessTdls.o
 endif
 
-ifeq ($(CONFIG_PRIMA_WLAN_LFR_MBB),y)
-MAC_LIM_OBJS += $(MAC_SRC_DIR)/pe/lim/lim_mbb.o
-endif
-
 MAC_PMM_OBJS := $(MAC_SRC_DIR)/pe/pmm/pmmAP.o \
 		$(MAC_SRC_DIR)/pe/pmm/pmmApi.o \
 		$(MAC_SRC_DIR)/pe/pmm/pmmDebug.o
@@ -241,10 +237,6 @@ endif
 
 ifeq ($(CONFIG_QCOM_TDLS),y)
 SME_CSR_OBJS += $(SME_SRC_DIR)/csr/csrTdlsProcess.o
-endif
-
-ifeq ($(CONFIG_PRIMA_WLAN_LFR_MBB),y)
-SME_CSR_OBJS += $(SME_SRC_DIR)/csr/csr_roam_mbb.o
 endif
 
 SME_PMC_OBJS := $(SME_SRC_DIR)/pmc/pmcApi.o \
@@ -576,10 +568,6 @@ endif
 
 ifeq ($(CONFIG_PRIMA_WLAN_LFR),y)
 CDEFINES += -DFEATURE_WLAN_LFR
-endif
-
-ifeq ($(CONFIG_PRIMA_WLAN_LFR_MBB),y)
-CDEFINES += -DWLAN_FEATURE_LFR_MBB
 endif
 
 ifeq ($(CONFIG_PRIMA_WLAN_OKC),y)

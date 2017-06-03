@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012-2017 The Linux Foundation. All rights reserved.
  *
  * Previously licensed under the ISC license by Qualcomm Atheros, Inc.
  *
@@ -132,9 +132,8 @@ static void hdd_sendMgmtFrameOverMonitorIface( hdd_adapter_t *pMonAdapter,
                                                tANI_U8* pbFrames,
                                                tANI_U8 frameType );
 
-static v_BOOL_t hdd_p2p_is_action_type_rsp( const u8 *buf )
+static v_BOOL_t wlan_hdd_is_type_p2p_action( const u8 *buf )
 {
-    tActionFrmType actionFrmType;
     const u8 *ouiPtr;
 
     if ( buf[WLAN_HDD_PUBLIC_ACTION_FRAME_CATEGORY_OFFSET] !=
@@ -158,14 +157,23 @@ static v_BOOL_t hdd_p2p_is_action_type_rsp( const u8 *buf )
         return VOS_FALSE;
     }
 
-    actionFrmType = buf[WLAN_HDD_PUBLIC_ACTION_FRAME_SUB_TYPE_OFFSET];
-    if ( actionFrmType != WLAN_HDD_INVITATION_REQ &&
-        actionFrmType != WLAN_HDD_GO_NEG_REQ &&
-        actionFrmType != WLAN_HDD_DEV_DIS_REQ &&
-        actionFrmType != WLAN_HDD_PROV_DIS_REQ )
-        return VOS_TRUE;
-    else
-        return VOS_FALSE;
+    return VOS_TRUE;
+}
+
+static bool hdd_p2p_is_action_type_rsp( const u8 *buf )
+{
+    tActionFrmType actionFrmType;
+
+    if ( wlan_hdd_is_type_p2p_action(buf) )
+    {
+        actionFrmType = buf[WLAN_HDD_PUBLIC_ACTION_FRAME_SUB_TYPE_OFFSET];
+        if ( actionFrmType != WLAN_HDD_INVITATION_REQ &&
+            actionFrmType != WLAN_HDD_GO_NEG_REQ &&
+            actionFrmType != WLAN_HDD_DEV_DIS_REQ &&
+            actionFrmType != WLAN_HDD_PROV_DIS_REQ )
+            return VOS_TRUE;
+    }
+    return VOS_FALSE;
 }
 
 eHalStatus wlan_hdd_remain_on_channel_callback( tHalHandle hHal, void* pCtx,
@@ -257,6 +265,7 @@ eHalStatus wlan_hdd_remain_on_channel_callback( tHalHandle hHal, void* pCtx,
                 NULL, 0 );
     }
     mutex_lock(&pHddCtx->roc_lock);
+    pRemainChanCtx = cfgState->remain_on_chan_ctx;
     if ( pRemainChanCtx )
     {
         /* Trigger kernel panic if ROC timer state is not set to unused state
@@ -271,14 +280,13 @@ eHalStatus wlan_hdd_remain_on_channel_callback( tHalHandle hHal, void* pCtx,
         {
             vos_mem_free(pRemainChanCtx->action_pkt_buff.frame_ptr);
         }
+        hddLog( LOG1, FL(
+                    "Freeing ROC ctx cfgState->remain_on_chan_ctx=%p"),
+                cfgState->remain_on_chan_ctx);
+        vos_mem_free( pRemainChanCtx );
+        pRemainChanCtx = NULL;
+        cfgState->remain_on_chan_ctx = NULL;
     }
-
-    hddLog( LOG1, FL(
-                "Freeing ROC ctx cfgState->remain_on_chan_ctx=%p"),
-            cfgState->remain_on_chan_ctx);
-    vos_mem_free( pRemainChanCtx );
-    pRemainChanCtx = NULL;
-    cfgState->remain_on_chan_ctx = NULL;
     mutex_unlock(&pHddCtx->roc_lock);
     if (eHAL_STATUS_SUCCESS != status)
         complete(&pAdapter->rem_on_chan_ready_event);
@@ -771,10 +779,13 @@ static int wlan_hdd_request_remain_on_channel( struct wiphy *wiphy,
        return -EBUSY;
     }
 
-    /* When P2P-GO and if we are trying to unload the driver then
-     * wlan driver is keep on receiving the remain on channel command
-     * and which is resulting in crash. So not allowing any remain on
-     * channel requets when Load/Unload is in progress*/
+    if (TRUE == pHddCtx->btCoexModeSet)
+    {
+        VOS_TRACE( VOS_MODULE_ID_HDD, VOS_TRACE_LEVEL_INFO,
+           FL("BTCoex Mode operation in progress"));
+        return -EBUSY;
+    }
+
     if(hdd_isConnectionInProgress((hdd_context_t *)pAdapter->pHddCtx, NULL,
                                    NULL))
     {
@@ -1290,7 +1301,7 @@ int __wlan_hdd_mgmt_tx( struct wiphy *wiphy, struct net_device *dev,
 
     if ((type == SIR_MAC_MGMT_FRAME) &&
             (subType == SIR_MAC_MGMT_ACTION) &&
-            (buf[WLAN_HDD_PUBLIC_ACTION_FRAME_OFFSET] == WLAN_HDD_PUBLIC_ACTION_FRAME))
+            wlan_hdd_is_type_p2p_action(&buf[WLAN_HDD_PUBLIC_ACTION_FRAME_BODY_OFFSET]))
     {
         actionFrmType = buf[WLAN_HDD_PUBLIC_ACTION_FRAME_TYPE_OFFSET];
 #ifdef WLAN_FEATURE_P2P_DEBUG
@@ -1782,11 +1793,25 @@ void hdd_sendActionCnf( hdd_adapter_t *pAdapter, tANI_BOOLEAN actionSendSuccess 
 
     cfgState->actionFrmState = HDD_IDLE;
 
-    hddLog( LOG1, "Send Action cnf, actionSendSuccess %d", actionSendSuccess);
     if( NULL == cfgState->buf )
     {
         return;
     }
+    if (cfgState->is_go_neg_ack_received)
+    {
+        cfgState->is_go_neg_ack_received = 0;
+        /* Sometimes its possible that host may receive the ack for GO
+         * negotiation req after sending go negotaition confirmation,
+         * in such case drop the ack received for the go negotiation
+         * request, so that supplicant waits for the confirmation ack
+         * from firmware.
+         */
+        hddLog( LOG1, FL("Drop the pending ack received in cfgState->actionFrmState %d"),
+                cfgState->actionFrmState);
+        return;
+    }
+
+    hddLog( LOG1, "Send Action cnf, actionSendSuccess %d", actionSendSuccess);
 
     /* If skb is NULL it means this packet was received on CFG80211 interface
      * else it was received on Monitor interface */
@@ -2628,6 +2653,8 @@ void __hdd_indicate_mgmt_frame(hdd_adapter_t *pAdapter,
              {
                  hddLog(LOG1, "%s: ACK_PENDING and But received RESP for Action frame ",
                          __func__);
+                 cfgState->is_go_neg_ack_received = 1;
+
                  hdd_sendActionCnf(pAdapter, TRUE);
              }
             }
