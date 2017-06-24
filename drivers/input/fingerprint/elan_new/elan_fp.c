@@ -807,9 +807,9 @@ static int elan_fp_probe(struct spi_device *spi)
 
 
 	INIT_WORK(&elan_fp->work, elan_fp_work);
-	fp->elan_fp_wq = create_singlethread_workqueue(ELAN_FP_NAME);
+	fp->elan_fp_wq = alloc_ordered_workqueue(ELAN_FP_NAME, WQ_HIGHPRI);
 	if (!fp->elan_fp_wq) {
-		printk("[elan error] %s: create_singlethread_workqueue failed\n", __func__);
+		printk("[elan error] %s: alloc_ordered_workqueue failed\n", __func__);
 		//return -EINVAL;
             goto create_thread_workqueue_fail;
 	}
