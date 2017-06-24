@@ -794,13 +794,12 @@ static int elan_fp_probe(struct spi_device *spi)
 
 
     INIT_WORK(&elan_fp->work, elan_fp_work);
-    fp->elan_fp_wq = create_singlethread_workqueue(ELAN_FP_NAME);
+    fp->elan_fp_wq = alloc_ordered_workqueue(ELAN_FP_NAME, WQ_HIGHPRI);
     if (!fp->elan_fp_wq) {
-        printk("[elan error] %s: create_singlethread_workqueue failed\n", __func__);
-        //return -EINVAL;
+        printk("[elan error] %s: alloc_ordered_workqueue failed\n", __func__);
         goto create_thread_workqueue_fail;
     }
-    printk("[elan]:%s elan_fp_gpio_int_config ok \n", __func__);
+        printk("[elan]:%s elan_fp_gpio_int_config ok \n", __func__);
 
 #ifdef CONFIG_HAS_EARLYSUSPEND
     fp->early_suspend.level = EARLY_SUSPEND_LEVEL_BLANK_SCREEN + 1;
