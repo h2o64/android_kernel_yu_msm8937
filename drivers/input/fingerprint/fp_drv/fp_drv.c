@@ -31,10 +31,11 @@
 #include <linux/workqueue.h>
 #include <linux/kobject.h>
 #include <linux/platform_device.h>
+
 #include "fp_drv.h"
 
-static int fp_probe ( struct platform_device *pdev );
-static int fp_remove ( struct platform_device *pdev );
+static int fp_probe(struct platform_device *pdev);
+static int fp_remove(struct platform_device *pdev);
 
 static struct platform_driver fp_driver = {
     .probe = fp_probe,
@@ -50,82 +51,54 @@ struct platform_device fp_device = {
 };
 
 static char m_dev_name[50] = {0};
-static int has_exist = 0;
-static DECLARE_WAIT_QUEUE_HEAD ( waiter );
+static DECLARE_WAIT_QUEUE_HEAD(waiter);
 
-int full_fp_chip_name ( const char *name )
+int full_fp_chip_name(const char *name)
 {
     int i;
 
-    __FUN();
-
-    if ( ( name == NULL ) || ( has_exist == 1 ) ) {
-        klog ( "----(name == NULL) || (has_exist == 1)--err!---\n" );
-        return -1;
-    }
-
-    memset ( m_dev_name, 0, sizeof ( m_dev_name ) );
-
-    for ( i = 0; * ( name +i ) != 0; i++ ) {
-        m_dev_name[i] = * ( name +i );
-    }
-
-    has_exist = 1;
-
-    klog ( "---has_exist[%d]---:[%s]\n", i, m_dev_name );
-    return 0;
-}
-
-static ssize_t info_show ( struct device *dev, struct device_attribute *attr, char *buf )
-{
-    if ( has_exist ) {
-        return sprintf ( buf, "%s", m_dev_name );
-    }
-
-    return sprintf ( buf, "%s", "NOT fingerprint driver!\n" );
-}
-
-static DEVICE_ATTR ( fp_drv_info, 0444, info_show, NULL );
-
-static int fp_probe ( struct platform_device *pdev )
-{
-    __FUN();
-
-    msleep ( 100 );
-    device_create_file ( &pdev->dev, &dev_attr_fp_drv_info );
-    return 0;
-}
-
-static int fp_remove ( struct platform_device *pdev )
-{
-    __FUN();
-    device_remove_file ( &pdev->dev, &dev_attr_fp_drv_info );
-    return 0;
-}
-
-static int __init fp_drv_init ( void )
-{
-    __FUN();
-
-    if ( platform_device_register ( &fp_device ) != 0 ) {
-        klog ( "device_register fail!.\n" );
+    if (name == NULL)
         return -1;
 
-    }
+    memset(m_dev_name, 0, sizeof(m_dev_name));
 
-    if ( platform_driver_register ( &fp_driver ) != 0 ) {
-        klog ( "driver_register fail!.\n" );
-        return -1;
-    }
+    for (i = 0; *(name +i) != 0; i++)
+        m_dev_name[i] = *(name +i);
 
     return 0;
 }
 
-static void __exit fp_drv_exit ( void )
+static ssize_t info_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
-    __FUN();
-    platform_driver_unregister ( &fp_driver );
+    return sprintf(buf, "%s", m_dev_name);
+}
+static DEVICE_ATTR(fp_drv_info, 0444, info_show, NULL);
+
+static int fp_probe(struct platform_device *pdev)
+{
+    msleep(100);
+    device_create_file(&pdev->dev, &dev_attr_fp_drv_info);
+    return 0;
 }
 
-late_initcall ( fp_drv_init );
-module_exit ( fp_drv_exit );
+static int fp_remove(struct platform_device *pdev)
+{
+    device_remove_file(&pdev->dev, &dev_attr_fp_drv_info);
+    return 0;
+}
+
+static int __init fp_drv_init(void)
+{
+    if ((platform_device_register(&fp_device) != 0) || (platform_driver_register(&fp_driver) != 0))
+        return -1;
+
+    return 0;
+}
+
+static void __exit fp_drv_exit(void)
+{
+    platform_driver_unregister(&fp_driver);
+}
+
+late_initcall(fp_drv_init);
+module_exit(fp_drv_exit);
