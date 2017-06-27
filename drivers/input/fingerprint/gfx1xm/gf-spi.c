@@ -37,7 +37,7 @@
 #include "../fp_drv/fp_drv.h" //add by yinglong.tang
 
 /*spi device name*/
-#define SPI_DEV_NAME   "spidev"
+#define SPI_DEV_NAME   "goodix-spidev"
 /*device name after register in charater*/
 #define DEV_NAME "goodix_fp"
 #define GF_INPUT_NAME       "goodix_fp"
@@ -2000,5 +2000,4 @@ MODULE_AUTHOR("Jiangtao Yi, <yijiangtao@goodix.com>");
 MODULE_DESCRIPTION("User mode SPI device interface");
 MODULE_LICENSE("GPL");
 MODULE_ALIAS("spi:gf-spi");
-
 
