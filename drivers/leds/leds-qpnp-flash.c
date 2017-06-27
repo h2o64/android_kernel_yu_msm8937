@@ -1250,11 +1250,12 @@ static void qpnp_flash_led_work(struct work_struct *work)
 	int rc, brightness = flash_node->cdev.brightness;
 	int max_curr_avail_ma = 0;
 	int total_curr_ma = 0;
+	int camera_id = get_camera_id();
 	int i;
 	u8 val;
 
 	mutex_lock(&led->flash_led_lock);
-	if (flash_node->id == FLASH_LED_FRONT) {
+	if (flash_node->id == FLASH_LED_FRONT && camera_id == 1) {
 		if (!brightness) {
 			if (gpio_is_valid(led->pdata->front_flash_gpio_en))
 				gpio_set_value(led->pdata->front_flash_gpio_en, 0);
