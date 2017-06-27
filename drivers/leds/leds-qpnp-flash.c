@@ -1249,7 +1249,7 @@ static void qpnp_flash_led_work(struct work_struct *work)
 	int rc, brightness;
 	int max_curr_avail_ma = 0;
 	int total_curr_ma = 0;
-	// int camera_id = 0;
+	int camera_id = get_camera_id();
 	int i;
 	u8 val;
 
@@ -1258,7 +1258,7 @@ static void qpnp_flash_led_work(struct work_struct *work)
 	/* Local lock is to synchronize for one led instance */
 	mutex_lock(&flash_node->cdev.led_access);
 
-	if (flash_node->id == FLASH_LED_FRONT) {
+	if (flash_node->id == FLASH_LED_FRONT && camera_id == 1) {
 		if (!brightness) {
 			if (gpio_is_valid(led->pdata->front_flash_gpio_en))
 				gpio_set_value(led->pdata->front_flash_gpio_en, 0);
