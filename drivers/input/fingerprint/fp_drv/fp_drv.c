@@ -72,7 +72,7 @@ static ssize_t info_show(struct device *dev, struct device_attribute *attr, char
 {
 	return sprintf(buf, "%s", m_dev_name);
 }
-static DEVICE_ATTR(fp_drv_info, 0644, info_show, NULL);
+static DEVICE_ATTR(fp_drv_info, 0444, info_show, NULL);
 
 static int fp_probe(struct platform_device *pdev)
 {
