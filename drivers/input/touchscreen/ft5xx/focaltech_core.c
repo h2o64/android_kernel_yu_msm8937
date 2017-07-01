@@ -48,7 +48,9 @@
 /* Early-suspend level */
 #define FTS_SUSPEND_LEVEL 1
 #endif
-
+#ifdef CONFIG_FT5XX_TGESTURE_FUNCTION
+#include "../../../base/base.h"
+#endif
 
 /*******************************************************************************
 * Private constant and macro definitions using #define
@@ -135,17 +137,15 @@
 struct i2c_client *fts_i2c_client;
 struct fts_ts_data *fts_wq_data;
 struct input_dev *fts_input_dev;
-//Begin<REQ><><20150910>Add WAKEUP_GESTURE for ft5xx;xiongdajun
-#ifdef CONFIG_FT5XX_TGESTURE_FUNCTION
-#if FTS_GESTRUE_EN
-struct input_dev *ft5xx_key_dev;
-extern int bEnTGesture;
-#endif
-#endif
-//End<REQ><><20150815>Add WAKEUP_GESTURE for ft5xx;xiongdajun
 
 static unsigned int buf_count_add=0;
 static unsigned int buf_count_neg=0;
+
+#if FTS_GESTRUE_EN
+struct kobject *touchscreen_dev_kobj=NULL;
+#endif
+unsigned int gesture_switch;
+EXPORT_SYMBOL_GPL(gesture_switch);
 
 u8 buf_touch_data[30*POINT_READ_BUF] = { 0 };
 
@@ -456,30 +456,32 @@ static irqreturn_t fts_ts_interrupt(int irq, void *dev_id)
 *******************************************************************************/
 static int fts_read_Touchdata(struct fts_ts_data *data)
 {
-#ifdef CONFIG_TOUCHSCREEN_FTS_PSENSOR
-	int rc = 0;
-#endif
+	#ifdef CONFIG_TOUCHSCREEN_FTS_PSENSOR
+		int rc = 0;
+	#endif
+
+	#if FTS_GESTRUE_EN
+		u8 state;
+	#endif
 
 	u8 buf[POINT_READ_BUF] = { 0 };
 	int ret = -1;
-//Begin<REQ><><20150910>Add WAKEUP_GESTURE for ft5xx;xiongdajun
-       #ifdef CONFIG_FT5XX_TGESTURE_FUNCTION
+
+
 	#if FTS_GESTRUE_EN
-       u8 state;
-        if (bEnTGesture){
-        	if(data->suspended)
-        	{
-        		fts_read_reg(data->client, 0xd0, &state);
-        	       if(state ==1)
-        	       {
-        	          fts_read_Gestruedata();
-        		   return 1;
-        	      }
-        	}
-        }
+	if(gesture_switch){
+		if(data->suspended)
+		{
+			fts_read_reg(data->client, 0xd0, &state);
+		       if(state ==1)
+		       {
+		          fts_read_Gestruedata();
+			   return 1;
+		      }
+		}
+	}
       #endif
-      #endif
-//END<REQ><><20150910>Add WAKEUP_GESTURE for ft5xx;xiongdajun
+
 	#ifdef CONFIG_TOUCHSCREEN_FTS_PSENSOR
 	if (fts_psensor_support_enabled() && data->pdata->psensor_support &&
 		data->psensor_pdata->tp_psensor_opened) {
@@ -1060,59 +1062,8 @@ int fts_ts_suspend(struct device *dev)
 {
 	struct fts_ts_data *data = dev_get_drvdata(dev);
 
-	#ifdef CONFIG_TOUCHSCREEN_FTS_PSENSOR
 	int err = 0;
-	#endif
-//Begin<REQ><><20150910>Add WAKEUP_GESTURE for ft5xx;xiongdajun
-#ifdef CONFIG_FT5XX_TGESTURE_FUNCTION
-#if FTS_GESTRUE_EN
-        int error = 0;
-        int i = 0;  //Line<BUG><HHABM-854><Release All touch>;xiongdajun
-if (bEnTGesture) {
-    //Begin<BUG><HHABM-854><Release All touch>;xiongdajun
-     for (i = 0; i < data->pdata->num_max_touches; i++)
-         {
-                   input_mt_slot(data->input_dev, i);
-                   input_mt_report_slot_state(data->input_dev, MT_TOOL_FINGER, 0);
-         }
-         input_mt_report_pointer_emulation(data->input_dev, false);
-         input_sync(data->input_dev);
-//END<BUG><HHABM-854><Release All touch>;xiongdajun
-         fts_write_reg(fts_i2c_client, 0xd0, 0x01);
-	  if (fts_updateinfo_curr.CHIP_ID==0x54 || fts_updateinfo_curr.CHIP_ID==0x58 || fts_updateinfo_curr.CHIP_ID==0x86)
-	  {
-	  	fts_write_reg(fts_i2c_client, 0xd1, 0xff);
-		fts_write_reg(fts_i2c_client, 0xd2, 0x15);
-		fts_write_reg(fts_i2c_client, 0xd5, 0x40);
-		fts_write_reg(fts_i2c_client, 0xd6, 0xff);
-		fts_write_reg(fts_i2c_client, 0xd7, 0xff);
-		fts_write_reg(fts_i2c_client, 0xd8, 0xff);
-	  }
-       enable_irq_wake(data->client->irq);
-       if (error)
-			dev_err(&data->client->dev,
-				"%s: set_irq_wake failed\n", __func__);
-	data->suspended = true;
-      //<Begin>add reset when open GESTRUE;xiongdajun
-	error = fts_gpio_configure(data, false);
-	if (error < 0) {
-		dev_err(dev,
-			"Failed to configure the gpios\n");
-		#ifdef MSM_NEW_VER
-            	if (data->ts_pinctrl) {
-            		error = pinctrl_select_state(data->ts_pinctrl,
-            					data->pinctrl_state_active);
-            		if (error < 0)
-            			dev_err(dev, "Cannot get active pinctrl state\n");
-            	}
-            	#endif
-	}
-        //<End>add reset when open GESTRUE;xiongdajun
-       return 0;
-}
-#endif
-#endif
-//END<REQ><><20150910>Add WAKEUP_GESTURE for ft5xx;xiongdajun
+
 	if (data->loading_fw) {
 		dev_info(dev, "Firmware loading in process...\n");
 		return 0;
@@ -1122,6 +1073,38 @@ if (bEnTGesture) {
 		dev_info(dev, "Already in suspend state\n");
 		return 0;
 	}
+
+	#if FTS_GESTRUE_EN
+	if(gesture_switch){
+		int i = 0;
+		for (i = 0; i < data->pdata->num_max_touches; i++) {
+			input_mt_slot(data->input_dev, i);
+			input_mt_report_slot_state(data->input_dev, MT_TOOL_FINGER, 0);
+		}
+		input_mt_report_pointer_emulation(data->input_dev, false);
+		input_sync(data->input_dev);
+
+	         fts_write_reg(fts_i2c_client, 0xd0, 0x01);
+		  if (fts_updateinfo_curr.CHIP_ID==0x54 || fts_updateinfo_curr.CHIP_ID==0x58 || fts_updateinfo_curr.CHIP_ID==0x86 || fts_updateinfo_curr.CHIP_ID==0x87)
+		  {
+		  	fts_write_reg(fts_i2c_client, 0xd1, 0xff);
+			fts_write_reg(fts_i2c_client, 0xd2, 0xff);
+			fts_write_reg(fts_i2c_client, 0xd5, 0xff);
+			fts_write_reg(fts_i2c_client, 0xd6, 0xff);
+			fts_write_reg(fts_i2c_client, 0xd7, 0xff);
+			fts_write_reg(fts_i2c_client, 0xd8, 0xff);
+		  }
+
+		err = enable_irq_wake(data->client->irq);
+		if (err)
+			dev_err(&data->client->dev,
+				"%s: set_irq_wake failed\n", __func__);
+
+		data->suspended = true;
+
+	       return 0;
+	}
+	#endif
 
 	#ifdef CONFIG_TOUCHSCREEN_FTS_PSENSOR
 	if (fts_psensor_support_enabled() && data->pdata->psensor_support &&
@@ -1156,60 +1139,29 @@ int fts_ts_resume(struct device *dev)
 		dev_dbg(dev, "Already in awake state\n");
 		return 0;
 	}
-//Begin<REQ><><20150910>Add WAKEUP_GESTURE for ft5xx;xiongdajun
-#ifdef CONFIG_FT5XX_TGESTURE_FUNCTION
-#if FTS_GESTRUE_EN
-if (bEnTGesture) {
-    err = disable_irq_wake(data->client->irq);
+
+	#if FTS_GESTRUE_EN
+	if(gesture_switch){
+		if (gpio_is_valid(data->pdata->reset_gpio)) {
+			gpio_set_value_cansleep(data->pdata->reset_gpio, 0);
+			msleep(data->pdata->hard_rst_dly);
+			gpio_set_value_cansleep(data->pdata->reset_gpio, 1);
+		}
+
+		msleep(200);
+
+		err = disable_irq_wake(data->client->irq);
 		if (err)
 			dev_err(&data->client->dev,
 				"%s: disable_irq_wake failed\n",
 				__func__);
 
-        if (gpio_is_valid(data->pdata->reset_gpio)) {
-        	err = gpio_request(data->pdata->reset_gpio,
-        				"fts_reset_gpio");
-        	if (err) {
-        		dev_err(&data->client->dev,
-        			"reset gpio request failed");
-        	}
-
-        	err = gpio_direction_output(data->pdata->reset_gpio, 0);
-        	if (err) {
-        		dev_err(&data->client->dev,
-        		"set_direction for reset gpio failed\n");
-        	}
-        	msleep(data->pdata->hard_rst_dly);
-        	gpio_set_value_cansleep(data->pdata->reset_gpio, 1);
-        }
-        if (gpio_is_valid(data->pdata->reset_gpio)) {
-        	gpio_set_value_cansleep(data->pdata->reset_gpio, 0);
-        	msleep(data->pdata->hard_rst_dly);
-        	gpio_set_value_cansleep(data->pdata->reset_gpio, 1);
-        }
 		data->suspended = false;
-            //<Begin>add reset when open GESTRUE;xiongdajun
-            	err = fts_gpio_configure(data, true);
-        	if (err < 0) {
-        		dev_err(dev,
-        			"Failed to configure the gpios\n");
-        		#ifdef MSM_NEW_VER
-                    	if (data->ts_pinctrl) {
-                    		err = pinctrl_select_state(data->ts_pinctrl,
-                    					data->pinctrl_state_active);
-                    		if (err < 0)
-                    			dev_err(dev, "Cannot get active pinctrl state\n");
-                    	}
-                    	#endif
-        	}
+		return 0;
+	}
 
-		msleep(data->pdata->soft_rst_dly);//LINE<20160723><it effects lcd resume , so delay 200ms>wangyanhui
-            //<End>add reset when open GESTRUE;xiongdajun
-            return 0;
-}
-#endif
-#endif
-//END<REQ><><20150910>Add WAKEUP_GESTURE for ft5xx;xiongdajun
+	#endif
+
 #ifdef CONFIG_TOUCHSCREEN_FTS_PSENSOR
 	if (fts_psensor_support_enabled() && data->pdata->psensor_support &&
 		device_may_wakeup(dev) &&
@@ -1722,6 +1674,94 @@ static const struct file_operations debug_dump_info_fops = {
 	.release	= single_release,
 };
 
+
+#ifdef CONFIG_FT5XX_TGESTURE_FUNCTION
+static ssize_t fts_ts_gesture_ctrl_store(struct kobject *kobj, struct kobj_attribute *attr,const char *buf, size_t count)
+{
+	unsigned int gctl=0;
+
+	if (sscanf(buf,"%d",&gctl) != 1)
+	{
+		printk("%s:sscanf  fail gctl=%d\n", __func__,gctl);
+		return -1;
+	}
+
+	gesture_switch = gctl ? 1 : 0;
+	return count;
+}
+static ssize_t fts_ts_gesture_ctrl_show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
+{
+	int ret;
+	u8 state=0;
+
+	fts_read_reg(fts_i2c_client, 0xd0, &state);
+	ret=sprintf(buf, "%s=%d:%s=0x%x\n","gesture_switch",gesture_switch,"[0xd0]",(int)state);
+
+	return ret;
+}
+
+static struct kobj_attribute fts_ts_gesture_ctrl_attr = {
+         .attr = {
+                  .name = "gesture_ctrl",
+                  .mode = S_IRWXUGO,
+         },
+
+         .store = &fts_ts_gesture_ctrl_store,
+         .show  = &fts_ts_gesture_ctrl_show,
+};
+#endif
+
+static struct attribute * fts_ts_properties_attrs[] = {
+        #ifdef CONFIG_FT5XX_TGESTURE_FUNCTION
+        &fts_ts_gesture_ctrl_attr.attr,
+        #endif
+	NULL
+};
+
+static struct attribute_group  fts_ts_attr_group = {
+	.attrs =  fts_ts_properties_attrs,
+};
+
+static int fts_ts_create_ctp_node(void)
+{
+	int ret;
+	struct kobject *virtual_dir=NULL;
+	struct kobject *touchscreen_dir=NULL;
+	struct kobject *touchscreen_dev_dir=NULL;
+
+	virtual_dir = virtual_device_parent(NULL);
+	if(!virtual_dir)
+	{
+		printk("Get virtual dir failed\n");
+		return -ENOMEM;
+	}
+
+	touchscreen_dir=kobject_create_and_add("touchscreen",virtual_dir);
+	if(!touchscreen_dir)
+	{
+		printk("Create touchscreen dir failed\n");
+		return -ENOMEM;
+	}
+
+	touchscreen_dev_dir=kobject_create_and_add("touchscreen_dev",touchscreen_dir);
+	if(!touchscreen_dev_dir)
+	{
+		printk("Create touchscreen_dev dir failed\n");
+		return -ENOMEM;
+	}
+
+	#if FTS_GESTRUE_EN
+	touchscreen_dev_kobj = touchscreen_dev_dir;
+	#endif
+	ret=sysfs_create_group(touchscreen_dev_dir, &fts_ts_attr_group);
+	if(ret)
+	{
+		printk("create fts_ts_attr_group error\n");
+	}
+
+	return 0;
+}
+
 /*******************************************************************************
 *  Name: fts_ts_probe
 *  Brief:
@@ -1845,6 +1885,10 @@ static int fts_ts_probe(struct i2c_client *client, const struct i2c_device_id *i
 			goto unreg_inputdev;
 		}
 	}
+
+	#ifdef CONFIG_FT5XX_TGESTURE_FUNCTION
+	fts_ts_create_ctp_node();
+	#endif
 
 	if (pdata->power_on) {
 		err = pdata->power_on(true);
@@ -2060,38 +2104,13 @@ static int fts_ts_probe(struct i2c_client *client, const struct i2c_device_id *i
 		}
 	#endif
 
-////Begin<REQ><><20150910>Add WAKEUP_GESTURE for ft5xx;xiongdajun
 #ifdef CONFIG_FT5XX_TGESTURE_FUNCTION
 	#if FTS_GESTRUE_EN
-		//fts_Gesture_init(input_dev);
-		//init_para(720,1280,0,0,0);
-       ft5xx_key_dev= input_allocate_device();
-	if (! ft5xx_key_dev)
-	{
-		dev_err(&client->dev,"[syna]SY_key_dev: fail!\n");
-	}
-       __set_bit(EV_KEY,  ft5xx_key_dev->evbit);
-       __set_bit(KEY_FT5XX_SENSOR,  ft5xx_key_dev->keybit);
-	__set_bit(KEY_POWER,  ft5xx_key_dev->keybit);
-	ft5xx_key_dev->id.bustype = BUS_HOST;
-	ft5xx_key_dev->name = "TPFT5XX_GESTURE";
-	if(input_register_device(ft5xx_key_dev))
-	{
-		dev_err(&client->dev,"[ft5xx]ft5xx_key_dev register : fail!\n");
-	}else
-	{
-		dev_err(&client->dev,"[ft5xx]ft5xx_key_dev register : success!!\n");
-	}
+		fts_Gesture_init(input_dev);
 	#endif
 #endif
-//END<REQ><><20150910>Add WAKEUP_GESTURE for ft5xx;xiongdajun
-	/**/
-	//#ifdef FTS_AUTO_UPGRADE
 	printk("********************Enter CTP Auto Upgrade********************\n");
 	fts_ctpm_auto_upgrade(client,data->fw_vendor_id,data->fw_ver);
-	//#endif
-
-
 
 #if defined(CONFIG_FB)
 	data->fb_notif.notifier_call = fb_notifier_callback;
