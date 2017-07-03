@@ -143,9 +143,9 @@ static unsigned int buf_count_neg=0;
 
 #if FTS_GESTRUE_EN
 struct kobject *touchscreen_dev_kobj=NULL;
+#endif
 unsigned int gesture_switch;
 EXPORT_SYMBOL_GPL(gesture_switch);
-#endif
 
 u8 buf_touch_data[30*POINT_READ_BUF] = { 0 };
 
@@ -1077,7 +1077,6 @@ int fts_ts_suspend(struct device *dev)
 	#if FTS_GESTRUE_EN
 	if(gesture_switch){
 		int i = 0;
-		int error = 0;
 		for (i = 0; i < data->pdata->num_max_touches; i++) {
 			input_mt_slot(data->input_dev, i);
 			input_mt_report_slot_state(data->input_dev, MT_TOOL_FINGER, 0);
@@ -1102,19 +1101,6 @@ int fts_ts_suspend(struct device *dev)
 				"%s: set_irq_wake failed\n", __func__);
 
 		data->suspended = true;
-
-		error = fts_gpio_configure(data, false);
-		if (error < 0) {
-				dev_err(dev, "Failed to configure the gpios\n");
-				#ifdef MSM_NEW_VER
-				if (data->ts_pinctrl) {
-						error = pinctrl_select_state(data->ts_pinctrl,
-								data->pinctrl_state_active);
-						if (error < 0)
-								dev_err(dev, "Cannot get active pinctrl state\n");
-				}
-				#endif
-		}
 
 	       return 0;
 	}
@@ -1171,19 +1157,6 @@ int fts_ts_resume(struct device *dev)
 				__func__);
 
 		data->suspended = false;
-
-		err = fts_gpio_configure(data, true);
-		if (err < 0) {
-				dev_err(dev, "Failed to configure the gpios\n");
-				#ifdef MSM_NEW_VER
-				if (data->ts_pinctrl) {
-						err = pinctrl_select_state(data->ts_pinctrl,
-								data->pinctrl_state_active);
-						if (err < 0)
-								dev_err(dev, "Cannot get active pinctrl state\n");
-						}
-				#endif
-		}
 		return 0;
 	}
 
