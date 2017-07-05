@@ -2014,7 +2014,6 @@ void device_shutdown(void)
 		put_device(parent);
 
 		spin_lock(&devices_kset->list_lock);
-		mdelay(1); // Jiangde++
 	}
 	spin_unlock(&devices_kset->list_lock);
 }
