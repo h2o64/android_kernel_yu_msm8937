@@ -51,12 +51,6 @@
 #define MAX_WSA_CODEC_NAME_LENGTH 80
 #define MSM_DT_MAX_PROP_SIZE 80
 
-//++ camera selfie stick TN:peter
-#ifdef CONFIG_PROJECT_GARLIC
-#define CAMERA_SELFIE_STICK
-#endif
-//-- camera selfie stick
-
 enum btsco_rates {
 	RATE_8KHZ_ID,
 	RATE_16KHZ_ID,
@@ -1580,15 +1574,8 @@ static void *def_msm8952_wcd_mbhc_cal(void)
 				WCD_MBHC_DEF_RLOADS), GFP_KERNEL);
 	if (!msm8952_wcd_cal)
 		return NULL;
-//++ camera selfie stick TN:peter
-#ifdef  CAMERA_SELFIE_STICK
-#define S(X, Y) ((WCD_MBHC_CAL_PLUG_TYPE_PTR(msm8952_wcd_cal)->X) = (Y))
-	S(v_hs_max, 1700);
-#else
 #define S(X, Y) ((WCD_MBHC_CAL_PLUG_TYPE_PTR(msm8952_wcd_cal)->X) = (Y))
 	S(v_hs_max, 1500);
-#endif
-//-- camera selfie stick
 #undef S
 #define S(X, Y) ((WCD_MBHC_CAL_BTN_DET_PTR(msm8952_wcd_cal)->X) = (Y))
 	S(num_btn, WCD_MBHC_DEF_BUTTONS);
