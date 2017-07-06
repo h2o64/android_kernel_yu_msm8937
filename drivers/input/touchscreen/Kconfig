@@ -1119,6 +1119,11 @@ config PRODUCT_NAME
         help
           The information of product.
 
+config TP_TGESTURE
+	bool "TP gesture"
+	default n
+	help
+	  Say Y here if you use TP gesture function.
 
           If unsure, say N.
 
