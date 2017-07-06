@@ -15,7 +15,7 @@
  *
  */
 
- /*******************************************************************************
+/*******************************************************************************
 *
 * File Name: Focaltech_Gestrue.c
 *
@@ -103,37 +103,37 @@ unsigned short coordinate_y[150] = {0};
 *******************************************************************************/
 int fts_Gesture_init(struct input_dev *input_dev)
 {
-	input_set_capability(input_dev, EV_KEY, KEY_WAKEUP);
-	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_U);
-	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_UP);
-	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_DOWN);
-	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_LEFT);
-	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_RIGHT);
-	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_O);
-	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_E);
-	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_M);
-	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_L);
-	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_W);
-	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_S);
-	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_V);
-	input_set_capability(input_dev, EV_KEY, KEY_GESTURE_Z);
+    input_set_capability(input_dev, EV_KEY, KEY_WAKEUP);
+    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_U);
+    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_UP);
+    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_DOWN);
+    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_LEFT);
+    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_RIGHT);
+    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_O);
+    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_E);
+    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_M);
+    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_L);
+    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_W);
+    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_S);
+    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_V);
+    input_set_capability(input_dev, EV_KEY, KEY_GESTURE_Z);
 
-	__set_bit(KEY_WAKEUP, input_dev->keybit);
-	__set_bit(KEY_GESTURE_RIGHT, input_dev->keybit);
-	__set_bit(KEY_GESTURE_LEFT, input_dev->keybit);
-	__set_bit(KEY_GESTURE_UP, input_dev->keybit);
-	__set_bit(KEY_GESTURE_DOWN, input_dev->keybit);
-	__set_bit(KEY_GESTURE_U, input_dev->keybit);
-	__set_bit(KEY_GESTURE_O, input_dev->keybit);
-	__set_bit(KEY_GESTURE_E, input_dev->keybit);
-	__set_bit(KEY_GESTURE_M, input_dev->keybit);
-	__set_bit(KEY_GESTURE_W, input_dev->keybit);
-	__set_bit(KEY_GESTURE_L, input_dev->keybit);
-	__set_bit(KEY_GESTURE_S, input_dev->keybit);
-	__set_bit(KEY_GESTURE_V, input_dev->keybit);
-	__set_bit(KEY_GESTURE_Z, input_dev->keybit);
+    __set_bit(KEY_WAKEUP, input_dev->keybit);
+    __set_bit(KEY_GESTURE_RIGHT, input_dev->keybit);
+    __set_bit(KEY_GESTURE_LEFT, input_dev->keybit);
+    __set_bit(KEY_GESTURE_UP, input_dev->keybit);
+    __set_bit(KEY_GESTURE_DOWN, input_dev->keybit);
+    __set_bit(KEY_GESTURE_U, input_dev->keybit);
+    __set_bit(KEY_GESTURE_O, input_dev->keybit);
+    __set_bit(KEY_GESTURE_E, input_dev->keybit);
+    __set_bit(KEY_GESTURE_M, input_dev->keybit);
+    __set_bit(KEY_GESTURE_W, input_dev->keybit);
+    __set_bit(KEY_GESTURE_L, input_dev->keybit);
+    __set_bit(KEY_GESTURE_S, input_dev->keybit);
+    __set_bit(KEY_GESTURE_V, input_dev->keybit);
+    __set_bit(KEY_GESTURE_Z, input_dev->keybit);
 
-	return 0;
+    return 0;
 }
 
 /*******************************************************************************
@@ -234,60 +234,59 @@ int fts_Gesture_init(struct input_dev *input_dev)
 #ifdef CONFIG_FT5XX_TGESTURE_FUNCTION
 static int fts_check_gesture(int gesture_id)
 {
-      int result;
-	switch(gesture_id)
-	{
-	        case GESTURE_LEFT:
-                       result = KEY_GESTURE_LEFT;
-	                break;
-	        case GESTURE_RIGHT:
-                       result = KEY_GESTURE_RIGHT;
-			    break;
-	        case GESTURE_UP:
-                    result = KEY_GESTURE_UP;
-	                break;
-	        case GESTURE_DOWN:
-                    result = KEY_GESTURE_DOWN;
-	                break;
-	        case GESTURE_DOUBLECLICK:
-                    result = KEY_GESTURE_U;
-	                break;
-	        case GESTURE_O:
-                    result = 'o';
-	                break;
-	        case GESTURE_W:
-                    result = KEY_GESTURE_W;
-	                break;
-	        case GESTURE_M:
-                    result = 'm';
-	                break;
-	        case GESTURE_E:
-                    result = KEY_GESTURE_E;
-	                break;
-              case GESTURE_C:
-                    result = 'c';
-                    break;
-	        case GESTURE_L:
-                    result = KEY_GESTURE_L;
-	                break;
-	        case GESTURE_S:
-                    result = 's';
-	                break;
-	        case GESTURE_V:
-                    result = KEY_GESTURE_V;
-	                break;
-	        case GESTURE_Z:
-                    result = KEY_GESTURE_Z;
-	                break;
-	        default:
-	                break;
-	}
+    int result;
+    switch (gesture_id) {
+    case GESTURE_LEFT:
+        result = KEY_GESTURE_LEFT;
+        break;
+    case GESTURE_RIGHT:
+        result = KEY_GESTURE_RIGHT;
+        break;
+    case GESTURE_UP:
+        result = KEY_GESTURE_UP;
+        break;
+    case GESTURE_DOWN:
+        result = KEY_GESTURE_DOWN;
+        break;
+    case GESTURE_DOUBLECLICK:
+        result = KEY_GESTURE_U;
+        break;
+    case GESTURE_O:
+        result = 'o';
+        break;
+    case GESTURE_W:
+        result = KEY_GESTURE_W;
+        break;
+    case GESTURE_M:
+        result = 'm';
+        break;
+    case GESTURE_E:
+        result = KEY_GESTURE_E;
+        break;
+    case GESTURE_C:
+        result = 'c';
+        break;
+    case GESTURE_L:
+        result = KEY_GESTURE_L;
+        break;
+    case GESTURE_S:
+        result = 's';
+        break;
+    case GESTURE_V:
+        result = KEY_GESTURE_V;
+        break;
+    case GESTURE_Z:
+        result = KEY_GESTURE_Z;
+        break;
+    default:
+        break;
+    }
     return result;
 
 }
 #endif
 //END<REQ><><20150910>Add WAKEUP_GESTURE for ft5xx;xiongdajun
- /************************************************************************
+/************************************************************************
 * Name: fts_read_Gestruedata
 * Brief: read data from TP register
 * Input: no
@@ -296,111 +295,101 @@ static int fts_check_gesture(int gesture_id)
 ***********************************************************************/
 int fts_read_Gestruedata(void)
 {
-	unsigned char buf[FTS_GESTRUE_POINTS * 3] = { 0 };
-	int ret = -1;
-	int i = 0;
-	int gestrue_id = 0;
+    unsigned char buf[FTS_GESTRUE_POINTS * 3] = { 0 };
+    int ret = -1;
+    int i = 0;
+    int gestrue_id = 0;
 
-	buf[0] = 0xd3;
-	pointnum = 0;
+    buf[0] = 0xd3;
+    pointnum = 0;
 
-	ret = fts_i2c_read(fts_i2c_client, buf, 1, buf, FTS_GESTRUE_POINTS_HEADER);
+    ret = fts_i2c_read(fts_i2c_client, buf, 1, buf, FTS_GESTRUE_POINTS_HEADER);
 
-	if (ret < 0)
-	{
-		printk( "%s read touchdata failed.\n", __func__);
-		return ret;
-	}
+    if (ret < 0) {
+        printk( "%s read touchdata failed.\n", __func__);
+        return ret;
+    }
 
-	 if (fts_updateinfo_curr.CHIP_ID==0x54 || fts_updateinfo_curr.CHIP_ID==0x58 || fts_updateinfo_curr.CHIP_ID==0x86)
-	 {
-		 gestrue_id = buf[0];
-		 pointnum = (short)(buf[1]) & 0xff;
-		 buf[0] = 0xd3;
+    if (fts_updateinfo_curr.CHIP_ID==0x54 || fts_updateinfo_curr.CHIP_ID==0x58 || fts_updateinfo_curr.CHIP_ID==0x86) {
+        gestrue_id = buf[0];
+        pointnum = (short)(buf[1]) & 0xff;
+        buf[0] = 0xd3;
 
-		 if((pointnum * 4 + 2)<255)
-		 {
-		    	 ret = fts_i2c_read(fts_i2c_client, buf, 1, buf, (pointnum * 4 + 2));
-		 }
-		 else
-		 {
-		        ret = fts_i2c_read(fts_i2c_client, buf, 1, buf, 255);
-		        ret = fts_i2c_read(fts_i2c_client, buf, 0, buf+255, (pointnum * 4 + 2) -255);
-		 }
-		 if (ret < 0)
-		 {
-		       printk( "%s read touchdata failed.\n", __func__);
-		       return ret;
-		 }
-         //Begin<REQ><><20150910>Add WAKEUP_GESTURE for ft5xx;xiongdajun
+        if ((pointnum * 4 + 2)<255) {
+            ret = fts_i2c_read(fts_i2c_client, buf, 1, buf, (pointnum * 4 + 2));
+        } else {
+            ret = fts_i2c_read(fts_i2c_client, buf, 1, buf, 255);
+            ret = fts_i2c_read(fts_i2c_client, buf, 0, buf+255, (pointnum * 4 + 2) -255);
+        }
+        if (ret < 0) {
+            printk( "%s read touchdata failed.\n", __func__);
+            return ret;
+        }
+        //Begin<REQ><><20150910>Add WAKEUP_GESTURE for ft5xx;xiongdajun
 #ifdef CONFIG_FT5XX_TGESTURE_FUNCTION
-              if(gestrue_id == GESTURE_DOUBLECLICK)
-                {
-                    gTGesture = 'u';
-                    input_report_key(ft5xx_key_dev,KEY_FT5XX_SENSOR, 1);
-                    input_report_key(ft5xx_key_dev,KEY_FT5XX_SENSOR, 0);
-                    input_sync(ft5xx_key_dev);
-              }
-              else
-                {
-                    gTGesture = fts_check_gesture(gestrue_id);
-                    input_report_key(ft5xx_key_dev,KEY_FT5XX_SENSOR, 1);
-                    input_report_key(ft5xx_key_dev,KEY_FT5XX_SENSOR, 0);
-                    input_sync(ft5xx_key_dev);
-                }
-		 //fts_check_gesture(fts_input_dev,gestrue_id);
+        if (gestrue_id == GESTURE_DOUBLECLICK) {
+            gTGesture = 'u';
+            input_report_key(ft5xx_key_dev,KEY_FT5XX_SENSOR, 1);
+            input_report_key(ft5xx_key_dev,KEY_FT5XX_SENSOR, 0);
+            input_sync(ft5xx_key_dev);
+        } else {
+            gTGesture = fts_check_gesture(gestrue_id);
+            input_report_key(ft5xx_key_dev,KEY_FT5XX_SENSOR, 1);
+            input_report_key(ft5xx_key_dev,KEY_FT5XX_SENSOR, 0);
+            input_sync(ft5xx_key_dev);
+        }
+        //fts_check_gesture(fts_input_dev,gestrue_id);
 #endif
-	 //END<REQ><><20150910>Add WAKEUP_GESTURE for ft5xx;xiongdajun
-		 for(i = 0;i < pointnum;i++)
-		 {
-		    	coordinate_x[i] =  (((s16) buf[2 + (4 * i)]) & 0x0F) <<
-		        	8 | (((s16) buf[3 + (4 * i)])& 0xFF);
-		    	coordinate_y[i] = (((s16) buf[4 + (4 * i)]) & 0x0F) <<
-		        	8 | (((s16) buf[5 + (4 * i)]) & 0xFF);
-		 }
-		 return -1;
-	}
-	 return -1;
-	/*
-	else
-	{
-		if (0x24 == buf[0])
-		{
-			gestrue_id = 0x24;
-			fts_check_gesture(fts_input_dev,gestrue_id);
-			printk( "%d check_gesture gestrue_id.\n", gestrue_id);
-			return -1;
-		}
+        //END<REQ><><20150910>Add WAKEUP_GESTURE for ft5xx;xiongdajun
+        for (i = 0; i < pointnum; i++) {
+            coordinate_x[i] =  (((s16) buf[2 + (4 * i)]) & 0x0F) <<
+                               8 | (((s16) buf[3 + (4 * i)])& 0xFF);
+            coordinate_y[i] = (((s16) buf[4 + (4 * i)]) & 0x0F) <<
+                              8 | (((s16) buf[5 + (4 * i)]) & 0xFF);
+        }
+        return -1;
+    }
+    return -1;
+    /*
+    else
+    {
+    	if (0x24 == buf[0])
+    	{
+    		gestrue_id = 0x24;
+    		fts_check_gesture(fts_input_dev,gestrue_id);
+    		printk( "%d check_gesture gestrue_id.\n", gestrue_id);
+    		return -1;
+    	}
 
-		pointnum = (short)(buf[1]) & 0xff;
-		buf[0] = 0xd3;
-		if((pointnum * 4 + 8)<255)
-		{
-			ret = fts_i2c_read(fts_i2c_client, buf, 1, buf, (pointnum * 4 + 8));
-		}
-		else
-		{
-			ret = fts_i2c_read(fts_i2c_client, buf, 1, buf, 255);
-			ret = fts_i2c_read(fts_i2c_client, buf, 0, buf+255, (pointnum * 4 + 8) -255);
-		}
-		if (ret < 0)
-		{
-			printk( "%s read touchdata failed.\n", __func__);
-			return ret;
-		}
+    	pointnum = (short)(buf[1]) & 0xff;
+    	buf[0] = 0xd3;
+    	if((pointnum * 4 + 8)<255)
+    	{
+    		ret = fts_i2c_read(fts_i2c_client, buf, 1, buf, (pointnum * 4 + 8));
+    	}
+    	else
+    	{
+    		ret = fts_i2c_read(fts_i2c_client, buf, 1, buf, 255);
+    		ret = fts_i2c_read(fts_i2c_client, buf, 0, buf+255, (pointnum * 4 + 8) -255);
+    	}
+    	if (ret < 0)
+    	{
+    		printk( "%s read touchdata failed.\n", __func__);
+    		return ret;
+    	}
 
-		gestrue_id = fetch_object_sample(buf, pointnum);
-		fts_check_gesture(fts_input_dev,gestrue_id);
-		printk( "%d read gestrue_id.\n", gestrue_id);
+    	gestrue_id = fetch_object_sample(buf, pointnum);
+    	fts_check_gesture(fts_input_dev,gestrue_id);
+    	printk( "%d read gestrue_id.\n", gestrue_id);
 
-		for(i = 0;i < pointnum;i++)
-		{
-		    coordinate_x[i] =  (((s16) buf[0 + (4 * i)]) & 0x0F) <<
-		        8 | (((s16) buf[1 + (4 * i)])& 0xFF);
-		    coordinate_y[i] = (((s16) buf[2 + (4 * i)]) & 0x0F) <<
-		        8 | (((s16) buf[3 + (4 * i)]) & 0xFF);
-		}
-		return -1;
-	}
-	*/
+    	for(i = 0;i < pointnum;i++)
+    	{
+    	    coordinate_x[i] =  (((s16) buf[0 + (4 * i)]) & 0x0F) <<
+    	        8 | (((s16) buf[1 + (4 * i)])& 0xFF);
+    	    coordinate_y[i] = (((s16) buf[2 + (4 * i)]) & 0x0F) <<
+    	        8 | (((s16) buf[3 + (4 * i)]) & 0xFF);
+    	}
+    	return -1;
+    }
+    */
 }
