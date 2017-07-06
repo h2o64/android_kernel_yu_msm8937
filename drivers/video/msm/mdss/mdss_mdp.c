@@ -1848,8 +1848,13 @@ static int mdss_mdp_get_pan_cfg(struct mdss_panel_cfg *pan_cfg)
 	char *t = NULL;
 	char pan_intf_str[MDSS_MAX_PANEL_LEN];
 	int rc, i, panel_len;
-	char pan_name[MDSS_MAX_PANEL_LEN];
-
+	char pan_name[MDSS_MAX_PANEL_LEN] = {'\0'};
+       //BEGIN<REQ><FCEBL-64><20150901>Add store lcd  info;xiongdajun
+#ifdef CONFIG_DEV_INFO
+       int j;
+       char store_pan_name[MDSS_MAX_PANEL_LEN];
+       #endif
+//END<REQ><FCEBL-64><20150901>Add store lcd  info;xiongdajun
 	if (!pan_cfg)
 		return -EINVAL;
 
@@ -1876,6 +1881,7 @@ static int mdss_mdp_get_pan_cfg(struct mdss_panel_cfg *pan_cfg)
 	for (i = 0; ((pan_name + i) < t) && (i < 4); i++)
 		pan_intf_str[i] = *(pan_name + i);
 	pan_intf_str[i] = 0;
+
 	pr_debug("%d panel intf %s\n", __LINE__, pan_intf_str);
 	/* point to the start of panel name */
 	t = t + 1;
@@ -2351,11 +2357,6 @@ static int mdss_mdp_probe(struct platform_device *pdev)
 	rc = mdss_mdp_get_cmdline_config(pdev);
 	if (rc) {
 		pr_err("Error in panel override:rc=[%d]\n", rc);
-		goto probe_done;
-	}
-	rc = mdss_mdp_rot_mgr_init();
-	if (rc) {
-		pr_err("unable to initialize rotation mgr\n");
 		goto probe_done;
 	}
 
