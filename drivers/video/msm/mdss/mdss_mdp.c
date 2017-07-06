@@ -67,6 +67,11 @@
 struct mdss_data_type *mdss_res;
 static u32 mem_protect_sd_ctrl_id;
 
+//BEGIN<REQ><FCEBL-64><20150901>Add store lcd  info;xiongdajun
+#ifdef CONFIG_DEV_INFO
+extern int store_lcd_info(const char *const str);
+#endif
+//END<REQ><FCEBL-64><20150901>Add store lcd  info;xiongdajun
 static int mdss_fb_mem_get_iommu_domain(void)
 {
 	return mdss_smmu_get_domain_id(MDSS_IOMMU_DOMAIN_UNSECURE);
@@ -2143,7 +2148,12 @@ static int mdss_mdp_get_pan_cfg(struct mdss_panel_cfg *pan_cfg)
 	char pan_intf_str[MDSS_MAX_PANEL_LEN];
 	int rc, i, panel_len;
 	char pan_name[MDSS_MAX_PANEL_LEN] = {'\0'};
-
+       //BEGIN<REQ><FCEBL-64><20150901>Add store lcd  info;xiongdajun
+#ifdef CONFIG_DEV_INFO
+       int j;
+       char store_pan_name[MDSS_MAX_PANEL_LEN];
+       #endif
+//END<REQ><FCEBL-64><20150901>Add store lcd  info;xiongdajun
 	if (!pan_cfg)
 		return -EINVAL;
 
@@ -2173,6 +2183,30 @@ static int mdss_mdp_get_pan_cfg(struct mdss_panel_cfg *pan_cfg)
 	for (i = 0; ((pan_name + i) < t) && (i < 4); i++)
 		pan_intf_str[i] = *(pan_name + i);
 	pan_intf_str[i] = 0;
+
+//BEGIN<REQ><FCEBL-64><20150901>Add store lcd  info;xiongdajun
+#ifdef CONFIG_DEV_INFO
+	for(i=strlen(pan_name); i>=0; i--){
+		if(pan_name[i] == ','){
+			break;
+		}
+	}
+	if(i == strlen(pan_name)||i<0){
+		i = -1;
+	}
+      for(j = i+1;j <= strlen(pan_name);j++){
+		if(pan_name[j] == ':'){
+			break;
+		}
+	}
+       strlcpy(store_pan_name, &pan_name[i+1], j-i);
+	if(!strncmp(store_pan_name, "mdss_dsi_sharp_r69339_720p_video", sizeof("mdss_dsi_sharp_r69339_720p_video"))){
+		store_lcd_info("mdss_dsi_sharp_r69339_720p_video");
+	} else{
+		store_lcd_info(store_pan_name);
+	}
+#endif
+//END<REQ><FCEBL-64><20150901>Add store lcd  info;xiongdajun
 	pr_debug("%d panel intf %s\n", __LINE__, pan_intf_str);
 	/* point to the start of panel name */
 	t = t + 1;
