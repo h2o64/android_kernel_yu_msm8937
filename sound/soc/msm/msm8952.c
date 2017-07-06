@@ -9,7 +9,6 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
-
 #include <linux/clk.h>
 #include <linux/delay.h>
 #include <linux/gpio.h>
@@ -72,6 +71,13 @@ static atomic_t quat_mi2s_clk_ref;
 static atomic_t quin_mi2s_clk_ref;
 static atomic_t auxpcm_mi2s_clk_ref;
 
+//yangliang add for external padac for spk;20150708
+#ifdef CONFIG_PROJECT_GARLIC
+int ext_spk_pa_gpio = -1;
+#endif
+
+bool ext_spk_pa_current_state = false;//yangliang add to feedback ext pa-spk used state for insert hph of spk-voice and out hph resulting in spk-voice no downlink 20160530
+
 static int msm8952_enable_dig_cdc_clk(struct snd_soc_codec *codec, int enable,
 					bool dapm);
 static bool msm8952_swap_gnd_mic(struct snd_soc_codec *codec);
@@ -85,6 +91,26 @@ static int msm8952_wsa_switch_event(struct snd_soc_dapm_widget *w,
  * Need to report LINEIN
  * if R/L channel impedance is larger than 5K ohm
  */
+#if defined(CONFIG_PROJECT_GARLIC)
+static struct wcd_mbhc_config mbhc_cfg = {//yangliang mask and add for garlic linear hph20160729
+	.read_fw_bin = false,
+	.calibration = NULL,
+	.detect_extn_cable = true,
+	.mono_stero_detection = false,
+	.swap_gnd_mic = NULL,
+	.hs_ext_micbias = false,
+	.key_code[0] = KEY_MEDIA,
+	//.key_code[1] = KEY_VOICECOMMAND,
+	.key_code[1] = KEY_VOLUMEUP,
+	.key_code[2] = KEY_VOLUMEDOWN,
+	.key_code[3] = 0,////yangliang mask and add for garlic linear hph20160729
+	.key_code[4] = 0,
+	.key_code[5] = 0,
+	.key_code[6] = 0,
+	.key_code[7] = 0,
+	.linein_th = 5000,
+};
+#else
 static struct wcd_mbhc_config mbhc_cfg = {
 	.read_fw_bin = false,
 	.calibration = NULL,
@@ -102,6 +128,7 @@ static struct wcd_mbhc_config mbhc_cfg = {
 	.key_code[7] = 0,
 	.linein_th = 5000,
 };
+#endif
 
 static struct afe_clk_cfg mi2s_rx_clk_v1 = {
 	AFE_API_VERSION_I2S_CONFIG,
@@ -239,12 +266,17 @@ done:
 int is_ext_spk_gpio_support(struct platform_device *pdev,
 			struct msm8916_asoc_mach_data *pdata)
 {
+	//int ret = 0;
 	const char *spk_ext_pa = "qcom,msm-spk-ext-pa";
+	//static bool ext_pa_gpio_requested = false;//yangliang add for pa mode-2;20150901
 
 	pr_debug("%s:Enter\n", __func__);
 
 	pdata->spk_ext_pa_gpio = of_get_named_gpio(pdev->dev.of_node,
 				spk_ext_pa, 0);
+	#ifdef CONFIG_PROJECT_GARLIC
+		ext_spk_pa_gpio = pdata->spk_ext_pa_gpio;//yangliang add
+	#endif
 
 	if (pdata->spk_ext_pa_gpio < 0) {
 		dev_dbg(&pdev->dev,
@@ -255,6 +287,20 @@ int is_ext_spk_gpio_support(struct platform_device *pdev,
 				__func__, pdata->spk_ext_pa_gpio);
 			return -EINVAL;
 		}
+		/*else{
+			if(!ext_pa_gpio_requested) {
+				ret = gpio_request(ext_spk_pa_gpio, "ext_spk_amp_gpio");
+				if (ret) {
+					pr_err("%s: gpio_request failed for ext_spk_amp_gpio.\n",
+						__func__);
+					return -EINVAL;
+				}
+				ext_pa_gpio_requested = true;
+			}
+			gpio_direction_output(pdata->spk_ext_pa_gpio, 0); //<20160310>wangyanhui add for ext speaker
+		}*/  //yangliang mask for requesting too early and just request one time0506
+		gpio_direction_output(pdata->spk_ext_pa_gpio, 0); //<20160310>wangyanhui add for ext speaker--new
+
 	}
 	return 0;
 }
@@ -263,7 +309,10 @@ static int enable_spk_ext_pa(struct snd_soc_codec *codec, int enable)
 {
 	struct snd_soc_card *card = codec->component.card;
 	struct msm8916_asoc_mach_data *pdata = snd_soc_card_get_drvdata(card);
-	int ret;
+	//int ret; //<20160310>wangyanhui delete for  ext spk
+	int ret = 0;
+
+	static bool ext_pa_gpio_requested = false;//yangliang add for pa mode-2;20150901
 
 	if (!gpio_is_valid(pdata->spk_ext_pa_gpio)) {
 		pr_err("%s: Invalid gpio: %d\n", __func__,
@@ -273,24 +322,56 @@ static int enable_spk_ext_pa(struct snd_soc_codec *codec, int enable)
 
 	pr_debug("%s: %s external speaker PA\n", __func__,
 		enable ? "Enable" : "Disable");
+	//pa mode 2  TN:peter
+	//gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, enable);
+
+	//yangliang add for enable pa mode-2;20150901 requested gpio before any operations to avoid gpio_ensure_requested warning in gpiolib.c.
+	pr_info("ext_pa_gpio_requested=%d\n", ext_pa_gpio_requested);
+	if(!ext_pa_gpio_requested) {
+		ret = gpio_request(pdata->spk_ext_pa_gpio, "spk_ext_pa_gpio");
+		if (ret) {
+			pr_info("%s: gpio_request failed for spk_ext_pa_gpio.\n",
+				__func__);
+			goto err;
+		}
+
+		ext_pa_gpio_requested = true;
+	}
 
 	if (enable) {
-		ret = msm_gpioset_activate(CLIENT_WCD_INT, "ext_spk_gpio");
+		//<20160310>wangyanhui delete for  ext spk
+		/*ret = msm_gpioset_activate(CLIENT_WCD_INT, "ext_spk_gpio");
 		if (ret) {
 			pr_err("%s: gpio set cannot be de-activated %s\n",
 					__func__, "ext_spk_gpio");
 			return ret;
-		}
-		gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, enable);
+		}*/
+		#ifdef CONFIG_PROJECT_GARLIC
+			printk(KERN_ERR"goto mode-2");
+			ext_spk_pa_current_state = true;//yangliang add to feedback ext pa-spk used state for insert hph of spk-voice and out hph resulting in spk-voice no downlink 20160530
+			//gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, 0);
+			//udelay(2);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, 1);
+			udelay(2);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, 0);
+			udelay(2);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, 1);
+		#else
+			ext_spk_pa_current_state = true;//yangliang add to feedback ext pa-spk used state for insert hph of spk-voice and out hph resulting in spk-voice no downlink 20160530
+			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, enable);
+		#endif
 	} else {
+		ext_spk_pa_current_state = false;//yangliang add to feedback ext pa-spk used state for insert hph of spk-voice and out hph resulting in spk-voice no downlink 20160530
 		gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, enable);
-		ret = msm_gpioset_suspend(CLIENT_WCD_INT, "ext_spk_gpio");
+		//<20160310>wangyanhui delete for  ext spk
+		/*ret = msm_gpioset_suspend(CLIENT_WCD_INT, "ext_spk_gpio");
 		if (ret) {
 			pr_err("%s: gpio set cannot be de-activated %s\n",
 					__func__, "ext_spk_gpio");
 			return ret;
-		}
+		}*/
 	}
+err:
 	return 0;
 }
 
@@ -1513,7 +1594,6 @@ static void *def_msm8952_wcd_mbhc_cal(void)
 				WCD_MBHC_DEF_RLOADS), GFP_KERNEL);
 	if (!msm8952_wcd_cal)
 		return NULL;
-
 #define S(X, Y) ((WCD_MBHC_CAL_PLUG_TYPE_PTR(msm8952_wcd_cal)->X) = (Y))
 	S(v_hs_max, 1500);
 #undef S
@@ -1538,16 +1618,19 @@ static void *def_msm8952_wcd_mbhc_cal(void)
 	 * 210-290 == Button 2
 	 * 360-680 == Button 3
 	 */
-	btn_low[0] = 75;
-	btn_high[0] = 75;
-	btn_low[1] = 150;
-	btn_high[1] = 150;
-	btn_low[2] = 225;
-	btn_high[2] = 225;
-	btn_low[3] = 450;
-	btn_high[3] = 450;
+	//yangliang mask and add for garlic linear hph20160729
+	#if defined(CONFIG_PROJECT_GARLIC)
+ 	btn_low[0] = 100;
+	btn_high[0] = 100;
+	btn_low[1] = 250;
+	btn_high[1] = 250;
+	btn_low[2] = 438;
+	btn_high[2] = 438;
+	btn_low[3] = 480;
+	btn_high[3] = 480;
 	btn_low[4] = 500;
 	btn_high[4] = 500;
+	#endif
 
 	return msm8952_wcd_cal;
 }
@@ -2692,7 +2775,7 @@ static void msm8952_dt_parse_cap_info(struct platform_device *pdev,
 	pdata->micbias1_cap_mode =
 		(of_property_read_bool(pdev->dev.of_node, ext1_cap) ?
 		 MICBIAS_EXT_BYP_CAP : MICBIAS_NO_EXT_BYP_CAP);
-
+//pr_info("wangyanhui     pdata->micbias1_cap_mode = %d  \n" ,pdata->micbias1_cap_mode);
 	pdata->micbias2_cap_mode =
 		(of_property_read_bool(pdev->dev.of_node, ext2_cap) ?
 		 MICBIAS_EXT_BYP_CAP : MICBIAS_NO_EXT_BYP_CAP);
@@ -3211,6 +3294,12 @@ static int msm8952_asoc_machine_remove(struct platform_device *pdev)
 	struct snd_soc_card *card = platform_get_drvdata(pdev);
 	struct msm8916_asoc_mach_data *pdata = snd_soc_card_get_drvdata(card);
 	int i;
+
+	//yangliang add for external padac for spk;20150708
+	#ifdef CONFIG_PROJECT_GARLIC
+	if (gpio_is_valid(ext_spk_pa_gpio))
+		gpio_free(ext_spk_pa_gpio);
+	#endif
 
 	if (pdata->vaddr_gpio_mux_spkr_ctl)
 		iounmap(pdata->vaddr_gpio_mux_spkr_ctl);
