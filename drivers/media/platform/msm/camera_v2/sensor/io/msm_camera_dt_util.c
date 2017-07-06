@@ -1487,6 +1487,10 @@ int msm_camera_power_up(struct msm_camera_power_ctrl_t *ctrl,
 			CDBG("%s:%d gpio set val %d\n", __func__, __LINE__,
 				ctrl->gpio_conf->gpio_num_info->gpio_num
 				[power_setting->seq_val]);
+
+			pr_err("Ramiel camera power up gpio  %d set %d\n",
+					ctrl->gpio_conf->gpio_num_info->gpio_num[power_setting->seq_val],
+					(int) power_setting->config_val);
 			gpio_set_value_cansleep(
 				ctrl->gpio_conf->gpio_num_info->gpio_num
 				[power_setting->seq_val],
@@ -1674,6 +1678,9 @@ int msm_camera_power_down(struct msm_camera_power_ctrl_t *ctrl,
 			if (!ctrl->gpio_conf->gpio_num_info->valid
 				[pd->seq_val])
 				continue;
+			pr_err("Ramiel camera power down gpio  %d set %d\n",
+					ctrl->gpio_conf->gpio_num_info->gpio_num[pd->seq_val],
+					(int) pd->config_val);
 			gpio_set_value_cansleep(
 				ctrl->gpio_conf->gpio_num_info->gpio_num
 				[pd->seq_val],
