@@ -30,6 +30,12 @@
 #include "wcd-mbhc-v2.h"
 #include "wcdcal-hwdep.h"
 
+#include <linux/switch.h>//yangliang add for ftm hph detect20150830
+
+#ifdef CONFIG_PROJECT_GARLIC
+extern bool ext_spk_pa_current_state;
+#endif
+
 #define WCD_MBHC_JACK_MASK (SND_JACK_HEADSET | SND_JACK_OC_HPHL | \
 			   SND_JACK_OC_HPHR | SND_JACK_LINEOUT | \
 			   SND_JACK_MECHANICAL | SND_JACK_MICROPHONE2 | \
@@ -501,7 +507,17 @@ static void wcd_mbhc_set_and_turnoff_hph_padac(struct wcd_mbhc *mbhc)
 	} else {
 		pr_debug("%s PA is off\n", __func__);
 	}
-	WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_HPH_PA_EN, 0);
+
+	//yangliang add to feedback ext pa-spk used state for insert hph of spk-voice and out hph resulting in spk-voice no downlink 20160530
+	#ifdef CONFIG_PROJECT_GARLIC
+	if(ext_spk_pa_current_state == false){
+		WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_HPH_PA_EN, 0);
+	}
+	#else
+		WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_HPH_PA_EN, 0);
+	#endif
+	//yangliang add to feedback ext pa-spk used state for insert hph of spk-voice and out hph resulting in spk-voice no downlink 20160530
+
 	usleep_range(wg_time * 1000, wg_time * 1000 + 50);
 }
 
@@ -1468,6 +1484,7 @@ static void wcd_mbhc_swch_irq_handler(struct wcd_mbhc *mbhc)
 
 	pr_debug("%s: mbhc->current_plug: %d detection_type: %d\n", __func__,
 			mbhc->current_plug, detection_type);
+
 	wcd_cancel_hs_detect_plug(mbhc, &mbhc->correct_plug_swch);
 
 	if (mbhc->mbhc_cb->micbias_enable_status)
@@ -1476,6 +1493,7 @@ static void wcd_mbhc_swch_irq_handler(struct wcd_mbhc *mbhc)
 
 	if ((mbhc->current_plug == MBHC_PLUG_TYPE_NONE) &&
 	    detection_type) {
+
 		/* Make sure MASTER_BIAS_CTL is enabled */
 		mbhc->mbhc_cb->mbhc_bias(codec, true);
 
@@ -1503,6 +1521,7 @@ static void wcd_mbhc_swch_irq_handler(struct wcd_mbhc *mbhc)
 		wcd_mbhc_detect_plug_type(mbhc);
 	} else if ((mbhc->current_plug != MBHC_PLUG_TYPE_NONE)
 			&& !detection_type) {
+
 		/* Disable external voltage source to micbias if present */
 		if (mbhc->mbhc_cb->enable_mb_source)
 			mbhc->mbhc_cb->enable_mb_source(codec, false);
@@ -1559,6 +1578,7 @@ static void wcd_mbhc_swch_irq_handler(struct wcd_mbhc *mbhc)
 			wcd_mbhc_report_plug(mbhc, 0, SND_JACK_ANC_HEADPHONE);
 		}
 	} else if (!detection_type) {
+
 		/* Disable external voltage source to micbias if present */
 		if (mbhc->mbhc_cb->enable_mb_source)
 			mbhc->mbhc_cb->enable_mb_source(codec, false);
@@ -1570,6 +1590,7 @@ static void wcd_mbhc_swch_irq_handler(struct wcd_mbhc *mbhc)
 	mbhc->in_swch_irq_handler = false;
 	WCD_MBHC_RSC_UNLOCK(mbhc);
 	pr_debug("%s: leave\n", __func__);
+
 }
 
 static irqreturn_t wcd_mbhc_mech_plug_detect_irq(int irq, void *data)
@@ -1650,6 +1671,7 @@ static irqreturn_t wcd_mbhc_hs_ins_irq(int irq, void *data)
 
 	pr_debug("%s: detection_type %d, elect_result %x\n", __func__,
 				detection_type, elect_result);
+
 	if (detection_type) {
 		/* check if both Left and MIC Schmitt triggers are triggered */
 		WCD_MBHC_REG_READ(WCD_MBHC_HPHL_SCHMT_RESULT, hphl_sch);
@@ -1665,6 +1687,7 @@ static irqreturn_t wcd_mbhc_hs_ins_irq(int irq, void *data)
 				mic_trigerred++;
 				pr_debug("%s: Insertion MIC trigerred %d\n",
 					 __func__, mic_trigerred);
+
 				WCD_MBHC_REG_UPDATE_BITS(
 						WCD_MBHC_ELECT_SCHMT_ISRC,
 						0);
@@ -1696,6 +1719,7 @@ determine_plug:
 	 * Setup for insertion detection.
 	 */
 	pr_debug("%s: Disable insertion interrupt\n", __func__);
+
 	wcd_mbhc_hs_elec_irq(mbhc, WCD_MBHC_ELEC_HS_INS,
 			     false);
 
@@ -1817,6 +1841,7 @@ report_unplug:
 	mic_trigerred = 0;
 	WCD_MBHC_RSC_UNLOCK(mbhc);
 	pr_debug("%s: leave\n", __func__);
+
 	return IRQ_HANDLED;
 }
 
@@ -2064,7 +2089,7 @@ static int wcd_mbhc_initialise(struct wcd_mbhc *mbhc)
 	WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_L_DET_EN, 1);
 
 	/* Insertion debounce set to 96ms */
-	WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_INSREM_DBNC, 6);
+	WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_INSREM_DBNC, 9);//yangliang modify 6 to 9 for 256ms debounce time for judgement by mistake 20160606;
 	/* Button Debounce set to 16ms */
 	WCD_MBHC_REG_UPDATE_BITS(WCD_MBHC_BTN_DBNC, 2);
 
