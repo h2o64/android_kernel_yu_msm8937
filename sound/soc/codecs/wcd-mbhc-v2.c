@@ -1996,9 +1996,6 @@ static irqreturn_t wcd_mbhc_release_handler(int irq, void *data)
 			}
 		}
 		mbhc->buttons_pressed &= ~WCD_MBHC_JACK_BUTTON_MASK;
-#ifdef CONFIG_SWITCH
-        switch_set_state(&wcd_mbhc_button_switch, mbhc->buttons_pressed ? 1:0);
-#endif
 	}
 exit:
 	pr_debug("%s: leave\n", __func__);
