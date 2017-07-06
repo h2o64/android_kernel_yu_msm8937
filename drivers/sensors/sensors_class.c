@@ -58,33 +58,33 @@
  */
 
 enum {
-	CMD_DO_CAL = 0x0,
-	CMD_W_OFFSET_X,
-	CMD_W_OFFSET_Y,
-	CMD_W_OFFSET_Z,
-	CMD_W_THRESHOLD_H,
-	CMD_W_THRESHOLD_L,
-	CMD_W_BIAS,
-	CMD_W_OFFSET,
-	CMD_W_FACTOR,
-	CMD_W_RANGE,
-	CMD_COMPLETE,
-	CMD_COUNT
+    CMD_DO_CAL = 0x0,
+    CMD_W_OFFSET_X,
+    CMD_W_OFFSET_Y,
+    CMD_W_OFFSET_Z,
+    CMD_W_THRESHOLD_H,
+    CMD_W_THRESHOLD_L,
+    CMD_W_BIAS,
+    CMD_W_OFFSET,
+    CMD_W_FACTOR,
+    CMD_W_RANGE,
+    CMD_COMPLETE,
+    CMD_COUNT
 };
 
 int cal_map[] = {
-	0,
-	offsetof(struct cal_result_t, offset_x),
-	offsetof(struct cal_result_t, offset_y),
-	offsetof(struct cal_result_t, offset_z),
-	offsetof(struct cal_result_t, threshold_h),
-	offsetof(struct cal_result_t, threshold_l),
-	offsetof(struct cal_result_t, bias),
-	offsetof(struct cal_result_t, offset[0]),
-	offsetof(struct cal_result_t, offset[1]),
-	offsetof(struct cal_result_t, offset[2]),
-	offsetof(struct cal_result_t, factor),
-	offsetof(struct cal_result_t, range),
+    0,
+    offsetof(struct cal_result_t, offset_x),
+    offsetof(struct cal_result_t, offset_y),
+    offsetof(struct cal_result_t, offset_z),
+    offsetof(struct cal_result_t, threshold_h),
+    offsetof(struct cal_result_t, threshold_l),
+    offsetof(struct cal_result_t, bias),
+    offsetof(struct cal_result_t, offset[0]),
+    offsetof(struct cal_result_t, offset[1]),
+    offsetof(struct cal_result_t, offset[2]),
+    offsetof(struct cal_result_t, factor),
+    offsetof(struct cal_result_t, range),
 };
 
 static struct class *sensors_class;
@@ -93,362 +93,362 @@ DECLARE_RWSEM(sensors_list_lock);
 LIST_HEAD(sensors_list);
 
 static ssize_t sensors_name_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+                                 struct device_attribute *attr, char *buf)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	return snprintf(buf, PAGE_SIZE, "%s\n", sensors_cdev->name);
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    return snprintf(buf, PAGE_SIZE, "%s\n", sensors_cdev->name);
 }
 
 static ssize_t sensors_vendor_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+                                   struct device_attribute *attr, char *buf)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	return snprintf(buf, PAGE_SIZE, "%s\n", sensors_cdev->vendor);
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    return snprintf(buf, PAGE_SIZE, "%s\n", sensors_cdev->vendor);
 }
 
 static ssize_t sensors_version_show(struct device *dev,
-	struct device_attribute *attr, char *buf)
+                                    struct device_attribute *attr, char *buf)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	return snprintf(buf, PAGE_SIZE, "%d\n", sensors_cdev->version);
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    return snprintf(buf, PAGE_SIZE, "%d\n", sensors_cdev->version);
 }
 
 static ssize_t sensors_handle_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+                                   struct device_attribute *attr, char *buf)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	return snprintf(buf, PAGE_SIZE, "%d\n", sensors_cdev->handle);
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    return snprintf(buf, PAGE_SIZE, "%d\n", sensors_cdev->handle);
 }
 
 static ssize_t sensors_type_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+                                 struct device_attribute *attr, char *buf)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	return snprintf(buf, PAGE_SIZE, "%d\n", sensors_cdev->type);
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    return snprintf(buf, PAGE_SIZE, "%d\n", sensors_cdev->type);
 }
 
 static ssize_t sensors_max_delay_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+                                      struct device_attribute *attr, char *buf)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	return snprintf(buf, PAGE_SIZE, "%d\n", sensors_cdev->max_delay);
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    return snprintf(buf, PAGE_SIZE, "%d\n", sensors_cdev->max_delay);
 }
 
 static ssize_t sensors_flags_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+                                  struct device_attribute *attr, char *buf)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	return snprintf(buf, PAGE_SIZE, "%d\n", sensors_cdev->flags);
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    return snprintf(buf, PAGE_SIZE, "%d\n", sensors_cdev->flags);
 }
 
 static ssize_t sensors_max_range_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+                                      struct device_attribute *attr, char *buf)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	return snprintf(buf, PAGE_SIZE, "%s\n", sensors_cdev->max_range);
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    return snprintf(buf, PAGE_SIZE, "%s\n", sensors_cdev->max_range);
 }
 
 static ssize_t sensors_resolution_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+                                       struct device_attribute *attr, char *buf)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	return snprintf(buf, PAGE_SIZE, "%s\n", sensors_cdev->resolution);
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    return snprintf(buf, PAGE_SIZE, "%s\n", sensors_cdev->resolution);
 }
 
 static ssize_t sensors_power_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+                                  struct device_attribute *attr, char *buf)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	return snprintf(buf, PAGE_SIZE, "%s\n", sensors_cdev->sensor_power);
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    return snprintf(buf, PAGE_SIZE, "%s\n", sensors_cdev->sensor_power);
 }
 
 static ssize_t sensors_min_delay_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+                                      struct device_attribute *attr, char *buf)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	return snprintf(buf, PAGE_SIZE, "%d\n", sensors_cdev->min_delay);
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    return snprintf(buf, PAGE_SIZE, "%d\n", sensors_cdev->min_delay);
 }
 
 static ssize_t sensors_fifo_event_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+                                       struct device_attribute *attr, char *buf)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	return snprintf(buf, PAGE_SIZE, "%d\n",
-			sensors_cdev->fifo_reserved_event_count);
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    return snprintf(buf, PAGE_SIZE, "%d\n",
+                    sensors_cdev->fifo_reserved_event_count);
 }
 
 static ssize_t sensors_fifo_max_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+                                     struct device_attribute *attr, char *buf)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	return snprintf(buf, PAGE_SIZE, "%d\n",
-			sensors_cdev->fifo_max_event_count);
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    return snprintf(buf, PAGE_SIZE, "%d\n",
+                    sensors_cdev->fifo_max_event_count);
 }
 
 static ssize_t sensors_enable_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t size)
+                                    struct device_attribute *attr, const char *buf, size_t size)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	ssize_t ret = -EINVAL;
-	unsigned long data = 0;
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    ssize_t ret = -EINVAL;
+    unsigned long data = 0;
 
-	ret = kstrtoul(buf, 10, &data);
-	if (ret)
-		return ret;
-	if (data > 1) {
-		dev_err(dev, "Invalid value of input, input=%ld\n", data);
-		return -EINVAL;
-	}
+    ret = kstrtoul(buf, 10, &data);
+    if (ret)
+        return ret;
+    if (data > 1) {
+        dev_err(dev, "Invalid value of input, input=%ld\n", data);
+        return -EINVAL;
+    }
 
-	if (sensors_cdev->sensors_enable == NULL) {
-		dev_err(dev, "Invalid sensor class enable handle\n");
-		return -EINVAL;
-	}
-	ret = sensors_cdev->sensors_enable(sensors_cdev, data);
-	if (ret)
-		return ret;
+    if (sensors_cdev->sensors_enable == NULL) {
+        dev_err(dev, "Invalid sensor class enable handle\n");
+        return -EINVAL;
+    }
+    ret = sensors_cdev->sensors_enable(sensors_cdev, data);
+    if (ret)
+        return ret;
 
-	sensors_cdev->enabled = data;
-	return size;
+    sensors_cdev->enabled = data;
+    return size;
 }
 
 
 static ssize_t sensors_enable_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+                                   struct device_attribute *attr, char *buf)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	return snprintf(buf, PAGE_SIZE, "%u\n",
-			sensors_cdev->enabled);
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    return snprintf(buf, PAGE_SIZE, "%u\n",
+                    sensors_cdev->enabled);
 }
 
 static ssize_t sensors_delay_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t size)
+                                   struct device_attribute *attr, const char *buf, size_t size)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	ssize_t ret = -EINVAL;
-	unsigned long data = 0;
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    ssize_t ret = -EINVAL;
+    unsigned long data = 0;
 
-	ret = kstrtoul(buf, 10, &data);
-	if (ret)
-		return ret;
-	/* The data unit is millisecond, the min_delay unit is microseconds. */
-	if ((data * 1000) < sensors_cdev->min_delay) {
-		dev_err(dev, "Invalid value of delay, delay=%ld\n", data);
-		return -EINVAL;
-	}
-	if (sensors_cdev->sensors_poll_delay == NULL) {
-		dev_err(dev, "Invalid sensor class delay handle\n");
-		return -EINVAL;
-	}
-	ret = sensors_cdev->sensors_poll_delay(sensors_cdev, data);
-	if (ret)
-		return ret;
+    ret = kstrtoul(buf, 10, &data);
+    if (ret)
+        return ret;
+    /* The data unit is millisecond, the min_delay unit is microseconds. */
+    if ((data * 1000) < sensors_cdev->min_delay) {
+        dev_err(dev, "Invalid value of delay, delay=%ld\n", data);
+        return -EINVAL;
+    }
+    if (sensors_cdev->sensors_poll_delay == NULL) {
+        dev_err(dev, "Invalid sensor class delay handle\n");
+        return -EINVAL;
+    }
+    ret = sensors_cdev->sensors_poll_delay(sensors_cdev, data);
+    if (ret)
+        return ret;
 
-	sensors_cdev->delay_msec = data;
-	return size;
+    sensors_cdev->delay_msec = data;
+    return size;
 }
 
 static ssize_t sensors_delay_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+                                  struct device_attribute *attr, char *buf)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	return snprintf(buf, PAGE_SIZE, "%u\n",
-			sensors_cdev->delay_msec);
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    return snprintf(buf, PAGE_SIZE, "%u\n",
+                    sensors_cdev->delay_msec);
 }
 
 static ssize_t sensors_test_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+                                 struct device_attribute *attr, char *buf)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	int ret;
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    int ret;
 
-	if (sensors_cdev->sensors_self_test == NULL) {
-		dev_err(dev, "Invalid sensor class self test handle\n");
-		return -EINVAL;
-	}
+    if (sensors_cdev->sensors_self_test == NULL) {
+        dev_err(dev, "Invalid sensor class self test handle\n");
+        return -EINVAL;
+    }
 
-	ret = sensors_cdev->sensors_self_test(sensors_cdev);
-	if (ret)
-		dev_warn(dev, "self test failed.(%d)\n", ret);
+    ret = sensors_cdev->sensors_self_test(sensors_cdev);
+    if (ret)
+        dev_warn(dev, "self test failed.(%d)\n", ret);
 
-	return snprintf(buf, PAGE_SIZE, "%s\n",
-			ret ? "fail" : "pass");
+    return snprintf(buf, PAGE_SIZE, "%s\n",
+                    ret ? "fail" : "pass");
 }
 
 static ssize_t sensors_max_latency_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t size)
+        struct device_attribute *attr, const char *buf, size_t size)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	unsigned long latency;
-	int ret = -EINVAL;
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    unsigned long latency;
+    int ret = -EINVAL;
 
-	ret = kstrtoul(buf, 10, &latency);
-	if (ret)
-		return ret;
+    ret = kstrtoul(buf, 10, &latency);
+    if (ret)
+        return ret;
 
-	if (latency > sensors_cdev->max_delay) {
-		dev_err(dev, "max_latency(%lu) is greater than max_delay(%u)\n",
-				latency, sensors_cdev->max_delay);
-		return -EINVAL;
-	}
+    if (latency > sensors_cdev->max_delay) {
+        dev_err(dev, "max_latency(%lu) is greater than max_delay(%u)\n",
+                latency, sensors_cdev->max_delay);
+        return -EINVAL;
+    }
 
-	if (sensors_cdev->sensors_set_latency == NULL) {
-		dev_err(dev, "Invalid sensor calss set latency handle\n");
-		return -EINVAL;
-	}
+    if (sensors_cdev->sensors_set_latency == NULL) {
+        dev_err(dev, "Invalid sensor calss set latency handle\n");
+        return -EINVAL;
+    }
 
-	/* Disable batching for this sensor */
-	if ((latency < sensors_cdev->delay_msec) && (latency != 0)) {
-		dev_err(dev, "max_latency is less than delay_msec\n");
-		return -EINVAL;
-	}
+    /* Disable batching for this sensor */
+    if ((latency < sensors_cdev->delay_msec) && (latency != 0)) {
+        dev_err(dev, "max_latency is less than delay_msec\n");
+        return -EINVAL;
+    }
 
-	ret = sensors_cdev->sensors_set_latency(sensors_cdev, latency);
-	if (ret)
-		return ret;
+    ret = sensors_cdev->sensors_set_latency(sensors_cdev, latency);
+    if (ret)
+        return ret;
 
-	sensors_cdev->max_latency = latency;
+    sensors_cdev->max_latency = latency;
 
-	return size;
+    return size;
 }
 
 static ssize_t sensors_max_latency_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+                                        struct device_attribute *attr, char *buf)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	return snprintf(buf, PAGE_SIZE,
-		"%u\n", sensors_cdev->max_latency);
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    return snprintf(buf, PAGE_SIZE,
+                    "%u\n", sensors_cdev->max_latency);
 }
 
 static ssize_t sensors_flush_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t size)
+                                   struct device_attribute *attr, const char *buf, size_t size)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	ssize_t ret = -EINVAL;
-	unsigned long data = 0;
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    ssize_t ret = -EINVAL;
+    unsigned long data = 0;
 
-	ret = kstrtoul(buf, 10, &data);
-	if (ret)
-		return ret;
-	if (data != 1) {
-		dev_err(dev, "Flush: Invalid value of input, input=%ld\n",
-				data);
-		return -EINVAL;
-	}
+    ret = kstrtoul(buf, 10, &data);
+    if (ret)
+        return ret;
+    if (data != 1) {
+        dev_err(dev, "Flush: Invalid value of input, input=%ld\n",
+                data);
+        return -EINVAL;
+    }
 
-	if (sensors_cdev->sensors_flush == NULL) {
-		dev_err(dev, "Invalid sensor class flush handle\n");
-		return -EINVAL;
-	}
-	ret = sensors_cdev->sensors_flush(sensors_cdev);
-	if (ret)
-		return ret;
+    if (sensors_cdev->sensors_flush == NULL) {
+        dev_err(dev, "Invalid sensor class flush handle\n");
+        return -EINVAL;
+    }
+    ret = sensors_cdev->sensors_flush(sensors_cdev);
+    if (ret)
+        return ret;
 
-	return size;
+    return size;
 }
 
 static ssize_t sensors_flush_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+                                  struct device_attribute *attr, char *buf)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	return snprintf(buf, PAGE_SIZE,
-		"Flush handler %s\n",
-			(sensors_cdev->sensors_flush == NULL)
-				? "not exist" : "exist");
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    return snprintf(buf, PAGE_SIZE,
+                    "Flush handler %s\n",
+                    (sensors_cdev->sensors_flush == NULL)
+                    ? "not exist" : "exist");
 }
 
 static ssize_t sensors_enable_wakeup_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t size)
+        struct device_attribute *attr, const char *buf, size_t size)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	ssize_t ret;
-	unsigned long enable;
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    ssize_t ret;
+    unsigned long enable;
 
-	if (sensors_cdev->sensors_enable_wakeup == NULL) {
-		dev_err(dev, "Invalid sensor class enable_wakeup handle\n");
-		return -EINVAL;
-	}
+    if (sensors_cdev->sensors_enable_wakeup == NULL) {
+        dev_err(dev, "Invalid sensor class enable_wakeup handle\n");
+        return -EINVAL;
+    }
 
-	ret = kstrtoul(buf, 10, &enable);
-	if (ret)
-		return ret;
+    ret = kstrtoul(buf, 10, &enable);
+    if (ret)
+        return ret;
 
-	enable = enable ? 1 : 0;
-	ret = sensors_cdev->sensors_enable_wakeup(sensors_cdev, enable);
-	if (ret)
-		return ret;
+    enable = enable ? 1 : 0;
+    ret = sensors_cdev->sensors_enable_wakeup(sensors_cdev, enable);
+    if (ret)
+        return ret;
 
-	sensors_cdev->wakeup = enable;
+    sensors_cdev->wakeup = enable;
 
-	return size;
+    return size;
 }
 
 static ssize_t sensors_enable_wakeup_show(struct device *dev,
-		struct device_attribute *attr, char *buf)
+        struct device_attribute *attr, char *buf)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	return snprintf(buf, PAGE_SIZE, "%d\n", sensors_cdev->wakeup);
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    return snprintf(buf, PAGE_SIZE, "%d\n", sensors_cdev->wakeup);
 }
 
 
 static ssize_t sensors_calibrate_show(struct device *dev,
-		struct device_attribute *atte, char *buf)
+                                      struct device_attribute *atte, char *buf)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	if (sensors_cdev->params == NULL) {
-		dev_err(dev, "Invalid sensor params\n");
-		return -EINVAL;
-	}
-	return snprintf(buf, PAGE_SIZE, "%s\n", sensors_cdev->params);
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    if (sensors_cdev->params == NULL) {
+        dev_err(dev, "Invalid sensor params\n");
+        return -EINVAL;
+    }
+    return snprintf(buf, PAGE_SIZE, "%s\n", sensors_cdev->params);
 }
 
 static ssize_t sensors_calibrate_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t size)
+                                       struct device_attribute *attr, const char *buf, size_t size)
 {
-	struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
-	ssize_t ret = -EINVAL;
-	long data;
-	int axis, apply_now;
-	int cmd, bit_h;
+    struct sensors_classdev *sensors_cdev = dev_get_drvdata(dev);
+    ssize_t ret = -EINVAL;
+    long data;
+    int axis, apply_now;
+    int cmd, bit_h;
 
-	ret = kstrtol(buf, 0, &data);
-	if (ret)
-		return ret;
-	dev_dbg(dev, "data = %lx\n", data);
-	cmd = data & CMD_MASK;
-	if (cmd == CMD_DO_CAL) {
-		if (sensors_cdev->sensors_calibrate == NULL) {
-			dev_err(dev, "Invalid calibrate handle\n");
-			return -EINVAL;
-		}
-		/* parse the data to get the axis and apply_now value*/
-		apply_now = (int)(data >> DATA_APPLY_SHIFT) & APPLY_MASK;
-		axis = (int)data >> DATA_AXIS_SHIFT;
-		dev_dbg(dev, "apply_now = %d, axis = %d\n", apply_now, axis);
-		ret = sensors_cdev->sensors_calibrate(sensors_cdev,
-				axis, apply_now);
-		if (ret)
-			return ret;
-	} else {
-		if (sensors_cdev->sensors_write_cal_params == NULL) {
-			dev_err(dev,
-					"Invalid write_cal_params handle\n");
-			return -EINVAL;
-		}
-		bit_h = (data & CMD_W_H_L) >> 4;
-		if (cmd > CMD_DO_CAL && cmd < CMD_COMPLETE) {
-			char *p = (char *)(&sensors_cdev->cal_result)
-					+ cal_map[cmd];
-			*(int *)p = CMD_GET_PARAMS(bit_h, *(int *)p, data);
-		} else if (cmd == CMD_COMPLETE) {
-			ret = sensors_cdev->sensors_write_cal_params
-				(sensors_cdev, &sensors_cdev->cal_result);
-		} else {
-			dev_err(dev, "Invalid command\n");
-			return -EINVAL;
-		}
-	}
-	return size;
+    ret = kstrtol(buf, 0, &data);
+    if (ret)
+        return ret;
+    dev_dbg(dev, "data = %lx\n", data);
+    cmd = data & CMD_MASK;
+    if (cmd == CMD_DO_CAL) {
+        if (sensors_cdev->sensors_calibrate == NULL) {
+            dev_err(dev, "Invalid calibrate handle\n");
+            return -EINVAL;
+        }
+        /* parse the data to get the axis and apply_now value*/
+        apply_now = (int)(data >> DATA_APPLY_SHIFT) & APPLY_MASK;
+        axis = (int)data >> DATA_AXIS_SHIFT;
+        dev_dbg(dev, "apply_now = %d, axis = %d\n", apply_now, axis);
+        ret = sensors_cdev->sensors_calibrate(sensors_cdev,
+                                              axis, apply_now);
+        if (ret)
+            return ret;
+    } else {
+        if (sensors_cdev->sensors_write_cal_params == NULL) {
+            dev_err(dev,
+                    "Invalid write_cal_params handle\n");
+            return -EINVAL;
+        }
+        bit_h = (data & CMD_W_H_L) >> 4;
+        if (cmd > CMD_DO_CAL && cmd < CMD_COMPLETE) {
+            char *p = (char *)(&sensors_cdev->cal_result)
+                      + cal_map[cmd];
+            *(int *)p = CMD_GET_PARAMS(bit_h, *(int *)p, data);
+        } else if (cmd == CMD_COMPLETE) {
+            ret = sensors_cdev->sensors_write_cal_params
+                  (sensors_cdev, &sensors_cdev->cal_result);
+        } else {
+            dev_err(dev, "Invalid command\n");
+            return -EINVAL;
+        }
+    }
+    return size;
 }
 
 static  DEVICE_ATTR(name, 0444, sensors_name_show, NULL);
@@ -466,14 +466,14 @@ static  DEVICE_ATTR(max_delay, 0444, sensors_max_delay_show, NULL);
 static  DEVICE_ATTR(flags, 0444, sensors_flags_show, NULL);
 static  DEVICE_ATTR(enable, 0664, sensors_enable_show, sensors_enable_store);
 static  DEVICE_ATTR(enable_wakeup, 0664, sensors_enable_wakeup_show,
-		sensors_enable_wakeup_store);
+                    sensors_enable_wakeup_store);
 static  DEVICE_ATTR(poll_delay, 0664, sensors_delay_show, sensors_delay_store);
 static  DEVICE_ATTR(self_test, 0440, sensors_test_show, NULL);
 static  DEVICE_ATTR(max_latency, 0660, sensors_max_latency_show,
-		sensors_max_latency_store);
+                    sensors_max_latency_store);
 static  DEVICE_ATTR(flush, 0660, sensors_flush_show, sensors_flush_store);
 static  DEVICE_ATTR(calibrate, 0664, sensors_calibrate_show,
-		sensors_calibrate_store);
+                    sensors_calibrate_store);
 
 /*static struct device_attribute sensors_class_attrs[] = {
 	__ATTR(name, 0444, sensors_name_show, NULL),
@@ -504,27 +504,27 @@ static  DEVICE_ATTR(calibrate, 0664, sensors_calibrate_show,
 
 
 static struct attribute *sensors_class_attrs[] = {
-	&dev_attr_name.attr,
-		&dev_attr_vendor.attr,
-		&dev_attr_version.attr,
-		&dev_attr_handle.attr,
-	&dev_attr_type.attr,
-	&dev_attr_max_range.attr,
-	&dev_attr_resolution.attr,
-	&dev_attr_sensor_power.attr,
-	&dev_attr_min_delay.attr,
-	&dev_attr_fifo_reserved_event_count.attr,
-	&dev_attr_fifo_max_event_count.attr,
-	&dev_attr_max_delay.attr,
-	&dev_attr_flags.attr,
-	&dev_attr_enable.attr,
-	&dev_attr_enable_wakeup.attr,
-	&dev_attr_poll_delay.attr,
-	&dev_attr_self_test.attr,
-	&dev_attr_max_latency.attr,
-	&dev_attr_flush.attr,
-	&dev_attr_calibrate.attr,
-	NULL,
+    &dev_attr_name.attr,
+    &dev_attr_vendor.attr,
+    &dev_attr_version.attr,
+    &dev_attr_handle.attr,
+    &dev_attr_type.attr,
+    &dev_attr_max_range.attr,
+    &dev_attr_resolution.attr,
+    &dev_attr_sensor_power.attr,
+    &dev_attr_min_delay.attr,
+    &dev_attr_fifo_reserved_event_count.attr,
+    &dev_attr_fifo_max_event_count.attr,
+    &dev_attr_max_delay.attr,
+    &dev_attr_flags.attr,
+    &dev_attr_enable.attr,
+    &dev_attr_enable_wakeup.attr,
+    &dev_attr_poll_delay.attr,
+    &dev_attr_self_test.attr,
+    &dev_attr_max_latency.attr,
+    &dev_attr_flush.attr,
+    &dev_attr_calibrate.attr,
+    NULL,
 };
 
 /**
@@ -533,23 +533,23 @@ static struct attribute *sensors_class_attrs[] = {
  * @sensors_cdev: the sensors_classdev structure for this device.
 */
 int sensors_classdev_register(struct device *parent,
-				struct sensors_classdev *sensors_cdev)
+                              struct sensors_classdev *sensors_cdev)
 {
-	sensors_cdev->dev = device_create(sensors_class, parent, 0,
-				      sensors_cdev, "%s", sensors_cdev->name);
+    sensors_cdev->dev = device_create(sensors_class, parent, 0,
+                                      sensors_cdev, "%s", sensors_cdev->name);
 
-	//pr_info( " wangyanhui     sensors_classdev_register   ");
-	if (IS_ERR(sensors_cdev->dev))
-		return PTR_ERR(sensors_cdev->dev);
-	//pr_info( " wangyanhui     sensors_classdev_register  0000   sensors_cdev->dev.name =");
+    //pr_info( " wangyanhui     sensors_classdev_register   ");
+    if (IS_ERR(sensors_cdev->dev))
+        return PTR_ERR(sensors_cdev->dev);
+    //pr_info( " wangyanhui     sensors_classdev_register  0000   sensors_cdev->dev.name =");
 
-	down_write(&sensors_list_lock);
-	list_add_tail(&sensors_cdev->node, &sensors_list);
-	up_write(&sensors_list_lock);
+    down_write(&sensors_list_lock);
+    list_add_tail(&sensors_cdev->node, &sensors_list);
+    up_write(&sensors_list_lock);
 
-	pr_debug("Registered sensors device: %s\n",
-			sensors_cdev->name);
-	return 0;
+    pr_debug("Registered sensors device: %s\n",
+             sensors_cdev->name);
+    return 0;
 }
 EXPORT_SYMBOL(sensors_classdev_register);
 
@@ -560,35 +560,35 @@ EXPORT_SYMBOL(sensors_classdev_register);
 */
 void sensors_classdev_unregister(struct sensors_classdev *sensors_cdev)
 {
-	device_unregister(sensors_cdev->dev);
-	down_write(&sensors_list_lock);
-	list_del(&sensors_cdev->node);
-	up_write(&sensors_list_lock);
+    device_unregister(sensors_cdev->dev);
+    down_write(&sensors_list_lock);
+    list_del(&sensors_cdev->node);
+    up_write(&sensors_list_lock);
 }
 EXPORT_SYMBOL(sensors_classdev_unregister);
 
 
 static const struct attribute_group sensors_group = {
-	.attrs = sensors_class_attrs,
+    .attrs = sensors_class_attrs,
 };
 
 static const struct attribute_group *sensors_groups[] = {
-	&sensors_group,
-	NULL,
+    &sensors_group,
+    NULL,
 };
 
 static int __init sensors_init(void)
 {
-	sensors_class = class_create(THIS_MODULE, "sensors");
-	if (IS_ERR(sensors_class))
-		return PTR_ERR(sensors_class);
-	sensors_class->dev_groups = sensors_groups;
-	return 0;
+    sensors_class = class_create(THIS_MODULE, "sensors");
+    if (IS_ERR(sensors_class))
+        return PTR_ERR(sensors_class);
+    sensors_class->dev_groups = sensors_groups;
+    return 0;
 }
 
 static void __exit sensors_exit(void)
 {
-	class_destroy(sensors_class);
+    class_destroy(sensors_class);
 }
 
 subsys_initcall(sensors_init);

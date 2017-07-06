@@ -48,16 +48,16 @@
 #define SENSOR_TYPE_GEOMAGNETIC_ROTATION_VECTOR	20
 
 enum LIS3DH_AXIS {
-	AXIS_X = 0,
-	AXIS_Y,
-	AXIS_Z,
-	AXIS_XYZ,
+    AXIS_X = 0,
+    AXIS_Y,
+    AXIS_Z,
+    AXIS_XYZ,
 };
 
 enum LIS3DH_THRES {
-	AXIS_THRESHOLD_H = 0,
-	AXIS_THRESHOLD_L,
-	AXIS_BIAS,
+    AXIS_THRESHOLD_H = 0,
+    AXIS_THRESHOLD_L,
+    AXIS_BIAS,
 };
 
 #define AXIS_FACTOR		0
@@ -65,23 +65,23 @@ enum LIS3DH_THRES {
 
 
 struct cal_result_t {
-	union {
+    union {
 
-		struct {
-			int offset_x; /*axis offset of x axis*/
-			int offset_y; /*axis offset of x axis*/
-			int offset_z; /*axis offset of x axis*/
-		};
-		struct {
-			int threshold_h; /*proximity threshold_h*/
-			int threshold_l; /*proximity threshold_l*/
-			int bias; /*proximity measure data noise*/
-		};
-		int offset[3];
-	};
-	int factor; /*light sensor factor for real ligt strength*/
-	int range;
-	struct cal_result_t *node;
+        struct {
+            int offset_x; /*axis offset of x axis*/
+            int offset_y; /*axis offset of x axis*/
+            int offset_z; /*axis offset of x axis*/
+        };
+        struct {
+            int threshold_h; /*proximity threshold_h*/
+            int threshold_l; /*proximity threshold_l*/
+            int bias; /*proximity measure data noise*/
+        };
+        int offset[3];
+    };
+    int factor; /*light sensor factor for real ligt strength*/
+    int range;
+    struct cal_result_t *node;
 };
 
 /**
@@ -122,47 +122,47 @@ struct cal_result_t {
  * @cal_result		The sensor calibrate parameters, cal_result is a struct for sensor.
  */
 struct sensors_classdev {
-	struct device		*dev;
-	struct list_head	node;
-	const char		*name;
-	const char		*vendor;
-	int			version;
-	int			handle;
-	int			type;
-	const char		*max_range;
-	const char		*resolution;
-	const char		*sensor_power;
-	int			min_delay;
-	int			fifo_reserved_event_count;
-	int			fifo_max_event_count;
-	int32_t			max_delay;
-	uint32_t		flags;
+    struct device		*dev;
+    struct list_head	node;
+    const char		*name;
+    const char		*vendor;
+    int			version;
+    int			handle;
+    int			type;
+    const char		*max_range;
+    const char		*resolution;
+    const char		*sensor_power;
+    int			min_delay;
+    int			fifo_reserved_event_count;
+    int			fifo_max_event_count;
+    int32_t			max_delay;
+    uint32_t		flags;
 
-	unsigned int		enabled;
-	unsigned int		delay_msec;
-	unsigned int		wakeup;
-	unsigned int		max_latency;
-	char			*params;
-	struct cal_result_t	cal_result;
-	/* enable and disable the sensor handle*/
-	int	(*sensors_enable)(struct sensors_classdev *sensors_cdev,
-					unsigned int enabled);
-	int	(*sensors_poll_delay)(struct sensors_classdev *sensors_cdev,
-					unsigned int delay_msec);
-	int	(*sensors_self_test)(struct sensors_classdev *sensors_cdev);
-	int	(*sensors_set_latency)(struct sensors_classdev *sensor_cdev,
-					unsigned int max_latency);
-	int	(*sensors_enable_wakeup)(struct sensors_classdev *sensor_cdev,
-					unsigned int enable);
-	int	(*sensors_flush)(struct sensors_classdev *sensors_cdev);
-	int	(*sensors_calibrate)(struct sensors_classdev *sensor_cdev,
-					int axis, int apply_now);
-	int	(*sensors_write_cal_params)(struct sensors_classdev
-				*sensor_cdev, struct cal_result_t *cal_result);
+    unsigned int		enabled;
+    unsigned int		delay_msec;
+    unsigned int		wakeup;
+    unsigned int		max_latency;
+    char			*params;
+    struct cal_result_t	cal_result;
+    /* enable and disable the sensor handle*/
+    int	(*sensors_enable)(struct sensors_classdev *sensors_cdev,
+                          unsigned int enabled);
+    int	(*sensors_poll_delay)(struct sensors_classdev *sensors_cdev,
+                              unsigned int delay_msec);
+    int	(*sensors_self_test)(struct sensors_classdev *sensors_cdev);
+    int	(*sensors_set_latency)(struct sensors_classdev *sensor_cdev,
+                               unsigned int max_latency);
+    int	(*sensors_enable_wakeup)(struct sensors_classdev *sensor_cdev,
+                                 unsigned int enable);
+    int	(*sensors_flush)(struct sensors_classdev *sensors_cdev);
+    int	(*sensors_calibrate)(struct sensors_classdev *sensor_cdev,
+                             int axis, int apply_now);
+    int	(*sensors_write_cal_params)(struct sensors_classdev
+                                    *sensor_cdev, struct cal_result_t *cal_result);
 };
 
 extern int sensors_classdev_register(struct device *parent,
-				 struct sensors_classdev *sensors_cdev);
+                                     struct sensors_classdev *sensors_cdev);
 extern void sensors_classdev_unregister(struct sensors_classdev *sensors_cdev);
 
 #endif		/* __LINUX_SENSORS_H_INCLUDED */

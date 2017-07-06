@@ -17,7 +17,7 @@
 
 #ifndef __LINUX_FTS_H__
 #define __LINUX_FTS_H__
- /*******************************************************************************
+/*******************************************************************************
 *
 * File Name: focaltech.c
 *
@@ -133,106 +133,105 @@
 * Private enumerations, structures and unions using typedef
 *******************************************************************************/
 
-struct fts_Upgrade_Info
-{
-        u8 CHIP_ID;
-        u8 TPD_MAX_POINTS;
-        u8 AUTO_CLB;
-	 u16 delay_aa;						/*delay of write FT_UPGRADE_AA */
-	 u16 delay_55;						/*delay of write FT_UPGRADE_55 */
-	 u8 upgrade_id_1;					/*upgrade id 1 */
-	 u8 upgrade_id_2;					/*upgrade id 2 */
-	 u16 delay_readid;					/*delay of read id */
-	 u16 delay_erase_flash; 				/*delay of earse flash*/
+struct fts_Upgrade_Info {
+    u8 CHIP_ID;
+    u8 TPD_MAX_POINTS;
+    u8 AUTO_CLB;
+    u16 delay_aa;						/*delay of write FT_UPGRADE_AA */
+    u16 delay_55;						/*delay of write FT_UPGRADE_55 */
+    u8 upgrade_id_1;					/*upgrade id 1 */
+    u8 upgrade_id_2;					/*upgrade id 2 */
+    u16 delay_readid;					/*delay of read id */
+    u16 delay_erase_flash; 				/*delay of earse flash*/
 };
 
 struct fts_ts_platform_data {
-	struct fts_Upgrade_Info info;
-	const char *name;
-	const char *fw_name;
-	u32 irqflags;
-	u32 irq_gpio;
-	u32 irq_gpio_flags;
-	u32 reset_gpio;
-	u32 reset_gpio_flags;
-	u32 family_id;
-	u32 x_max;
-	u32 y_max;
-	u32 x_min;
-	u32 y_min;
-	u32 panel_minx;
-	u32 panel_miny;
-	u32 panel_maxx;
-	u32 panel_maxy;
-	u32 group_id;
-	u32 hard_rst_dly;
-	u32 soft_rst_dly;
-	u32 num_max_touches;
-	bool fw_vkey_support;
-	bool no_force_update;
-	bool i2c_pull_up;
-	bool ignore_id_check;
-	bool psensor_support;
-	int (*power_init) (bool);
-	int (*power_on) (bool);
+    struct fts_Upgrade_Info info;
+    const char *name;
+    const char *fw_name;
+    u32 irqflags;
+    u32 irq_gpio;
+    u32 irq_gpio_flags;
+    u32 reset_gpio;
+    u32 reset_gpio_flags;
+    u32 family_id;
+    u32 x_max;
+    u32 y_max;
+    u32 x_min;
+    u32 y_min;
+    u32 panel_minx;
+    u32 panel_miny;
+    u32 panel_maxx;
+    u32 panel_maxy;
+    u32 group_id;
+    u32 hard_rst_dly;
+    u32 soft_rst_dly;
+    u32 num_max_touches;
+    bool fw_vkey_support;
+    bool no_force_update;
+    bool i2c_pull_up;
+    bool ignore_id_check;
+    bool psensor_support;
+    int (*power_init) (bool);
+    int (*power_on) (bool);
 };
 
 struct ts_event {
-	u16 au16_x[FTS_MAX_POINTS];	/*x coordinate */
-	u16 au16_y[FTS_MAX_POINTS];	/*y coordinate */
-	u16 pressure[FTS_MAX_POINTS];
-	u8 au8_touch_event[FTS_MAX_POINTS];	/*touch event:
+    u16 au16_x[FTS_MAX_POINTS];	/*x coordinate */
+    u16 au16_y[FTS_MAX_POINTS];	/*y coordinate */
+    u16 pressure[FTS_MAX_POINTS];
+    u8 au8_touch_event[FTS_MAX_POINTS];	/*touch event:
 					0 -- down; 1-- up; 2 -- contact */
-	u8 au8_finger_id[FTS_MAX_POINTS];	/*touch ID */
-	u8 area[FTS_MAX_POINTS];
-	u8 touch_point;
-	u8 point_num;
+    u8 au8_finger_id[FTS_MAX_POINTS];	/*touch ID */
+    u8 area[FTS_MAX_POINTS];
+    u8 touch_point;
+    u8 point_num;
 };
 
 struct fts_ts_data {
-	struct i2c_client *client;
-	struct input_dev *input_dev;
-	struct ts_event event;
-	const struct fts_ts_platform_data *pdata;
-	#ifdef CONFIG_TOUCHSCREEN_FTS_PSENSOR
-	struct fts_psensor_platform_data *psensor_pdata;
-	#endif
-	struct work_struct 	touch_event_work;
-	struct workqueue_struct *ts_workqueue;
-	struct regulator *vdd;
-	struct regulator *vcc_i2c;
-	char fw_name[FTS_FW_NAME_MAX_LEN];
-	bool loading_fw;
-	u8 family_id;
-	struct dentry *dir;
-	u16 addr;
-	bool suspended;
-	char *ts_info;
-	u8 *tch_data;
-	u32 tch_data_len;
-	u8 fw_ver[3];
-	u8 fw_vendor_id;
-	int touchs;
+    struct i2c_client *client;
+    struct input_dev *input_dev;
+    struct ts_event event;
+    const struct fts_ts_platform_data *pdata;
+#ifdef CONFIG_TOUCHSCREEN_FTS_PSENSOR
+    struct fts_psensor_platform_data *psensor_pdata;
+#endif
+    struct work_struct 	touch_event_work;
+    struct workqueue_struct *ts_workqueue;
+    struct regulator *vdd;
+    struct regulator *vcc_i2c;
+    char fw_name[FTS_FW_NAME_MAX_LEN];
+    bool loading_fw;
+    u8 family_id;
+    struct dentry *dir;
+    u16 addr;
+    bool suspended;
+    char *ts_info;
+    u8 *tch_data;
+    u32 tch_data_len;
+    u8 fw_ver[3];
+    u8 fw_vendor_id;
+    int touchs;
 #if defined(CONFIG_FB)
-	struct notifier_block fb_notif;
+    struct notifier_block fb_notif;
 #elif defined(CONFIG_HAS_EARLYSUSPEND)
-	struct early_suspend early_suspend;
+    struct early_suspend early_suspend;
 #endif
 #ifdef MSM_NEW_VER
-	struct pinctrl *ts_pinctrl;
-	struct pinctrl_state *pinctrl_state_active;
-	struct pinctrl_state *pinctrl_state_suspend;
-	struct pinctrl_state *pinctrl_state_release;
+    struct pinctrl *ts_pinctrl;
+    struct pinctrl_state *pinctrl_state_active;
+    struct pinctrl_state *pinctrl_state_suspend;
+    struct pinctrl_state *pinctrl_state_release;
 #endif
 };
 
 #ifdef CONFIG_TOUCHSCREEN_FTS_PSENSOR
 struct fts_psensor_platform_data {
-	struct input_dev *input_psensor_dev;
-	struct sensors_classdev ps_cdev;
-	int tp_psensor_opened;
-	char tp_psensor_data; /* 0 near, 1 far */
-	struct fts_ts_data *data;
+    struct input_dev *input_psensor_dev;
+    struct sensors_classdev ps_cdev;
+    int tp_psensor_opened;
+    char tp_psensor_data; /* 0 near, 1 far */
+    struct fts_ts_data *data;
 };
 #endif
 

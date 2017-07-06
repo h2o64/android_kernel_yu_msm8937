@@ -83,19 +83,17 @@ static int is_init_complete(struct gf_dev* gf_dev)
     int time_out = 0;
     unsigned char reg_value = 0;
     read_reg(gf_dev, 0x5094, &reg_value);
-    while(reg_value != 0xAA)
-    {
-	time_out++;
-	if (time_out > 5*1000)
-	{
-	    pr_info("timeout = %d\n", time_out);
-	    return 1;
-	}
+    while (reg_value != 0xAA) {
+        time_out++;
+        if (time_out > 5*1000) {
+            pr_info("timeout = %d\n", time_out);
+            return 1;
+        }
 
-	mdelay(1);
-	read_reg(gf_dev, 0x5094,&reg_value);
-	if(time_out%100 == 99)
-	    pr_info("%s time use %dms", __func__, time_out);
+        mdelay(1);
+        read_reg(gf_dev, 0x5094,&reg_value);
+        if (time_out%100 == 99)
+            pr_info("%s time use %dms", __func__, time_out);
     }
     pr_info("timeout = %d\n", time_out);
     return 0;
@@ -109,19 +107,17 @@ static int is_burn_complete(struct gf_dev* gf_dev)
 {
     int time_out = 0;
     unsigned char reg_value = -1;
-    read_reg(gf_dev ,0x5094, &reg_value);
-    while (reg_value != 0x00)
-    {
-	time_out++;
-	if (time_out > 5*1000)
-	{
-	    return 1;
-	}
+    read_reg(gf_dev,0x5094, &reg_value);
+    while (reg_value != 0x00) {
+        time_out++;
+        if (time_out > 5*1000) {
+            return 1;
+        }
 
-	mdelay(1);
-	read_reg(gf_dev, 0x5094, &reg_value);
-	if(time_out%100 == 99)
-	    pr_info("%s time use %dms", __func__, time_out);
+        mdelay(1);
+        read_reg(gf_dev, 0x5094, &reg_value);
+        if (time_out%100 == 99)
+            pr_info("%s time use %dms", __func__, time_out);
     }
     return 0;
 }
@@ -228,21 +224,20 @@ static int download_dsp_isp_9p(struct gf_dev* gf_dev, unsigned char *buf, u16 le
     // read_data(0xC000, len, tmpBuf);
     read_4k_bytes(gf_dev, 0xC000, tmpbuf);
     pr_info("tmpBuf:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x\n",
-	    tmpbuf[0],tmpbuf[1],tmpbuf[2],tmpbuf[3],tmpbuf[4],tmpbuf[5],tmpbuf[6],tmpbuf[7]);
+            tmpbuf[0],tmpbuf[1],tmpbuf[2],tmpbuf[3],tmpbuf[4],tmpbuf[5],tmpbuf[6],tmpbuf[7]);
     pr_info("-tmpBuf:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x\n",
-	    tmpbuf[len-8],tmpbuf[len-7],tmpbuf[len-6],tmpbuf[len-5],tmpbuf[len-4],tmpbuf[len-3],tmpbuf[len-2],tmpbuf[len-1]);
-    if (memcmp(tmpbuf, buf, 4096))
-    {
-	pr_info("download_dsp_isp_9p 111 Data read back is not the same as the write one.\n");
-	pr_info("tmpBuf:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x\n",
-		tmpbuf[0],tmpbuf[1],tmpbuf[2],tmpbuf[3],tmpbuf[4],tmpbuf[5],tmpbuf[6],tmpbuf[7]);
-	pr_info("buf:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x\n",
-		buf[0],buf[1],buf[2],buf[3],buf[4],buf[5],buf[6],buf[7]);
-	pr_info("-tmpBuf:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x\n",
-		tmpbuf[len-8],tmpbuf[len-7],tmpbuf[len-6],tmpbuf[len-5],tmpbuf[len-4],tmpbuf[len-3],tmpbuf[len-2],tmpbuf[len-1]);
-	pr_info("-buf:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x\n",
-		buf[len-8],buf[len-7],buf[len-6],buf[len-5],buf[len-4],buf[len-3],buf[len-2],buf[len-1]);
-	return -1;
+            tmpbuf[len-8],tmpbuf[len-7],tmpbuf[len-6],tmpbuf[len-5],tmpbuf[len-4],tmpbuf[len-3],tmpbuf[len-2],tmpbuf[len-1]);
+    if (memcmp(tmpbuf, buf, 4096)) {
+        pr_info("download_dsp_isp_9p 111 Data read back is not the same as the write one.\n");
+        pr_info("tmpBuf:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x\n",
+                tmpbuf[0],tmpbuf[1],tmpbuf[2],tmpbuf[3],tmpbuf[4],tmpbuf[5],tmpbuf[6],tmpbuf[7]);
+        pr_info("buf:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x\n",
+                buf[0],buf[1],buf[2],buf[3],buf[4],buf[5],buf[6],buf[7]);
+        pr_info("-tmpBuf:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x\n",
+                tmpbuf[len-8],tmpbuf[len-7],tmpbuf[len-6],tmpbuf[len-5],tmpbuf[len-4],tmpbuf[len-3],tmpbuf[len-2],tmpbuf[len-1]);
+        pr_info("-buf:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x\n",
+                buf[len-8],buf[len-7],buf[len-6],buf[len-5],buf[len-4],buf[len-3],buf[len-2],buf[len-1]);
+        return -1;
     }
 
     /* 7.Set scramble(write 0x0 to 0x4218)*/
@@ -284,10 +279,9 @@ static int update_patch_block0(struct gf_dev* gf_dev, unsigned char *buf, unsign
      * Waiting the initialization to complete(0x5094==0xAA)*/
     write_reg(gf_dev, 0x4180, 0x04);
 #if 1
-    if (is_init_complete(gf_dev))
-    {
-	pr_info("Init is not complete.\n");
-	return -1;
+    if (is_init_complete(gf_dev)) {
+        pr_info("Init is not complete.\n");
+        return -1;
     }
 #else
     mdelay(100);
@@ -305,22 +299,20 @@ static int update_patch_block0(struct gf_dev* gf_dev, unsigned char *buf, unsign
     // gettimeofday(&t3, NULL);
     // printf("Write use: %ld us\n", 1000000*(t3.tv_sec - t2.tv_sec) + t3.tv_usec - t2.tv_usec);
 
-    if (memcmp(buf, tmpbuf, len))
-    {
-	pr_info("update_patch_block0 111  Data read back is not the same as the write one.\n");
-	return -1;
+    if (memcmp(buf, tmpbuf, len)) {
+        pr_info("update_patch_block0 111  Data read back is not the same as the write one.\n");
+        return -1;
     }
 
     /*7.Send the command(move code[write 0x01 to 0x5094]). Waiting DSP move the code.*/
     write_reg(gf_dev, 0x5094, 0x01);
     pr_info("tmpBuf_2:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x\n",
-	    tmpbuf[0],tmpbuf[1],tmpbuf[2],tmpbuf[3],tmpbuf[4],tmpbuf[5],tmpbuf[6],tmpbuf[7]);
+            tmpbuf[0],tmpbuf[1],tmpbuf[2],tmpbuf[3],tmpbuf[4],tmpbuf[5],tmpbuf[6],tmpbuf[7]);
     pr_info("-tmpBuf_2:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x\n",
-	    tmpbuf[len-8],tmpbuf[len-7],tmpbuf[len-6],tmpbuf[len-5],tmpbuf[len-4],tmpbuf[len-3],tmpbuf[len-2],tmpbuf[len-1]);
-    if (is_burn_complete(gf_dev))
-    {
-	pr_info("Code is burnning, not completed.\n");
-	return -1;
+            tmpbuf[len-8],tmpbuf[len-7],tmpbuf[len-6],tmpbuf[len-5],tmpbuf[len-4],tmpbuf[len-3],tmpbuf[len-2],tmpbuf[len-1]);
+    if (is_burn_complete(gf_dev)) {
+        pr_info("Code is burnning, not completed.\n");
+        return -1;
     }
 
     /*8.Select bank4(write 0x4 to 0x4048)*/
@@ -336,10 +328,9 @@ static int update_patch_block0(struct gf_dev* gf_dev, unsigned char *buf, unsign
     // gettimeofday(&t3, NULL);
     //printf("Code use: %ld us\n", 1000000*(t3.tv_sec - t2.tv_sec) + t3.tv_usec - t2.tv_usec);
 
-    if (memcmp(buf, tmpbuf, len))
-    {
-	pr_info("update_patch_block0 222  Data read back is not the same as the write one.\n");
-	return -1;
+    if (memcmp(buf, tmpbuf, len)) {
+        pr_info("update_patch_block0 222  Data read back is not the same as the write one.\n");
+        return -1;
     }
 
     /* 11.Disable accessing code(write 0x00 to 0x404D)*/
@@ -371,10 +362,9 @@ static int update_patch_block1(struct gf_dev* gf_dev, unsigned char *buf, unsign
     /* 15.Hold SS51, release DSP(write 0x4 to 0x4180). Waiting the initialization to complete(0x5094==0xAA)*/
     write_reg(gf_dev, 0x4180, 0x04);
 #if 1
-    if (is_init_complete(gf_dev))
-    {
-	pr_info("Init is not complete.\n");
-	return -1;
+    if (is_init_complete(gf_dev)) {
+        pr_info("Init is not complete.\n");
+        return -1;
     }
 #else
     mdelay(40);
@@ -388,10 +378,9 @@ static int update_patch_block1(struct gf_dev* gf_dev, unsigned char *buf, unsign
     //read_data(0xC000, len, tmpBuf);
     read_4k_bytes(gf_dev, 0xC000, tmpbuf);
     read_4k_bytes(gf_dev, 0xC000+4096, tmpbuf+4096);
-    if (memcmp(buf, tmpbuf, len))
-    {
-	pr_info("update_patch_block1 111  Data read back is not the same as the write one.\n");
-	return -1;
+    if (memcmp(buf, tmpbuf, len)) {
+        pr_info("update_patch_block1 111  Data read back is not the same as the write one.\n");
+        return -1;
     }
 
     write_reg(gf_dev, 0x4180, 0x04);
@@ -402,10 +391,9 @@ static int update_patch_block1(struct gf_dev* gf_dev, unsigned char *buf, unsign
      *  Waiting DSP move the code.
      *  */
     write_reg(gf_dev, 0x5094, 0x02);
-    if (is_burn_complete(gf_dev))
-    {
-	pr_info("Code is burnning, not completed.\n");
-	return -1;
+    if (is_burn_complete(gf_dev)) {
+        pr_info("Code is burnning, not completed.\n");
+        return -1;
     }
 
     /* 18.Select bank5(write 0x5 to 0x4048)*/
@@ -417,10 +405,9 @@ static int update_patch_block1(struct gf_dev* gf_dev, unsigned char *buf, unsign
     //read_data(0xC000, len, tmpBuf);
     read_4k_bytes(gf_dev, 0xC000, tmpbuf);
     read_4k_bytes(gf_dev, 0xC000+4096, tmpbuf+4096);
-    if (memcmp(buf, tmpbuf, len))
-    {
-	pr_info("update_patch_block1 222  Data read back is not the same as the write one.\n");
-	return -1;
+    if (memcmp(buf, tmpbuf, len)) {
+        pr_info("update_patch_block1 222  Data read back is not the same as the write one.\n");
+        return -1;
     }
 
     /* 21.Disable accessing code(write 0x00 to 0x404E)*/
@@ -454,10 +441,9 @@ static int update_patch_block2(struct gf_dev* gf_dev, unsigned char *buf, unsign
     /* 15.Hold SS51, release DSP(write 0x4 to 0x4180). Waiting the initialization to complete(0x5094==0xAA)*/
     write_reg(gf_dev, 0x4180, 0x04);
 #if 1
-    if (is_init_complete(gf_dev))
-    {
-	pr_info("Init is not complete.\n");
-	return -1;
+    if (is_init_complete(gf_dev)) {
+        pr_info("Init is not complete.\n");
+        return -1;
     }
 #else
     mdelay(40);
@@ -471,10 +457,9 @@ static int update_patch_block2(struct gf_dev* gf_dev, unsigned char *buf, unsign
     //read_data(0xC000, len, tmpBuf);
     read_4k_bytes(gf_dev, 0xC000, tmpbuf);
     read_4k_bytes(gf_dev, 0xC000+4096, tmpbuf+4096);
-    if (memcmp(buf, tmpbuf, len))
-    {
-	pr_info("update_patch_block1 111  Data read back is not the same as the write one.\n");
-	return -1;
+    if (memcmp(buf, tmpbuf, len)) {
+        pr_info("update_patch_block1 111  Data read back is not the same as the write one.\n");
+        return -1;
     }
 
     write_reg(gf_dev, 0x4180, 0x04);
@@ -485,10 +470,9 @@ static int update_patch_block2(struct gf_dev* gf_dev, unsigned char *buf, unsign
      *  Waiting DSP move the code.
      *  */
     write_reg(gf_dev, 0x5094, 0x03);
-    if (is_burn_complete(gf_dev))
-    {
-	pr_info("Code is burnning, not completed.\n");
-	return -1;
+    if (is_burn_complete(gf_dev)) {
+        pr_info("Code is burnning, not completed.\n");
+        return -1;
     }
 
     /* 18.Select bank5(write 0x5 to 0x4048)*/
@@ -500,10 +484,9 @@ static int update_patch_block2(struct gf_dev* gf_dev, unsigned char *buf, unsign
     //read_data(0xC000, len, tmpBuf);
     read_4k_bytes(gf_dev, 0xC000, tmpbuf);
     read_4k_bytes(gf_dev, 0xC000+4096, tmpbuf+4096);
-    if (memcmp(buf, tmpbuf, len))
-    {
-	pr_info("update_patch_block1 222  Data read back is not the same as the write one.\n");
-	return -1;
+    if (memcmp(buf, tmpbuf, len)) {
+        pr_info("update_patch_block1 222  Data read back is not the same as the write one.\n");
+        return -1;
     }
 
     /* 21.Disable accessing code(write 0x00 to 0x404E)*/
@@ -536,10 +519,9 @@ static int update_patch_block3(struct gf_dev* gf_dev, unsigned char *buf, unsign
     /* 15.Hold SS51, release DSP(write 0x4 to 0x4180). Waiting the initialization to complete(0x5094==0xAA)*/
     write_reg(gf_dev, 0x4180, 0x04);
 #if 1
-    if (is_init_complete(gf_dev))
-    {
-	pr_info("Init is not complete.\n");
-	return -1;
+    if (is_init_complete(gf_dev)) {
+        pr_info("Init is not complete.\n");
+        return -1;
     }
 #else
     mdelay(40);
@@ -553,10 +535,9 @@ static int update_patch_block3(struct gf_dev* gf_dev, unsigned char *buf, unsign
     //read_data(0xC000, len, tmpBuf);
     read_4k_bytes(gf_dev, 0xC000, tmpbuf);
     read_4k_bytes(gf_dev, 0xC000+4096, tmpbuf+4096);
-    if (memcmp(buf, tmpbuf, len))
-    {
-	pr_info("update_patch_block1 111  Data read back is not the same as the write one.\n");
-	return -1;
+    if (memcmp(buf, tmpbuf, len)) {
+        pr_info("update_patch_block1 111  Data read back is not the same as the write one.\n");
+        return -1;
     }
 
     write_reg(gf_dev, 0x4180, 0x04);
@@ -567,10 +548,9 @@ static int update_patch_block3(struct gf_dev* gf_dev, unsigned char *buf, unsign
      *  Waiting DSP move the code.
      *  */
     write_reg(gf_dev, 0x5094, 0x04);
-    if (is_burn_complete(gf_dev))
-    {
-	pr_info("Code is burnning, not completed.\n");
-	return -1;
+    if (is_burn_complete(gf_dev)) {
+        pr_info("Code is burnning, not completed.\n");
+        return -1;
     }
 
     /* 18.Select bank5(write 0x5 to 0x4048)*/
@@ -582,10 +562,9 @@ static int update_patch_block3(struct gf_dev* gf_dev, unsigned char *buf, unsign
     //read_data(0xC000, len, tmpBuf);
     read_4k_bytes(gf_dev, 0xC000, tmpbuf);
     read_4k_bytes(gf_dev, 0xC000+4096, tmpbuf+4096);
-    if (memcmp(buf, tmpbuf, len))
-    {
-	pr_info("update_patch_block1 222  Data read back is not the same as the write one.\n");
-	return -1;
+    if (memcmp(buf, tmpbuf, len)) {
+        pr_info("update_patch_block1 222  Data read back is not the same as the write one.\n");
+        return -1;
     }
 
     /* 21.Disable accessing code(write 0x00 to 0x404E)*/
@@ -615,10 +594,9 @@ static int update_dsp_code_9p(struct gf_dev* gf_dev, unsigned char *buf, unsigne
     /* 4.Hold SS51, release DSP(write 0x4 to 0x4180). Waiting the initialization to complete(0x5094==0xAA)*/
     write_reg(gf_dev, 0x4180, 0x04);
 #if 1
-    if (is_init_complete(gf_dev))
-    {
-	pr_info("Init is not complete.\n");
-	return -1;
+    if (is_init_complete(gf_dev)) {
+        pr_info("Init is not complete.\n");
+        return -1;
     }
 #else
     mdelay(40);
@@ -630,31 +608,28 @@ static int update_dsp_code_9p(struct gf_dev* gf_dev, unsigned char *buf, unsigne
     mdelay(1);
     //read_data(0x9000, len, tmpBuf);
     read_4k_bytes(gf_dev, 0x9000, tmpbuf);
-    if (memcmp(buf, tmpbuf, len))
-    {
-	pr_info("update_dsp_code_9p 111 Data read back is not the same as the write one.\n");
-	pr_info("tmpBuf:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x\n",
-		tmpbuf[0],tmpbuf[1],tmpbuf[2],tmpbuf[3],tmpbuf[4],tmpbuf[5],tmpbuf[6],tmpbuf[7]);
-	pr_info("buf:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x\n",
-		buf[0],buf[1],buf[2],buf[3],buf[4],buf[5],buf[6],buf[7]);
-	return -1;
+    if (memcmp(buf, tmpbuf, len)) {
+        pr_info("update_dsp_code_9p 111 Data read back is not the same as the write one.\n");
+        pr_info("tmpBuf:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x\n",
+                tmpbuf[0],tmpbuf[1],tmpbuf[2],tmpbuf[3],tmpbuf[4],tmpbuf[5],tmpbuf[6],tmpbuf[7]);
+        pr_info("buf:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x:0x%02x\n",
+                buf[0],buf[1],buf[2],buf[3],buf[4],buf[5],buf[6],buf[7]);
+        return -1;
     }
 
     /* 6.Send the command(move code[write 0x05 to 0x5094]). Waiting DSP move the code.*/
     write_reg(gf_dev, 0x5094, 0x05);
-    if (is_burn_complete(gf_dev))
-    {
-	pr_info("Code is burnning, not completed.\n");
-	return -1;
+    if (is_burn_complete(gf_dev)) {
+        pr_info("Code is burnning, not completed.\n");
+        return -1;
     }
 
     /* 7.Read 4KB data from 0x9000 to do verification.*/
     //read_data(0x9000, len, tmpBuf);
     read_4k_bytes(gf_dev, 0x9000, tmpbuf);
-    if (memcmp(buf, tmpbuf, len))
-    {
-	pr_info("update_dsp_code_9p 222 Data read back is not the same as the write one.\n");
-	return -1;
+    if (memcmp(buf, tmpbuf, len)) {
+        pr_info("update_dsp_code_9p 222 Data read back is not the same as the write one.\n");
+        return -1;
     }
 
     gf_run_ice(gf_dev);
@@ -667,9 +642,9 @@ int gf_fw_update(struct gf_dev* gf_dev, unsigned char *buf, unsigned short len)
 {
     unsigned char *p_fw = NULL;
     int ret = 0;
-    if(buf == NULL) {
-	pr_info("Firmware buffer is NULL.\n");
-	return -2;
+    if (buf == NULL) {
+        pr_info("Firmware buffer is NULL.\n");
+        return -2;
     }
 
     /*Step1:download dsp_isp. 4KB[38K~42K]*/
@@ -678,18 +653,17 @@ int gf_fw_update(struct gf_dev* gf_dev, unsigned char *buf, unsigned short len)
     len = 4096;
     // update_init_9p(gf_dev);/*first initilize the update interface*/
 
-    if (ret == 0)
-    {
-	pr_info("update_init_9p Succeed.\n");
-	ret = download_dsp_isp_9p(gf_dev, p_fw, len);
-	if(ret != 0) {
-	    pr_info("Failed to download_dsp_isp_9p.int = %d\n", ret);
-	    return ret;
-	} else {
-	    pr_info("Download DSP ISP.Len = %d  Succeed! \n", len);
-	}
+    if (ret == 0) {
+        pr_info("update_init_9p Succeed.\n");
+        ret = download_dsp_isp_9p(gf_dev, p_fw, len);
+        if (ret != 0) {
+            pr_info("Failed to download_dsp_isp_9p.int = %d\n", ret);
+            return ret;
+        } else {
+            pr_info("Download DSP ISP.Len = %d  Succeed! \n", len);
+        }
     } else {
-	pr_info("Failed to update_init_9p. int = %d\n", ret);
+        pr_info("Failed to update_init_9p. int = %d\n", ret);
     }
 
     /*Step2:update patch code part0. 8KB[0~8K]*/
@@ -697,11 +671,11 @@ int gf_fw_update(struct gf_dev* gf_dev, unsigned char *buf, unsigned short len)
     p_fw = buf + 14;
     len = 8192;
     ret = update_patch_block0(gf_dev, p_fw, len);
-    if(ret == 0) {
-	pr_info("Update patch code part0.Len = %d  Succeed!\n", len);
+    if (ret == 0) {
+        pr_info("Update patch code part0.Len = %d  Succeed!\n", len);
     } else {
-	pr_info("Failed to update patch code part0. int = %d\n", ret);
-	return ret;
+        pr_info("Failed to update patch code part0. int = %d\n", ret);
+        return ret;
     }
 
     /*Step3:update patch code part1. 8KB[8~16K]*/
@@ -709,11 +683,11 @@ int gf_fw_update(struct gf_dev* gf_dev, unsigned char *buf, unsigned short len)
     p_fw = buf + 8192 + 14;
     len = 8192;
     ret = update_patch_block1(gf_dev, p_fw, len);
-    if(ret == 0) {
-	pr_info("Update patch code part1.Len = %d  Succeed!\n", len);
+    if (ret == 0) {
+        pr_info("Update patch code part1.Len = %d  Succeed!\n", len);
     } else {
-	pr_info("Failed to update patch code part1. int = %d\n", ret);
-	return ret;
+        pr_info("Failed to update patch code part1. int = %d\n", ret);
+        return ret;
     }
 
 #if 0
@@ -722,11 +696,11 @@ int gf_fw_update(struct gf_dev* gf_dev, unsigned char *buf, unsigned short len)
     p_fw = buf + 8192*2 + 14;
     len = 8192;
     ret = update_patch_block2(gf_dev, p_fw, len);
-    if(ret == 0) {
-	pr_info("Update patch code part2.Len = %d  Succeed!\n", len);
+    if (ret == 0) {
+        pr_info("Update patch code part2.Len = %d  Succeed!\n", len);
     } else {
-	pr_info("Failed to update patch code part2. int = %d\n", ret);
-	return ret;
+        pr_info("Failed to update patch code part2. int = %d\n", ret);
+        return ret;
     }
 
     /*Step5:update patch code part3. 8KB[24~32K]*/
@@ -734,11 +708,11 @@ int gf_fw_update(struct gf_dev* gf_dev, unsigned char *buf, unsigned short len)
     p_fw = buf + 8192*3 + 14;
     len = 8192;
     ret = update_patch_block3(gf_dev, p_fw, len);
-    if(ret == 0) {
-	pr_info("Update patch code part3.Len = %d  Succeed!\n", len);
+    if (ret == 0) {
+        pr_info("Update patch code part3.Len = %d  Succeed!\n", len);
     } else {
-	pr_info("Failed to update patch code part3. int = %d\n", ret);
-	return ret;
+        pr_info("Failed to update patch code part3. int = %d\n", ret);
+        return ret;
     }
 #endif
 
@@ -747,11 +721,11 @@ int gf_fw_update(struct gf_dev* gf_dev, unsigned char *buf, unsigned short len)
     p_fw = buf + 32*1024 + 14;
     len = 4096;
     ret = update_dsp_code_9p(gf_dev, p_fw, len);
-    if(ret == 0) {
-	pr_info("Update DSP CODE.Len = %d  Succeed!\n", len);
+    if (ret == 0) {
+        pr_info("Update DSP CODE.Len = %d  Succeed!\n", len);
     } else {
-	pr_info("Failed to DSP CODE.int = %d\n", ret);
-	return ret;
+        pr_info("Failed to DSP CODE.int = %d\n", ret);
+        return ret;
     }
     pr_info("Update finished.Succeed!\n");
     return ret;

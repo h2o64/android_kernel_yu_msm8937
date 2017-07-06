@@ -123,32 +123,32 @@
 
 /*************************************************************/
 struct gf_dev {
-	dev_t			devt;
-	spinlock_t		spi_lock;
-	struct spi_device	*spi;
-	struct list_head	device_entry;
+    dev_t			devt;
+    spinlock_t		spi_lock;
+    struct spi_device	*spi;
+    struct list_head	device_entry;
 
-	struct input_dev        *input;
+    struct input_dev        *input;
 
-	struct workqueue_struct *spi_wq;
-	struct work_struct     spi_work;
-	/* buffer is NULL unless this device is open (users > 0) */
-	struct mutex buf_lock;
-	unsigned		users;
-	u8			*buffer;
-	u8  		buf_status;
-	u8 		mode;
-	u8           isPowerOn;
-	struct timer_list   gf_timer;
+    struct workqueue_struct *spi_wq;
+    struct work_struct     spi_work;
+    /* buffer is NULL unless this device is open (users > 0) */
+    struct mutex buf_lock;
+    unsigned		users;
+    u8			*buffer;
+    u8  		buf_status;
+    u8 		mode;
+    u8           isPowerOn;
+    struct timer_list   gf_timer;
 
-	unsigned 		irq_gpio;
-	unsigned		reset_gpio;
-	unsigned 		miso_gpio;
-	unsigned 		pw_gpio;
-	struct pinctrl *gf_pinctrl;
-	struct pinctrl_state *pinctrl_state_default;
+    unsigned 		irq_gpio;
+    unsigned		reset_gpio;
+    unsigned 		miso_gpio;
+    unsigned 		pw_gpio;
+    struct pinctrl *gf_pinctrl;
+    struct pinctrl_state *pinctrl_state_default;
 #ifdef GF_FASYNC
-	struct  fasync_struct *async;
+    struct  fasync_struct *async;
 #endif
     struct notifier_block notifier;
     //char fb_black;
@@ -160,25 +160,25 @@ struct gf_dev {
 };
 
 struct gf_key {
-        unsigned int key;
-        int value;
+    unsigned int key;
+    int value;
 };
 
 
 /**********************IO Magic**********************/
 #define  GF_IOC_MAGIC    'g'  //define magic number
 struct gf_ioc_transfer {
-	u8	cmd;
-	u8 reserve;
-	u16	addr;
-	u32 len;
-	u64 buf;	//u64 buf;
+    u8	cmd;
+    u8 reserve;
+    u16	addr;
+    u32 len;
+    u64 buf;	//u64 buf;
 };
 #if (NAVIGATION == 1)
 struct gf_nagv {
-	u8 *buf;
-	u32 len;
-        u8 *frame_num;
+    u8 *buf;
+    u32 len;
+    u8 *frame_num;
 };
 #endif
 //define commands
@@ -206,18 +206,18 @@ struct gf_nagv {
 #if FW_UPDATE
 inline static void gf_miso_pullup(void)
 {
-	/*Config MISO pin, referring to platform.*/
-	/*gpio_request_one(GF_MISO_PIN, GPIOF_IN, "gf_miso");
-	s3c_gpio_cfgpin(GF_MISO_PIN, S3C_GPIO_INPUT);
-	s3c_gpio_setpull(GF_MISO_PIN, S3C_GPIO_PULL_UP);
-	gpio_free(GF_MISO_PIN);*/
+    /*Config MISO pin, referring to platform.*/
+    /*gpio_request_one(GF_MISO_PIN, GPIOF_IN, "gf_miso");
+    s3c_gpio_cfgpin(GF_MISO_PIN, S3C_GPIO_INPUT);
+    s3c_gpio_setpull(GF_MISO_PIN, S3C_GPIO_PULL_UP);
+    gpio_free(GF_MISO_PIN);*/
 }
 
 inline static void gf_miso_backnal(void)
 {
-	/*Config IRQ pin, referring to platform.*/
-	/*s3c_gpio_cfgpin(GF_MISO_PIN, S3C_GPIO_SFN(0x2));
-	s3c_gpio_setpull(GF_MISO_PIN, S3C_GPIO_PULL_NONE);	*/
+    /*Config IRQ pin, referring to platform.*/
+    /*s3c_gpio_cfgpin(GF_MISO_PIN, S3C_GPIO_SFN(0x2));
+    s3c_gpio_setpull(GF_MISO_PIN, S3C_GPIO_PULL_NONE);	*/
 }
 #endif
 
@@ -226,10 +226,10 @@ inline static void gf_miso_backnal(void)
 *Take care of this function. IO Pin driver strength / glitch and so on.
 ********************************************************************/
 extern int gf_spi_read_bytes(struct gf_dev *gf_dev,
-                                u16 addr, u32 data_len, u8 *rx_buf);
+                             u16 addr, u32 data_len, u8 *rx_buf);
 
 extern int gf_spi_write_bytes(struct gf_dev *gf_dev,
-                                u16 addr, u32 data_len, u8 *tx_buf);
+                              u16 addr, u32 data_len, u8 *tx_buf);
 extern int gf_fw_update(struct gf_dev* gf_dev, unsigned char *buf, unsigned short len);
 #if (NAVIGATION == 1)
 extern int netlink_init(void);
