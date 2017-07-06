@@ -40,7 +40,6 @@
 #include <linux/configfs.h>
 #include <linux/usb/composite.h>
 
-#include "f_mtp2.h"
 #include "configfs.h"
 
 #define MTP_RX_BUFFER_INIT_SIZE    1048576
@@ -298,9 +297,7 @@ static struct usb_descriptor_header *ss_ptp_descs[] = {
 
 static struct usb_string mtp_string_defs[] = {
 	/* Naming interface "MTP" so libmtp will recognize us */
-	/*lijr lijr 20160419 <HHABM-289> change usb name to model name */
-	//[INTERFACE_STRING_INDEX].s	= "MTP",
-	[INTERFACE_STRING_INDEX].s	= MTP_NAME,
+	[INTERFACE_STRING_INDEX].s	= "MTP",
 	{  },	/* end of list */
 };
 
