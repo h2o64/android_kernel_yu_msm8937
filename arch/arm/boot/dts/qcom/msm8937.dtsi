@@ -879,8 +879,10 @@
 		interrupt-map = <0 &intc 0 306 0
 				1 &intc 0 239 0
 				2 &tlmm 17 0>;
+
 		qcom,inject-rx-on-wakeup;
 		qcom,rx-char-to-inject = <0xfd>;
+
 		qcom,bam-tx-ep-pipe-index = <0>;
 		qcom,bam-rx-ep-pipe-index = <1>;
 		qcom,master-id = <84>;
@@ -904,8 +906,10 @@
 		reg = <0xb3000 0x1000>,
 		      <0xb4000 0x2000>;
 		reg-names = "dcc-base", "dcc-ram-base";
+
 		clocks = <&clock_gcc clk_gcc_dcc_clk>;
 		clock-names = "dcc_clk";
+
 		qcom,save-reg;
 	};
 
@@ -924,6 +928,7 @@
 		reg-names = "smem", "irq-reg-base", "aux-mem1",
 				"smem_targ_info_reg";
 		qcom,mpu-enabled;
+
 		qcom,smd-modem {
 			compatible = "qcom,smd";
 			qcom,smd-edge = <0>;

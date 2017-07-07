@@ -110,6 +110,7 @@
 			<&wsa881x_213>, <&wsa881x_214>;
 	qcom,wsa-aux-dev-prefix = "SpkrLeft", "SpkrRight",
 				"SpkrLeft", "SpkrRight";
+
 	asoc-codec = <&stub_codec>, <&hdmi_dba>;
 	asoc-codec-names = "msm-stub-codec.1", "msm-hdmi-dba-codec-rx";
 };
