@@ -285,7 +285,7 @@ int is_ext_spk_gpio_support(struct platform_device *pdev,
 			return -EINVAL;
 		}
 	}
-	gpio_direction_output(pdata->spk_ext_pa_gpio, 1);
+	gpio_direction_output(pdata->spk_ext_pa_gpio, 0);
 	return 0;
 }
 
