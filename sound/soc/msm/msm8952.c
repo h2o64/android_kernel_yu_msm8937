@@ -294,6 +294,7 @@ static int enable_spk_ext_pa(struct snd_soc_codec *codec, int enable)
 	struct snd_soc_card *card = codec->component.card;
 	struct msm8916_asoc_mach_data *pdata = snd_soc_card_get_drvdata(card);
 	int ret = 0;
+	int i = 0;
 	static bool ext_pa_gpio_requested = false;
 
 	if (!gpio_is_valid(pdata->spk_ext_pa_gpio)) {
@@ -316,17 +317,17 @@ static int enable_spk_ext_pa(struct snd_soc_codec *codec, int enable)
 	}
 
 	if (enable) {
+		ext_spk_pa_current_state = true;
 		#ifdef CONFIG_PROJECT_GARLIC
-			printk(KERN_ERR"goto mode-2");
-			ext_spk_pa_current_state = true;
-			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, 1);
-			udelay(2);
+		/* Do 5 tries when activating PA */
+		for (i = 0; i < 5; i++) {
 			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, 0);
 			udelay(2);
-			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, 1);
-		#else
-			ext_spk_pa_current_state = true;
 			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, enable);
+			udelay(2);
+		}
+		#else
+		gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, enable);
 		#endif
 	} else {
 		ext_spk_pa_current_state = false;
