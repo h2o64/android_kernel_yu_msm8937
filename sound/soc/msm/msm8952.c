@@ -3148,6 +3148,13 @@ parse_mclk_freq:
 		pr_err("%s:  doesn't support external speaker pa\n",
 				__func__);
 
+	#ifdef CONFIG_PROJECT_GARLIC
+	/* redmi3s: enable external speaker PA */
+	gpio_direction_output(126, 1);
+	pr_info("%s: Force enable external speaker PA.\n",
+				__func__);
+	#endif
+
 	ret = of_property_read_string(pdev->dev.of_node,
 		hs_micbias_type, &type);
 	if (ret) {
