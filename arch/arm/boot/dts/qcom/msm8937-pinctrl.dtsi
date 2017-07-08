@@ -612,38 +612,34 @@
 			};
 		};
 
-			tlmm_gpio_compatible_control_pa {
-
-				gpio_key_active_compatible_control_pa {
-
-					mux {
-						pins = "gpio89";
-						function = "gpio";
-					};
-
-					config {
-						pins = "gpio89";
-						drive-strength = <16>;
-						bias-pull-down;
-						output-low;
-					};
+		tlmm_gpio_compatible_control_pa {
+			gpio_key_active_compatible_control_pa {
+				mux {
+					pins = "gpio89";
+					function = "gpio";
 				};
 
-				gpio_key_suspend_compatible_control_pa {
-
-					mux {
-						pins = "gpio89";
-						function = "gpio";
-					};
-
-					config {
-						pins = "gpio89";
-						drive-strength = <16>;
-						bias-pull-down;
-						output-low;
-					};
+				config {
+					pins = "gpio89";
+					drive-strength = <16>;
+					bias-pull-down;
+					output-low;
 				};
 			};
+			gpio_key_suspend_compatible_control_pa {
+				mux {
+					pins = "gpio89";
+					function = "gpio";
+				};
+
+				config {
+					pins = "gpio89";
+					drive-strength = <16>;
+					bias-pull-down;
+					output-low;
+				};
+			};
+		};
 
 		/* add pingrp for touchscreen */
 		pmx_ts_int_active {
