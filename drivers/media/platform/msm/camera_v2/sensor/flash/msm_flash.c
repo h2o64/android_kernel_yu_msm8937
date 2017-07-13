@@ -1007,7 +1007,6 @@ static long msm_flash_subdev_do_ioctl(
 	u32 = (struct msm_flash_cfg_data_t32 *)arg;
 
 	flash_data.cfg_type = u32->cfg_type;
-	flash_data.camera_id = u32->camera_id;//LINE<20160601>wangyanhui add for cts test
 	for (i = 0; i < MAX_LED_TRIGGERS; i++) {
 		flash_data.flash_current[i] = u32->flash_current[i];
 		flash_data.flash_duration[i] = u32->flash_duration[i];
