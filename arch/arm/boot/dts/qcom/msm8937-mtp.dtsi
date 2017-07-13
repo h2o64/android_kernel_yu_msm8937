@@ -31,7 +31,7 @@
        led_flash1: qcom,camera-led-flash {
                cell-index = <2>;
                compatible = "qcom,camera-led-flash";
-               qcom,flash-type = <2>;
+               qcom,flash-type = <1>;
                qcom,flash-name = "led_flash1";
                qcom,gpio-no-mux = <0>;
                gpios = <&tlmm 13 0>, <&tlmm 12 0>;
