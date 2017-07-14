@@ -28,20 +28,6 @@
 };
 
 &soc {
-       led_flash1: qcom,camera-flash {
-               cell-index = <2>;
-               compatible = "qcom,camera-flash";
-               qcom,flash-type = <1>;
-               qcom,flash-name = "led_flash1";
-               qcom,gpio-no-mux = <0>;
-               gpios = <&tlmm 13 0>, <&tlmm 12 0>;
-               qcom,gpio-flash-en = <0>;
-               qcom,gpio-flash-now = <1>;
-               qcom,gpio-req-tbl-num = <0 1>;
-               qcom,gpio-req-tbl-flags = <0 0>;
-               qcom,gpio-req-tbl-label = "FLASH_EN", "FLASH_NOW";
-       };
-
 	gpio_keys {
 		compatible = "gpio-keys";
 		input-name = "gpio-keys";
