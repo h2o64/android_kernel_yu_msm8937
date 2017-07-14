@@ -109,12 +109,9 @@
 		sdhc1 = &sdhc_1; /* SDC1 eMMC slot */
 		sdhc2 = &sdhc_2; /* SDC2 for SD card */
 		i2c3 = &i2c_3;
-
 		spi6 = &spi_6;
 	};
-
 	soc: soc { };
-
 };
 
 #include "msm8937-pinctrl.dtsi"
@@ -509,22 +506,6 @@
 		dmas = <&dma_blsp1 6 64 0x20000020 0x20>,
 			<&dma_blsp1 7 32 0x20000020 0x20>;
 		dma-names = "tx", "rx";
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	};
 
 	i2c_3: i2c@78b7000 { /* BLSP1 QUP3 */
@@ -552,10 +533,6 @@
 		dma-names = "tx", "rx";
 	};
 
-
-
-
-
 	i2c_5: i2c@7af5000 { /* BLSP2 QUP1 */
 		compatible = "qcom,i2c-msm-v2";
 		#address-cells = <1>;
@@ -569,7 +546,6 @@
 		clock-names = "iface_clk", "core_clk";
 		clocks = <&clock_gcc clk_gcc_blsp2_ahb_clk>,
 			<&clock_gcc clk_gcc_blsp2_qup1_i2c_apps_clk>;
-
 		pinctrl-names = "i2c_active", "i2c_sleep";
 		pinctrl-0 = <&i2c_5_active>;
 		pinctrl-1 = <&i2c_5_sleep>;
