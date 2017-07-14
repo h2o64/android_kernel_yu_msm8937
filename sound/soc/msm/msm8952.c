@@ -71,9 +71,9 @@ static atomic_t quat_mi2s_clk_ref;
 static atomic_t quin_mi2s_clk_ref;
 static atomic_t auxpcm_mi2s_clk_ref;
 
-//yangliang add for external padac for spk;20150708
 #ifdef CONFIG_PROJECT_GARLIC
 int ext_spk_pa_gpio = -1;
+int ext_spk_pa_gpio_compatible = -1;
 #endif
 
 bool ext_spk_pa_current_state = false;//yangliang add to feedback ext pa-spk used state for insert hph of spk-voice and out hph resulting in spk-voice no downlink 20160530
@@ -266,42 +266,41 @@ done:
 int is_ext_spk_gpio_support(struct platform_device *pdev,
 			struct msm8916_asoc_mach_data *pdata)
 {
-	//int ret = 0;
 	const char *spk_ext_pa = "qcom,msm-spk-ext-pa";
-	//static bool ext_pa_gpio_requested = false;//yangliang add for pa mode-2;20150901
+	const char *spk_ext_pa_compatible = "qcom,msm-spk-ext-pa-compatible";
 
 	pr_debug("%s:Enter\n", __func__);
 
 	pdata->spk_ext_pa_gpio = of_get_named_gpio(pdev->dev.of_node,
 				spk_ext_pa, 0);
+	pdata->spk_ext_pa_gpio_compatible = of_get_named_gpio(pdev->dev.of_node,
+				spk_ext_pa_compatible, 0);
+
 	#ifdef CONFIG_PROJECT_GARLIC
-		ext_spk_pa_gpio = pdata->spk_ext_pa_gpio;//yangliang add
+	ext_spk_pa_gpio = pdata->spk_ext_pa_gpio;
+	ext_spk_pa_gpio_compatible = pdata->spk_ext_pa_gpio_compatible;
 	#endif
 
-	if (pdata->spk_ext_pa_gpio < 0) {
+	#ifdef CONFIG_PROJECT_GARLIC
+	if (ext_spk_pa_gpio != ext_spk_pa_gpio_compatible) {
+	#endif
+	if (pdata->spk_ext_pa_gpio < 0 && pdata->spk_ext_pa_gpio_compatible < 0) {
 		dev_dbg(&pdev->dev,
 			"%s: missing %s in dt node\n", __func__, spk_ext_pa);
 	} else {
-		if (!gpio_is_valid(pdata->spk_ext_pa_gpio)) {
+		if (!gpio_is_valid(pdata->spk_ext_pa_gpio) && !gpio_is_valid(pdata->spk_ext_pa_gpio_compatible)) {
 			pr_err("%s: Invalid external speaker gpio: %d",
-				__func__, pdata->spk_ext_pa_gpio);
+							__func__, pdata->spk_ext_pa_gpio);
+			pr_err("%s: Invalid external speaker compatible gpio: %d",
+							__func__, pdata->spk_ext_pa_gpio);
 			return -EINVAL;
 		}
-		/*else{
-			if(!ext_pa_gpio_requested) {
-				ret = gpio_request(ext_spk_pa_gpio, "ext_spk_amp_gpio");
-				if (ret) {
-					pr_err("%s: gpio_request failed for ext_spk_amp_gpio.\n",
-						__func__);
-					return -EINVAL;
-				}
-				ext_pa_gpio_requested = true;
-			}
-			gpio_direction_output(pdata->spk_ext_pa_gpio, 0); //<20160310>wangyanhui add for ext speaker
-		}*/  //yangliang mask for requesting too early and just request one time0506
-		gpio_direction_output(pdata->spk_ext_pa_gpio, 0); //<20160310>wangyanhui add for ext speaker--new
-
+		gpio_direction_output(pdata->spk_ext_pa_gpio, 0);
+		gpio_direction_output(pdata->spk_ext_pa_gpio_compatible, 0);
 	}
+	#ifdef CONFIG_PROJECT_GARLIC
+	}
+	#endif
 	return 0;
 }
 
@@ -309,67 +308,56 @@ static int enable_spk_ext_pa(struct snd_soc_codec *codec, int enable)
 {
 	struct snd_soc_card *card = codec->component.card;
 	struct msm8916_asoc_mach_data *pdata = snd_soc_card_get_drvdata(card);
-	//int ret; //<20160310>wangyanhui delete for  ext spk
-	int ret = 0;
+	static bool ext_pa_gpio_requested = false;
+	static bool ext_pa_gpio_requested_compatible = false;
 
-	static bool ext_pa_gpio_requested = false;//yangliang add for pa mode-2;20150901
-
-	if (!gpio_is_valid(pdata->spk_ext_pa_gpio)) {
+	if (!gpio_is_valid(pdata->spk_ext_pa_gpio) && !gpio_is_valid(pdata->spk_ext_pa_gpio_compatible)) {
 		pr_err("%s: Invalid gpio: %d\n", __func__,
 			pdata->spk_ext_pa_gpio);
+		pr_err("%s: Invalid gpio compatible: %d\n", __func__,
+			pdata->spk_ext_pa_gpio_compatible);
 		return false;
 	}
 
 	pr_debug("%s: %s external speaker PA\n", __func__,
 		enable ? "Enable" : "Disable");
-	//pa mode 2  TN:peter
-	//gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, enable);
 
-	//yangliang add for enable pa mode-2;20150901 requested gpio before any operations to avoid gpio_ensure_requested warning in gpiolib.c.
 	pr_info("ext_pa_gpio_requested=%d\n", ext_pa_gpio_requested);
-	if(!ext_pa_gpio_requested) {
-		ret = gpio_request(pdata->spk_ext_pa_gpio, "spk_ext_pa_gpio");
-		if (ret) {
+	pr_info("ext_pa_gpio_requested_compatible=%d\n", ext_pa_gpio_requested_compatible);
+
+	if (!ext_pa_gpio_requested && !ext_pa_gpio_requested_compatible) {
+		if (gpio_request(pdata->spk_ext_pa_gpio, "spk_ext_pa_gpio") && gpio_request(pdata->spk_ext_pa_gpio_compatible, "spk_ext_pa_gpio_compatible")) {
 			pr_info("%s: gpio_request failed for spk_ext_pa_gpio.\n",
-				__func__);
+							__func__);
 			goto err;
 		}
-
 		ext_pa_gpio_requested = true;
+		ext_pa_gpio_requested_compatible = true;
 	}
 
 	if (enable) {
-		//<20160310>wangyanhui delete for  ext spk
-		/*ret = msm_gpioset_activate(CLIENT_WCD_INT, "ext_spk_gpio");
-		if (ret) {
-			pr_err("%s: gpio set cannot be de-activated %s\n",
-					__func__, "ext_spk_gpio");
-			return ret;
-		}*/
 		#ifdef CONFIG_PROJECT_GARLIC
-			printk(KERN_ERR"goto mode-2");
-			ext_spk_pa_current_state = true;//yangliang add to feedback ext pa-spk used state for insert hph of spk-voice and out hph resulting in spk-voice no downlink 20160530
-			//gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, 0);
-			//udelay(2);
+			printk(KERN_ERR"goto mode-2 or mode-1 for pa compatible");
+			ext_spk_pa_current_state = true;
 			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, 1);
 			udelay(2);
 			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, 0);
 			udelay(2);
 			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, 1);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio_compatible, 1);
+			udelay(2);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio_compatible, 0);
+			udelay(2);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio_compatible, 1);
 		#else
-			ext_spk_pa_current_state = true;//yangliang add to feedback ext pa-spk used state for insert hph of spk-voice and out hph resulting in spk-voice no downlink 20160530
+			ext_spk_pa_current_state = true;
 			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, enable);
+			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio_compatible, enable);
 		#endif
 	} else {
-		ext_spk_pa_current_state = false;//yangliang add to feedback ext pa-spk used state for insert hph of spk-voice and out hph resulting in spk-voice no downlink 20160530
+		ext_spk_pa_current_state = false;
 		gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, enable);
-		//<20160310>wangyanhui delete for  ext spk
-		/*ret = msm_gpioset_suspend(CLIENT_WCD_INT, "ext_spk_gpio");
-		if (ret) {
-			pr_err("%s: gpio set cannot be de-activated %s\n",
-					__func__, "ext_spk_gpio");
-			return ret;
-		}*/
+		gpio_set_value_cansleep(pdata->spk_ext_pa_gpio_compatible, enable);
 	}
 err:
 	return 0;
