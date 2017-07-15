@@ -1107,7 +1107,7 @@ static int msm_eeprom_spi_setup(struct spi_device *spi)
 
 	rc = of_property_read_string(spi->dev.of_node, "qcom,eeprom-name",
 		&eb_info->eeprom_name);
-	pr_err("%s qcom,eeprom-name %s, rc %d\n", __func__,
+	CDBG("%s qcom,eeprom-name %s, rc %d\n", __func__,
 		eb_info->eeprom_name, rc);
 	if (rc < 0) {
 		pr_err("%s failed %d\n", __func__, __LINE__);
@@ -1667,7 +1667,7 @@ static int msm_eeprom_platform_probe(struct platform_device *pdev)
 
 	rc = of_property_read_string(of_node, "qcom,eeprom-name",
 		&eb_info->eeprom_name);
-	pr_err("%s qcom,eeprom-name %s, rc %d\n", __func__,
+	CDBG("%s qcom,eeprom-name %s, rc %d\n", __func__,
 		eb_info->eeprom_name, rc);
 	if (rc < 0) {
 		pr_err("%s failed %d\n", __func__, __LINE__);

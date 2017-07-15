@@ -21,13 +21,6 @@
 #undef CDBG
 #define CDBG(fmt, args...) pr_debug(fmt, ##args)
 
-static uint32_t g_camera_id = 0;
-
-uint32_t get_camera_id(void)
-{
-	return g_camera_id;
-}
-
 static void msm_sensor_adjust_mclk(struct msm_camera_power_ctrl_t *ctrl)
 {
 	int idx;
@@ -219,10 +212,10 @@ int msm_sensor_match_id(struct msm_sensor_ctrl_t *s_ctrl)
 {
 	int rc = 0;
 	uint16_t chipid = 0;
-    #ifdef CONFIG_PROJECT_GARLIC
-       uint16_t mid = 0;
-       uint16_t flag = 0;
-    #endif
+	#ifdef CONFIG_PROJECT_GARLIC
+	uint16_t mid = 0;
+	uint16_t flag = 0;
+	#endif
 	struct msm_camera_i2c_client *sensor_i2c_client;
 	struct msm_camera_slave_info *slave_info;
 	const char *sensor_name;
@@ -246,90 +239,53 @@ int msm_sensor_match_id(struct msm_sensor_ctrl_t *s_ctrl)
 	rc = sensor_i2c_client->i2c_func_tbl->i2c_read(
 		sensor_i2c_client, slave_info->sensor_id_reg_addr,
 		&chipid, MSM_CAMERA_I2C_WORD_DATA);
-
 	if (rc < 0) {
 		pr_err("%s: %s: read id failed\n", __func__, sensor_name);
 		return rc;
 	}
 
-//BEGIN<20160602><add camera otp>wangyanhui add
-#ifdef CONFIG_PROJECT_GARLIC
-        pr_err("%s: sensor_name is %s\n", __func__, sensor_name);
-        if((!strncmp(s_ctrl->sensordata->sensor_name, "imx258_guangbao_p7201", sizeof("imx258_guangbao_p7201"))))
-        {
+	#ifdef CONFIG_PROJECT_GARLIC
+	pr_debug("%s: sensor_name is %s\n", __func__, sensor_name);
+	if ((!strncmp(s_ctrl->sensordata->sensor_name, "imx258_guangbao_p7201", sizeof("imx258_guangbao_p7201")))) {
 		unsigned short addr_temp = 0;
 		addr_temp = sensor_i2c_client->cci_client->sid;
 		sensor_i2c_client->cci_client->sid = 0xA0>>1;
 
-            /* rc = sensor_i2c_client->i2c_func_tbl->i2c_write(
-        				sensor_i2c_client, 0x0A02,
-        				0x0F, MSM_CAMERA_I2C_BYTE_DATA);
-             rc = sensor_i2c_client->i2c_func_tbl->i2c_write(
-        				sensor_i2c_client, 0x0A00,
-        				0x01, MSM_CAMERA_I2C_BYTE_DATA);
-             msleep(20);
-            rc = sensor_i2c_client->i2c_func_tbl->i2c_read(
-        		sensor_i2c_client, 0x0A01,
-        		&flag, MSM_CAMERA_I2C_BYTE_DATA);*/
-            //pr_err("%s: flag is %d  LINE--%d\n", __func__, flag,__LINE__);
+		rc = sensor_i2c_client->i2c_func_tbl->i2c_read (
+	   	      sensor_i2c_client, 0x03,
+	   	      &mid, MSM_CAMERA_I2C_BYTE_DATA );
 
-            rc = sensor_i2c_client->i2c_func_tbl->i2c_read(
-            		sensor_i2c_client, 0x03,
-            		&mid, MSM_CAMERA_I2C_BYTE_DATA);
-            pr_err("%s: mid is   %d \n", __func__ , mid);
+		if (mid != 0x03)
+			return -ENODEV;
 
+		sensor_i2c_client->cci_client->sid = addr_temp;
+		msleep (10);
+	}
 
-            if(mid == 0x03)
-            		pr_err("mid of camera is imx258_guangbao_p7201\n");
-            else
-            		return -ENODEV;
-
-            /*rc = sensor_i2c_client->i2c_func_tbl->i2c_write(
-        				sensor_i2c_client, 0x0A00,
-        				0x00, MSM_CAMERA_I2C_BYTE_DATA);*/
-
-            sensor_i2c_client->cci_client->sid = addr_temp;
-            msleep(10);
-
-        }
-
-        if((!strncmp(s_ctrl->sensordata->sensor_name, "imx258_sunny_p7201", sizeof("imx258_sunny_p7201"))))
-        {
+	if ((!strncmp(s_ctrl->sensordata->sensor_name, "imx258_sunny_p7201", sizeof ("imx258_sunny_p7201")))) {
 		unsigned short addr_temp = 0;
 		addr_temp = sensor_i2c_client->cci_client->sid;
 		sensor_i2c_client->cci_client->sid = 0xA0 >>1;
 
-		rc = sensor_i2c_client->i2c_func_tbl->i2c_read(
-        		sensor_i2c_client, 0x00,
-        		&flag, MSM_CAMERA_I2C_BYTE_DATA);
+		rc = sensor_i2c_client->i2c_func_tbl->i2c_read (
+	  	       sensor_i2c_client, 0x00,
+	  	       &flag, MSM_CAMERA_I2C_BYTE_DATA );
 
-            pr_err("%s: flag is %d  LINE--%d\n", __func__, flag,__LINE__);
-            if(flag == 0x01)
-            {
+		if ( flag == 0x01 ) {
+			rc = sensor_i2c_client->i2c_func_tbl->i2c_read (
+			         sensor_i2c_client, 0x01,
+			         &mid, MSM_CAMERA_I2C_BYTE_DATA );
+		} else {
+			return -ENODEV;
+		}
 
-                rc = sensor_i2c_client->i2c_func_tbl->i2c_read(
-            		sensor_i2c_client, 0x01,
-            		&mid, MSM_CAMERA_I2C_BYTE_DATA);
-                pr_err("%s: mid is  %d\n", __func__, mid);
+		if ( mid != 0x01 )
+			return -ENODEV;
 
-            }
-            else
-            {
-            		return -ENODEV;
-            }
-
-
-            if(mid == 0x01)
-                       pr_err("mid of camera is imx258_sunny_p7201 \n");
-            else
-                        return -ENODEV;
-
-            sensor_i2c_client->cci_client->sid = addr_temp;
-            msleep(10);
-
-        }
-#endif
-//END<20160602><add camera otp>wangyanhui add
+		sensor_i2c_client->cci_client->sid = addr_temp;
+		msleep (10);
+	}
+	#endif
 
 	pr_debug("%s: read id: 0x%x expected id 0x%x:\n",
 			__func__, chipid, slave_info->sensor_id);
@@ -819,7 +775,6 @@ static int msm_sensor_config32(struct msm_sensor_ctrl_t *s_ctrl,
 	}
 
 	case CFG_POWER_UP:
-		g_camera_id = s_ctrl->sensordata->cam_slave_info->camera_id;
 		if (s_ctrl->is_csid_tg_mode)
 			goto DONE;
 
@@ -847,8 +802,6 @@ static int msm_sensor_config32(struct msm_sensor_ctrl_t *s_ctrl,
 		}
 		break;
 	case CFG_POWER_DOWN:
-		/* Reset active camera to back camera for torch */
-		g_camera_id = 0;
 		if (s_ctrl->is_csid_tg_mode)
 			goto DONE;
 

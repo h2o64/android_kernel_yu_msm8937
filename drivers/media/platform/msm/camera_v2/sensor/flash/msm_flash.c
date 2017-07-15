@@ -564,10 +564,8 @@ static int32_t msm_flash_low(
 					curr);
 			}
 			CDBG("low_flash_current[%d] = %d", i, curr);
-			/* if (flash_data->camera_id == 1)
-      	led_trigger_event(flash_ctrl->torch_trigger[2],curr);
-			else */
-      	led_trigger_event(flash_ctrl->torch_trigger[i],curr);
+			led_trigger_event(flash_ctrl->torch_trigger[i],
+				curr);
 		}
 	}
 	if (flash_ctrl->switch_trigger)
@@ -602,12 +600,9 @@ static int32_t msm_flash_high(
 				pr_debug("LED flash_current[%d] clamped %d\n",
 					i, curr);
 			}
-			/* if (flash_data->camera_id == 1)
-				led_trigger_event(flash_ctrl->flash_trigger[2], curr);
-			else  */
-				led_trigger_event(flash_ctrl->flash_trigger[i],curr);
-
 			CDBG("high_flash_current[%d] = %d", i, curr);
+			led_trigger_event(flash_ctrl->flash_trigger[i],
+				curr);
 		}
 	}
 	if (flash_ctrl->switch_trigger)
@@ -973,10 +968,10 @@ static int32_t msm_flash_get_dt_data(struct device_node *of_node,
 		return rc;
 	}
 
-#ifdef CONFIG_PROJECT_GARLIC
+	#ifdef CONFIG_PROJECT_GARLIC
 	if (fctrl->flash_driver_type == FLASH_DRIVER_DEFAULT)
 		fctrl->flash_driver_type = FLASH_DRIVER_GPIO;
-#endif
+	#endif
 	CDBG("%s:%d fctrl->flash_driver_type = %d", __func__, __LINE__,
 		fctrl->flash_driver_type);
 
@@ -1011,7 +1006,6 @@ static long msm_flash_subdev_do_ioctl(
 		flash_data.flash_current[i] = u32->flash_current[i];
 		flash_data.flash_duration[i] = u32->flash_duration[i];
 	}
-
 	switch (cmd) {
 	case VIDIOC_MSM_FLASH_CFG32:
 		cmd = VIDIOC_MSM_FLASH_CFG;
