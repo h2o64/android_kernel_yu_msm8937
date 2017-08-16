@@ -507,12 +507,6 @@ config LEDS_QPNP_FLASH
 	  To compile this driver as a module, choose M here: the module will
 	  be called leds-qpnp-flash.
 
-config LEDS_MSM_GPIO_DUAL_REAR_FLASH_AND_FRONT_FLASH
-	tristate "Support for GPIO Tinno Dual Flash LEDs"
-	help
-	  This driver supports the leds functionality of GPIO Flash LED. It
-	  includes flash mode and torch mode.
-
 config LEDS_QPNP_WLED
 	tristate "Support for QPNP WLED"
 	depends on LEDS_CLASS && MSM_SPMI && OF_SPMI
