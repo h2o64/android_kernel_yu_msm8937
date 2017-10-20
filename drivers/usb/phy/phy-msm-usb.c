@@ -49,6 +49,8 @@
 
 #include <linux/msm-bus.h>
 
+#include <linux/switch.h>
+
 #define MSM_USB_BASE	(motg->regs)
 #define MSM_USB_PHY_CSR_BASE (motg->phy_csr_regs)
 
@@ -125,6 +127,8 @@ static struct regulator *hsusb_1p8;
 static struct regulator *hsusb_vdd;
 static struct regulator *vbus_otg;
 static struct power_supply *psy;
+
+static struct switch_dev otg_state;
 
 static int vdd_val[VDD_VAL_MAX];
 static u32 bus_freqs[USB_NOC_NUM_VOTE][USB_NUM_BUS_CLOCKS]  /*bimc,snoc,pcnoc*/;
@@ -1926,6 +1930,7 @@ static void msm_otg_start_host(struct usb_otg *otg, int on)
 				     get_pm_runtime_counter(motg->phy.dev), 0);
 	pm_runtime_get_sync(otg->phy->dev);
 	if (on) {
+		switch_set_state((struct switch_dev *)&otg_state,1);
 		dev_dbg(otg->phy->dev, "host on\n");
 		msm_otg_dbg_log_event(&motg->phy, "HOST ON",
 				motg->inputs, otg->phy->state);
@@ -1953,6 +1958,7 @@ static void msm_otg_start_host(struct usb_otg *otg, int on)
 		schedule_delayed_work(&motg->perf_vote_work,
 				msecs_to_jiffies(1000 * PM_QOS_SAMPLE_SEC));
 	} else {
+		switch_set_state((struct switch_dev *)&otg_state,0);
 		dev_dbg(otg->phy->dev, "host off\n");
 		msm_otg_dbg_log_event(&motg->phy, "HOST OFF",
 				motg->inputs, otg->phy->state);
@@ -2843,6 +2849,9 @@ static void msm_otg_sm_work(struct work_struct *w)
 							IDEV_CHG_MAX);
 					/* fall through */
 				case USB_SDP_CHARGER:
+					msm_otg_notify_charger(motg,100);
+					msleep(100);
+					msm_otg_notify_charger(motg,500);
 					pm_runtime_get_sync(otg->phy->dev);
 					msm_otg_start_peripheral(otg, 1);
 					otg->phy->state =
@@ -4925,6 +4934,14 @@ static int msm_otg_probe(struct platform_device *pdev)
 	motg->pm_notify.notifier_call = msm_otg_pm_notify;
 	register_pm_notifier(&motg->pm_notify);
 	msm_otg_dbg_log_event(phy, "OTG PROBE", motg->caps, motg->lpm_flags);
+	otg_state.name = "otg_state";	
+	otg_state.index = 0;
+	otg_state.state = 0;
+	ret = switch_dev_register(&otg_state);
+	if (ret) {
+		dev_dbg(0,"switch_dev_register returned:%d!\n", ret);
+		return 1;
+	}
 
 	return 0;
 
