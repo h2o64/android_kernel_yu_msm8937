@@ -666,6 +666,10 @@ void mdss_dsi_set_reg(struct mdss_dsi_ctrl_pdata *ctrl, int off,
 	u32 mask, u32 val);
 int mdss_dsi_phy_pll_reset_status(struct mdss_dsi_ctrl_pdata *ctrl);
 
+#ifdef CONFIG_PROJECT_GARLIC
+int mdss_dsi_panel_disp_en_gpio(struct mdss_panel_data *pdata, int enable);
+#endif
+
 static inline const char *__mdss_dsi_pm_name(enum dsi_pm_type module)
 {
 	switch (module) {
