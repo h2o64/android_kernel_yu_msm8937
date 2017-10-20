@@ -14,7 +14,10 @@
 &int_codec {
 	status = "okay";
 	qcom,model = "msm8952-snd-card-mtp";
-	qcom,msm-hs-micbias-type = "external";
+	qcom,msm-mbhc-hphl-swh = <1>;
+	qcom,msm-hs-micbias-type = "internal";
+	qcom,msm-spk-ext-pa = <&tlmm 126 0>;
+	qcom,msm-spk-ext-pa-compatible = <&tlmm 89 0>;
 };
 
 &pm8937_cajon_dig {

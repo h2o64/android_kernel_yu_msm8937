@@ -1,0 +1,49 @@
+
+qcom,tinno-3000mah {
+	/* #2515179_HYHY_GARLICAN_3000mAh_averaged_MasterSlave_Aug8th2016*/
+	qcom,max-voltage-uv = <4400000>;
+	qcom,nom-batt-capacity-mah = <3000>;
+	qcom,batt-id-kohm = <10>;
+	qcom,battery-beta = <3435>;
+	qcom,battery-type = "tinno-3000mah";
+	qcom,chg-rslow-comp-c1 = <3123025>;
+	qcom,chg-rslow-comp-c2 = <4612989>;
+	qcom,chg-rs-to-rslow = <1076273>;
+	qcom,chg-rslow-comp-thr = <0xA9>;
+	qcom,checksum = <0x4182>;
+	qcom,gui-version = "PMI8950GUI - 2.0.0.16";
+	qcom,fg-profile-data = [
+		 EA 83 3E 7D 
+		 78 81 0E 7C 
+		 54 83 91 54 
+		 2E 81 2C 8C 
+		 24 82 F8 99 
+		 06 BD CE C9 
+		 5C 0E 06 88 
+		 FD 7D F0 81 
+		 70 7C 52 83 
+		 D4 6A 66 78 
+		 F8 85 48 82 
+		 C8 99 16 BD 
+		 1D CA 5A 0D 
+		 DB 0B B1 5B 
+		 14 70 B2 FD 
+		 93 2A 99 47 
+		 1E 3A 00 00 
+		 6D 4C 74 14 
+		 56 42 00 00 
+		 00 00 00 00 
+		 00 00 00 00 
+		 80 71 0B 70 
+		 1C 84 AC 80 
+		 57 7C 5C 71 
+		 87 66 2F 80 
+		 F4 74 A4 68 
+		 F7 42 3C A1 
+		 29 97 62 A1 
+		 64 A0 71 0C 
+		 28 00 FF 36 
+		 F0 11 30 03 
+		 00 00 00 0C 
+	];
+};
