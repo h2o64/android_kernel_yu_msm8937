@@ -20,22 +20,26 @@
 		cell-index = <0>;
 		compatible = "qcom,camera-flash";
 		qcom,flash-type = <1>;
-		qcom,flash-source = <&pmi8950_flash0 &pmi8950_flash1>;
-		qcom,torch-source = <&pmi8950_torch0 &pmi8950_torch1>;
+		qcom,flash-source = <&pmi8950_flash0 &pmi8950_flash1  &pmi8950_flash2>;
+		qcom,torch-source = <&pmi8950_torch0 &pmi8950_torch1  &pmi8950_torch2>;
 		qcom,switch-source = <&pmi8950_switch>;
 	};
 };
 
 /{
 	mtp_batterydata: qcom,battery-data {
-		qcom,batt-id-range-pct = <15>;
-		#include "batterydata-itech-3000mah.dtsi"
-		#include "batterydata-ascent-3450mAh.dtsi"
+		qcom,batt-id-range-pct = <100>; 
+		#include "batterydata-tinno-3000mah-4400mv.dtsi"
 	};
 };
 
 &pmi8950_fg {
 	qcom,battery-data = <&mtp_batterydata>;
+	qcom,cold-bat-decidegc = <(0)>;
+	qcom,cool-bat-decidegc = <(100)>;
+	qcom,hot-bat-decidegc = <600>;
+	qcom,warm-bat-decidegc = <450>;
+	qcom,bad-battery-detection-enable;
 };
 
 &pmi8950_charger {
