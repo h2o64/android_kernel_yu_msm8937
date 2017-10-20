@@ -526,6 +526,16 @@ config QPNP_FG
 	  fuel gauge. The state of charge is reported through a BMS power
 	  supply property and also sends uevents when the capacity is updated.
 
+#caizhifu add start for tinno battery fg debug for charging, 2016-11-29
+config TINNO_BATTERY_FG_HEART
+	tristate "TINNO battery FG heart config for debug"
+	depends on SPMI || MSM_SPMI
+	depends on OF_SPMI
+	help
+	 Say Y here to enable support for tinno battery heart update for charger debug
+	 PMIC chips.
+#caizhifu add end for tinno battery fg debug for charging, 2016-11-29
+
 config BATTERY_BCL
 	tristate "Battery Current Limit driver"
 	depends on THERMAL_MONITOR
