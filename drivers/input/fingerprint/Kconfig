@@ -1,0 +1,9 @@
+#
+# fingerprint driver configuration
+#
+
+config INPUT_FINGERPRINT
+  bool INPUT_FINGERPRINT
+  default n
+  help
+    Switch for tinno fingerprint
