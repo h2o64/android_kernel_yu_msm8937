@@ -1113,6 +1113,14 @@ config TOUCHSCREEN_SYNAPTICS_DSX_FW_UPDATE
 	  To compile this driver as a module, choose M here: the
 	  module will be called synaptics_dsx_fw_update.
 
+config FT5XX_TGESTURE_FUNCTION
+	bool "syna tgesture function"
+	default n
+	help
+	  Say Y here if you use syna TP gesture function.
+
+          If unsure, say N.
+
 config TOUCHSCREEN_GT9XX
 	bool "Goodix touchpanel GT9xx series"
 	depends on I2C
@@ -1136,5 +1144,18 @@ config TOUCHSCREEN_MAXIM_STI
 	  module will be called maxim_sti.
 
 source "drivers/input/touchscreen/gt9xx/Kconfig"
+
+config TOUCHSCREEN_FT5XX
+       tristate "FocalTech touchscreens"
+       depends on I2C
+       help
+         Say Y here if you have a ft5XX touchscreen.
+	 Ft5xx controllers are multi touch controllers which can
+	 report 5 touches at a time.
+
+         If unsure, say N.
+
+         To compile this driver as a module, choose M here: the
+         module will be called ft5xx_ts.
 
 endif
