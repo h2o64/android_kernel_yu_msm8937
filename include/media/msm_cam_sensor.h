@@ -240,12 +240,13 @@ struct msm_flash_cfg_data_t32 {
 	enum msm_flash_cfg_type_t cfg_type;
 	int32_t flash_current[MAX_LED_TRIGGERS];
 	int32_t flash_duration[MAX_LED_TRIGGERS];
+	int32_t camera_id;
 	union {
 		compat_uptr_t flash_init_info;
 		compat_uptr_t settings;
 	} cfg;
 };
-
+  
 #define VIDIOC_MSM_ACTUATOR_CFG32 \
 	_IOWR('V', BASE_VIDIOC_PRIVATE + 6, struct msm_actuator_cfg_data32)
 

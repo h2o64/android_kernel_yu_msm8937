@@ -108,6 +108,17 @@ int32_t msm_sensor_free_sensor_data(struct msm_sensor_ctrl_t *s_ctrl)
 	return 0;
 }
 
+/*this function only used in leds-msm-gpio-dual-flash.c ,if don't use dual flash,  pls keep below code*/
+int  is_front_camera = 0;
+void msm_sensor_set_front_camera_status(int  status)
+{
+	is_front_camera = status;
+}
+int msm_sensor_is_front_camera(void)
+{
+     return is_front_camera;
+}
+
 int msm_sensor_power_down(struct msm_sensor_ctrl_t *s_ctrl)
 {
 	struct msm_camera_power_ctrl_t *power_info;
@@ -119,6 +130,7 @@ int msm_sensor_power_down(struct msm_sensor_ctrl_t *s_ctrl)
 			__func__, __LINE__, s_ctrl);
 		return -EINVAL;
 	}
+	msm_sensor_set_front_camera_status(0);
 
 	if (s_ctrl->is_csid_tg_mode)
 		return 0;
@@ -212,6 +224,10 @@ int msm_sensor_match_id(struct msm_sensor_ctrl_t *s_ctrl)
 {
 	int rc = 0;
 	uint16_t chipid = 0;
+    #ifdef CONFIG_PROJECT_GARLIC
+       uint16_t mid = 0;
+       uint16_t flag = 0;
+    #endif
 	struct msm_camera_i2c_client *sensor_i2c_client;
 	struct msm_camera_slave_info *slave_info;
 	const char *sensor_name;
@@ -240,8 +256,90 @@ int msm_sensor_match_id(struct msm_sensor_ctrl_t *s_ctrl)
 		return rc;
 	}
 
+#ifdef CONFIG_PROJECT_GARLIC
+        pr_err("%s: sensor_name is %s\n", __func__, sensor_name);
+        if((!strncmp(s_ctrl->sensordata->sensor_name, "imx258_guangbao_p7201", sizeof("imx258_guangbao_p7201"))))
+        {
+		unsigned short addr_temp = 0;
+		addr_temp = sensor_i2c_client->cci_client->sid;
+		sensor_i2c_client->cci_client->sid = 0xA0>>1;
+		
+            /* rc = sensor_i2c_client->i2c_func_tbl->i2c_write(
+        				sensor_i2c_client, 0x0A02,
+        				0x0F, MSM_CAMERA_I2C_BYTE_DATA);
+             rc = sensor_i2c_client->i2c_func_tbl->i2c_write(
+        				sensor_i2c_client, 0x0A00,
+        				0x01, MSM_CAMERA_I2C_BYTE_DATA);
+             msleep(20);
+            rc = sensor_i2c_client->i2c_func_tbl->i2c_read(
+        		sensor_i2c_client, 0x0A01,
+        		&flag, MSM_CAMERA_I2C_BYTE_DATA);*/
+            //pr_err("%s: flag is %d  LINE--%d\n", __func__, flag,__LINE__);
+
+            rc = sensor_i2c_client->i2c_func_tbl->i2c_read(
+            		sensor_i2c_client, 0x03,
+            		&mid, MSM_CAMERA_I2C_BYTE_DATA);
+            pr_err("%s: mid is   %d \n", __func__ , mid);
+ 
+
+            if(mid == 0x03)
+            		pr_err("mid of camera is imx258_guangbao_p7201\n");
+            else
+            		return -ENODEV;
+
+            /*rc = sensor_i2c_client->i2c_func_tbl->i2c_write(
+        				sensor_i2c_client, 0x0A00,
+        				0x00, MSM_CAMERA_I2C_BYTE_DATA);*/
+			
+            sensor_i2c_client->cci_client->sid = addr_temp;
+            msleep(10);
+
+        } 
+
+        if((!strncmp(s_ctrl->sensordata->sensor_name, "imx258_sunny_p7201", sizeof("imx258_sunny_p7201"))))
+        {
+		unsigned short addr_temp = 0;
+		addr_temp = sensor_i2c_client->cci_client->sid;
+		sensor_i2c_client->cci_client->sid = 0xA0 >>1;
+
+		rc = sensor_i2c_client->i2c_func_tbl->i2c_read(
+        		sensor_i2c_client, 0x00,
+        		&flag, MSM_CAMERA_I2C_BYTE_DATA);
+			 
+            pr_err("%s: flag is %d  LINE--%d\n", __func__, flag,__LINE__);
+            if(flag == 0x01)
+            {
+
+                rc = sensor_i2c_client->i2c_func_tbl->i2c_read(
+            		sensor_i2c_client, 0x01,
+            		&mid, MSM_CAMERA_I2C_BYTE_DATA);
+                pr_err("%s: mid is  %d\n", __func__, mid);
+
+            }
+            else
+            {
+            		return -ENODEV;
+            }
+ 
+
+            if(mid == 0x01)
+                       pr_err("mid of camera is imx258_sunny_p7201 \n");
+            else
+                        return -ENODEV;
+
+            sensor_i2c_client->cci_client->sid = addr_temp;			
+            msleep(10);
+
+        } 		
+#endif
 	pr_debug("%s: read id: 0x%x expected id 0x%x:\n",
 			__func__, chipid, slave_info->sensor_id);
+	pr_err("%s: xiongdajun add %d\n",
+			__func__, s_ctrl->id);
+	if(s_ctrl->id == 2)
+	   	msm_sensor_set_front_camera_status(1);
+	else
+	   	msm_sensor_set_front_camera_status(0);
 	if (msm_sensor_id_by_mask(s_ctrl, chipid) != slave_info->sensor_id) {
 		pr_err("%s chip id %x does not match %x\n",
 				__func__, chipid, slave_info->sensor_id);
