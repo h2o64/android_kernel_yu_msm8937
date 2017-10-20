@@ -1113,6 +1113,14 @@ config TOUCHSCREEN_SYNAPTICS_DSX_FW_UPDATE
 	  To compile this driver as a module, choose M here: the
 	  module will be called synaptics_dsx_fw_update.
 
+config TP_TGESTURE
+	bool "TP gesture"
+	default n
+	help
+	  Say Y here if you use TP gesture function.
+
+          If unsure, say N.
+
 config FT5XX_TGESTURE_FUNCTION
 	bool "syna tgesture function"
 	default n
