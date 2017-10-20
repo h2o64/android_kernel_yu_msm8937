@@ -4,3 +4,4 @@
 
 
 obj-y	+=  fp_drv/
+obj-$(CONFIG_FINGERPRINT_GOODIX_QSEE)	+= goodix_qsee/
