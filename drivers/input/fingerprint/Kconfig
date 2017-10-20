@@ -8,6 +8,12 @@ config INPUT_FINGERPRINT
   help
     Switch for tinno fingerprint
 
+config FINGERPRINT_ELAN_QSEE
+  bool FINGERPRINT_ELAN_QSEE
+  default n
+  help
+    Elan Fingerprint for QSEE
+
 config FINGERPRINT_GOODIX_QSEE
   bool FINGERPRINT_GOODIX_QSEE
   default n
