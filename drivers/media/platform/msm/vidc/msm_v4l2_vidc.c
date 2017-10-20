@@ -52,6 +52,7 @@ static int msm_v4l2_open(struct file *filp)
 	struct msm_vidc_core *core = video_drvdata(filp);
 	struct msm_vidc_inst *vidc_inst;
 
+	vidc_driver->play_video = 1;
 	trace_msm_v4l2_vidc_open_start("msm_v4l2_open start");
 	vidc_inst = msm_vidc_open(core->id, vid_dev->type);
 	if (!vidc_inst) {
@@ -70,6 +71,7 @@ static int msm_v4l2_close(struct file *filp)
 {
 	int rc = 0;
 	struct msm_vidc_inst *vidc_inst;
+	vidc_driver->play_video = 0;
 
 	trace_msm_v4l2_vidc_close_start("msm_v4l2_close start");
 	vidc_inst = get_vidc_inst(filp, NULL);
@@ -416,6 +418,16 @@ static ssize_t store_platform_version(struct device *dev,
 static DEVICE_ATTR(platform_version, S_IRUGO, show_platform_version,
 		store_platform_version);
 
+static ssize_t show_play_video(struct device *dev,
+		struct device_attribute *attr, char *buf)
+{
+	return scnprintf(buf, PAGE_SIZE, "%d\n",
+			vidc_driver->play_video);
+}
+
+static DEVICE_ATTR(play_video, S_IRUGO, show_play_video,
+		NULL);
+
 static ssize_t show_capability_version(struct device *dev,
 		struct device_attribute *attr, char *buf)
 {
@@ -438,6 +450,7 @@ static struct attribute *msm_vidc_core_attrs[] = {
 		&dev_attr_pwr_collapse_delay.attr,
 		&dev_attr_thermal_level.attr,
 		&dev_attr_platform_version.attr,
+		&dev_attr_play_video.attr,
 		&dev_attr_capability_version.attr,
 		NULL
 };
@@ -598,7 +611,7 @@ static int msm_vidc_probe_vidc_device(struct platform_device *pdev)
 
 	core->debugfs_root = msm_vidc_debugfs_init_core(
 		core, vidc_driver->debugfs_root);
-
+	vidc_driver->play_video = 0;
 	vidc_driver->platform_version =
 		msm_vidc_read_efuse_version(pdev,
 			core->resources.pf_ver_tbl, "efuse");
@@ -606,7 +619,6 @@ static int msm_vidc_probe_vidc_device(struct platform_device *pdev)
 	vidc_driver->capability_version =
 		msm_vidc_read_efuse_version(
 			pdev, core->resources.pf_cap_tbl, "efuse2");
-
 	dprintk(VIDC_DBG, "populating sub devices\n");
 	/*
 	 * Trigger probe for each sub-device i.e. qcom,msm-vidc,context-bank.
