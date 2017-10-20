@@ -7,3 +7,9 @@ config INPUT_FINGERPRINT
   default n
   help
     Switch for tinno fingerprint
+
+config FINGERPRINT_GOODIX_QSEE
+  bool FINGERPRINT_GOODIX_QSEE
+  default n
+  help
+    Goodix Fingerprint chip GF316M/GF516M/GF318M/ for QSEE
