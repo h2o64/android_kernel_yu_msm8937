@@ -2150,7 +2150,6 @@ static int mdss_mdp_get_pan_cfg(struct mdss_panel_cfg *pan_cfg)
 	char pan_intf_str[MDSS_MAX_PANEL_LEN];
 	int rc, i, panel_len;
 	char pan_name[MDSS_MAX_PANEL_LEN] = {'\0'};
-
 	if (!pan_cfg)
 		return -EINVAL;
 
