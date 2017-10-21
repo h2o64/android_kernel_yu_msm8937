@@ -35,7 +35,26 @@
 		pinctrl-0 = <&gpio_key_active>;
 		pinctrl-1 = <&gpio_key_suspend>;
 
-	hall-ic{
+		vol_up {
+			label = "volume_up";
+			gpios = <&tlmm 91 0x1>;
+			linux,input-type = <1>;
+			linux,code = <115>;
+			debounce-interval = <15>;
+		};
+
+		home {
+			label = "home";
+			gpios = <&tlmm 128 0x1>;
+			linux,input-type = <1>;
+			linux,code = <0x66>;
+			gpio-key,wakeup;
+			debounce-interval = <15>;
+		};
+	};
+
+
+	hall-ic {
 		compatible = "hall-switch";
 		interrupt-parent = <&tlmm>;
 		interrupts = <45 0x0>;
@@ -45,12 +64,13 @@
 		linux,min-uv = <1800000>;
 		linux,max-uv = <1800000>;
 	};
-	qcom_fp{
+
+	qcom_fp {
 		status = "ok";
 		compatible = "qcom,fingerprint";
 		vdd-supply = <&pm8937_l10>;
 		vio-supply = <&pm8937_l6>;
-		reg = <0>;
+		reg = <0 0>;
 		interrupt-parent = <&tlmm>;
 		interrupts = <17 0x1>;
 		qcom,irq-gpio = <&tlmm 17 0x00>;
@@ -74,8 +94,6 @@
 	qcom,front_flash_gpio_mode=<&tlmm 12 0x00>;
 	qcom,front_flash_gpio_en=<&tlmm 13 0x00>;
 };
-
-
 
 &spi_6 {
     qcom_fp@0 {

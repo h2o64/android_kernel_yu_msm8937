@@ -8606,7 +8606,8 @@ static void qpnp_fg_update_heartbeat_work(struct work_struct *work)
 	struct fg_chip *chip = container_of(dwork,
 				struct fg_chip, update_heartbeat_work);
 	int update_period = UPDATE_HEART_PERIOD_NORMAL_MS;
-	
+	int soc = 0;
+
 	mutex_lock(&chip->r_completed_lock);
 	chip->update_heartbeat_waiting = true;
 	if (!chip->resume_completed) {
@@ -8617,7 +8618,8 @@ static void qpnp_fg_update_heartbeat_work(struct work_struct *work)
 	chip->update_heartbeat_waiting = false;
 	mutex_unlock(&chip->r_completed_lock);
 
-	if(BATT_CAPA_LOW_LEVEL >= soc){
+	soc = get_prop_capacity(chip);
+	if (BATT_CAPA_LOW_LEVEL >= soc){
 		update_period = UPDATE_HEART_PERIOD_NORMAL_MS;
 	}
 
