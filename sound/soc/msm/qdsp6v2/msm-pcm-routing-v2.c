@@ -47,6 +47,12 @@
 
 static int get_cal_path(int path_type);
 
+#define EC_PORT_ID_PRIMARY_MI2S_TX    1
+#define EC_PORT_ID_SECONDARY_MI2S_TX  2
+#define EC_PORT_ID_TERTIARY_MI2S_TX   3
+#define EC_PORT_ID_QUATERNARY_MI2S_TX 4
+#define EC_PORT_ID_SLIMBUS_1_TX       5
+
 static struct mutex routing_lock;
 
 static struct cal_type_data *cal_data;
