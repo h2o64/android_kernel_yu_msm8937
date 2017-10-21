@@ -25,7 +25,6 @@
 #include <linux/regulator/consumer.h>
 #include <linux/of_gpio.h>
 #include <linux/platform_device.h>
-
 #include <linux/switch.h>
 
 #define	LID_DEV_NAME	"hall_sensor"
@@ -42,16 +41,13 @@ struct hall_data {
 	u32 max_uv;	/* device allow max voltage */
 };
 
-
 #ifdef CONFIG_SWITCH
 struct switch_dev hall_sensor_data = {
 	.name = "sensor_hall",
 };
 #endif
 
-
 static int g_hall_state = 0;
-
 static  void sendevent(int status ,struct input_dev *dev_input)
 {
 	if(status == 1) {
@@ -73,39 +69,17 @@ static  void sendevent(int status ,struct input_dev *dev_input)
 		input_report_key(dev_input, KEY_HALLCLOSE, 0);
 		g_hall_state = 0;
 	}
-
 	input_sync(dev_input);
 }
 
 static irqreturn_t hall_interrupt_handler(int irq, void *dev)
 {
 
-#if 1
 	int value;
 	struct hall_data *data = dev;
-
 	value = gpio_get_value_cansleep(data->gpio);
-
 	sendevent(value,data->hall_dev);
-
 	return IRQ_HANDLED;
-#else
-	int value;
-	struct hall_data *data = dev;
-
-	value = (gpio_get_value_cansleep(data->gpio) ? 1 : 0) ^
-	        data->active_low;
-	if (value) {
-		input_report_switch(data->hall_dev, SW_LID, 0);
-		dev_dbg(&data->hall_dev->dev, "far\n");
-	} else {
-		input_report_switch(data->hall_dev, SW_LID, 1);
-		dev_dbg(&data->hall_dev->dev, "near\n");
-	}
-	input_sync(data->hall_dev);
-
-	return IRQ_HANDLED;
-#endif
 }
 
 static int hall_input_init(struct platform_device *pdev,
@@ -121,7 +95,6 @@ static int hall_input_init(struct platform_device *pdev,
 	}
 	data->hall_dev->name = LID_DEV_NAME;
 	data->hall_dev->phys = HALL_INPUT;
-
 
 	__set_bit(KEY_HALLOPEN , data->hall_dev->keybit);
 	__set_bit(KEY_HALLCLOSE , data->hall_dev->keybit);
@@ -173,7 +146,6 @@ static int hall_config_regulator(struct platform_device *dev, bool on)
 deinit_vregs:
 	if (regulator_count_voltages(data->vddio) > 0)
 		regulator_set_voltage(data->vddio, 0, data->max_uv);
-
 	return rc;
 }
 
@@ -382,7 +354,6 @@ static int hall_driver_remove(struct platform_device *dev)
 		gpio_free(data->gpio);
 	hall_set_regulator(dev, false);
 	hall_config_regulator(dev, false);
-
 
 #ifdef CONFIG_SWITCH
 	switch_dev_unregister(&hall_sensor_data);

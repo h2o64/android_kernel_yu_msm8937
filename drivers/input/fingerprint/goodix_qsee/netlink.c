@@ -23,7 +23,6 @@ struct gf_uk_channel {
 	int len;
 };
 
-
 void sendnlmsg(char *message)
 {
 	struct sk_buff *skb_1;
@@ -60,22 +59,13 @@ void nl_data_ready(struct sk_buff *__skb)
 	skb = skb_get (__skb);
 	if(skb->len >= NLMSG_SPACE(0)) {
 		nlh = nlmsg_hdr(skb);
-
 		memcpy(str, NLMSG_DATA(nlh), sizeof(str));
 		pid = nlh->nlmsg_pid;
 		printk("Message pid %d received:%s\n",pid, str) ;
-
-
-
-
-
-
-
 		kfree_skb(skb);
 	}
 
 }
-
 
 int netlink_init(void)
 {
@@ -85,11 +75,8 @@ int netlink_init(void)
 	netlink_cfg.flags = 0;
 	netlink_cfg.input = nl_data_ready;
 	netlink_cfg.cb_mutex = NULL;
-
-
 	nl_sk = netlink_kernel_create(&init_net, NETLINK_TEST,
 	                              &netlink_cfg);
-
 	if(!nl_sk) {
 		printk(KERN_ERR "my_net_link: create netlink socket error.\n");
 		return 1;
@@ -107,4 +94,3 @@ void netlink_exit(void)
 
 	printk("my_net_link: self module exited\n");
 }
-

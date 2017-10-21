@@ -75,9 +75,6 @@ static atomic_t auxpcm_mi2s_clk_ref;
 
 #if defined(CONFIG_PROJECT_GARLIC)
 int ext_spk_pa_gpio = -1;
-#endif
-
-#if defined(CONFIG_PROJECT_GARLIC)
 int ext_spk_pa_gpio_compatible = -1;
 #endif
 
@@ -273,27 +270,19 @@ int is_ext_spk_gpio_support(struct platform_device *pdev,
 	
 	const char *spk_ext_pa = "qcom,msm-spk-ext-pa";
 	#if defined(CONFIG_PROJECT_GARLIC)
-		const char *spk_ext_pa_compatible = "qcom,msm-spk-ext-pa-compatible";
+	const char *spk_ext_pa_compatible = "qcom,msm-spk-ext-pa-compatible";
 	#endif
-	
 
 	pr_debug("%s:Enter\n", __func__);
 
 	pdata->spk_ext_pa_gpio = of_get_named_gpio(pdev->dev.of_node,
 				spk_ext_pa, 0);
-	#if defined(CONFIG_PROJECT_GARLIC)
+#if defined(CONFIG_PROJECT_GARLIC)
 		pdata->spk_ext_pa_gpio_compatible = of_get_named_gpio(pdev->dev.of_node,
 				spk_ext_pa_compatible, 0);
-	#endif
-	#if defined(CONFIG_PROJECT_GARLIC)
 		ext_spk_pa_gpio = pdata->spk_ext_pa_gpio;
-	#endif
-
-	#if defined(CONFIG_PROJECT_GARLIC)
 		ext_spk_pa_gpio_compatible = pdata->spk_ext_pa_gpio_compatible;
-	#endif
 
-#if defined(CONFIG_PROJECT_GARLIC)
 	if ((pdata->spk_ext_pa_gpio < 0) && (pdata->spk_ext_pa_gpio_compatible < 0)) {
 		dev_dbg(&pdev->dev,
 			"%s: missing %s in dt node\n", __func__, spk_ext_pa);
@@ -308,7 +297,7 @@ int is_ext_spk_gpio_support(struct platform_device *pdev,
 		gpio_direction_output(pdata->spk_ext_pa_gpio, 0); 
 		gpio_direction_output(pdata->spk_ext_pa_gpio_compatible, 0);
 	}
-#elif (!defined(CONFIG_PROJECT_GARLIC))
+#else
 	if ((pdata->spk_ext_pa_gpio < 0)) {
 		dev_dbg(&pdev->dev,
 			"%s: missing %s in dt node\n", __func__, spk_ext_pa);
@@ -321,8 +310,6 @@ int is_ext_spk_gpio_support(struct platform_device *pdev,
 		gpio_direction_output(pdata->spk_ext_pa_gpio, 0);
 	}
 #endif
-
-
 	return 0;
 }
 
@@ -331,23 +318,19 @@ static int enable_spk_ext_pa(struct snd_soc_codec *codec, int enable)
 	struct snd_soc_card *card = codec->component.card;
 	struct msm8916_asoc_mach_data *pdata = snd_soc_card_get_drvdata(card);
 	int ret = 0;
-
 	#if defined(CONFIG_PROJECT_GARLIC)
-		int ret_compatible = 0;
-	#endif
-	
-	static bool ext_pa_gpio_requested = false;
-
-	#if defined(CONFIG_PROJECT_GARLIC)
+	int ret_compatible = 0;
 	static bool ext_pa_gpio_requested_compatible = false;
 	#endif
+	static bool ext_pa_gpio_requested = false;
+
 	#if (!defined(CONFIG_PROJECT_GARLIC))
 	if (!gpio_is_valid(pdata->spk_ext_pa_gpio)) {
 		pr_err("%s: Invalid gpio: %d\n", __func__,
 			pdata->spk_ext_pa_gpio);
 		return false;
 	}
-	#elif defined(CONFIG_PROJECT_GARLIC)
+	#else
 	if ((!gpio_is_valid(pdata->spk_ext_pa_gpio)) && (!gpio_is_valid(pdata->spk_ext_pa_gpio_compatible))) {
 		pr_err("%s: Invalid gpio: %d\n", __func__, 			
 			pdata->spk_ext_pa_gpio);
@@ -359,11 +342,8 @@ static int enable_spk_ext_pa(struct snd_soc_codec *codec, int enable)
 
 	pr_debug("%s: %s external speaker PA\n", __func__,
 		enable ? "Enable" : "Disable");
-	
-	
-
-	
 	pr_info("ext_pa_gpio_requested=%d\n", ext_pa_gpio_requested);
+
 	#if (!defined(CONFIG_PROJECT_GARLIC))
 	if(!ext_pa_gpio_requested) {
 		ret = gpio_request(pdata->spk_ext_pa_gpio, "spk_ext_pa_gpio"); 
@@ -375,7 +355,7 @@ static int enable_spk_ext_pa(struct snd_soc_codec *codec, int enable)
 
 		ext_pa_gpio_requested = true;
 	}
-	#elif defined(CONFIG_PROJECT_GARLIC)
+	#else
 	pr_info("ext_pa_gpio_requested_compatible=%d\n", ext_pa_gpio_requested_compatible);
 	if((!ext_pa_gpio_requested) && (!ext_pa_gpio_requested_compatible)){
 		ret = gpio_request(pdata->spk_ext_pa_gpio, "spk_ext_pa_gpio"); 
@@ -392,52 +372,28 @@ static int enable_spk_ext_pa(struct snd_soc_codec *codec, int enable)
 	#endif
 
 	if (enable) {
-		/*ret = msm_gpioset_activate(CLIENT_WCD_INT, "ext_spk_gpio");
-		if (ret) {
-			pr_err("%s: gpio set cannot be de-activated %s\n",
-					__func__, "ext_spk_gpio");
-			return ret;
-		}*/
 		#if defined(CONFIG_PROJECT_GARLIC)
-			printk(KERN_ERR"goto mode-2 and do compatible\n");
 			ext_spk_pa_current_state = true;
-			
-			
 			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, 1);		
 			udelay(2);
 			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, 0);			
 			udelay(2);
 			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, 1);
-
-			
 			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio_compatible, 1);
 			udelay(2);
 			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio_compatible, 0);
 			udelay(2);
 			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio_compatible, 1);
-			
 		#else
 			ext_spk_pa_current_state = true;
 			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, enable);
-
-			#if defined(CONFIG_PROJECT_GARLIC)
-				gpio_set_value_cansleep(pdata->spk_ext_pa_gpio_compatible, enable);
-			#endif
-			
 		#endif
-
 	} else {
 		ext_spk_pa_current_state = false;
 		gpio_set_value_cansleep(pdata->spk_ext_pa_gpio, enable);
 		#if defined(CONFIG_PROJECT_GARLIC)
-			gpio_set_value_cansleep(pdata->spk_ext_pa_gpio_compatible, enable);
+		gpio_set_value_cansleep(pdata->spk_ext_pa_gpio_compatible, enable);
 		#endif
-		/*ret = msm_gpioset_suspend(CLIENT_WCD_INT, "ext_spk_gpio");
-		if (ret) {
-			pr_err("%s: gpio set cannot be de-activated %s\n",
-					__func__, "ext_spk_gpio");
-			return ret;
-		}*/
 	}
 err:
 	return 0;
@@ -1686,16 +1642,14 @@ static void *def_msm8952_wcd_mbhc_cal(void)
 	 * 210-290 == Button 2
 	 * 360-680 == Button 3
 	 */
- 	btn_low[0] = 120;
-	btn_high[0] = 600;
-	btn_low[1] = 200;
-	btn_high[1] = 700;
-	btn_low[2] = 200;
-	btn_high[2] = 700;
-	btn_low[3] = 200;
-	btn_high[3] = 700;
-	btn_low[4] = 200;
-	btn_high[4] = 700;
+	btn_low[0] = 75;
+	btn_high[0] = 75;
+	btn_low[1] = 150;
+	btn_high[1] = 150;
+	btn_low[2] = 225;
+	btn_high[2] = 225;
+	btn_low[3] = 450;
+	btn_high[3] = 450;
 
 	#if defined(CONFIG_PROJECT_GARLIC)
  	btn_low[0] = 100;
@@ -2422,7 +2376,6 @@ static struct snd_soc_dai_link msm8952_dai[] = {
 		.ignore_pmdown_time = 1,
 		.be_id = MSM_FRONTEND_DAI_QCHAT,
 	},
-
 	/* Backend I2S DAI Links */
 	{
 		.name = LPASS_BE_PRI_MI2S_RX,

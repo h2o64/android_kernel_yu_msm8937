@@ -352,7 +352,6 @@ static int mdss_dsi_panel_power_on(struct mdss_panel_data *pdata)
 	if (ret)
 		pr_err("%s: Panel disp_en_gpio failed. ret=%d\n",
 					__func__, ret);
-
 	msleep(5);
 #endif
 

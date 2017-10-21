@@ -64,7 +64,6 @@
 		qcom,mdss-dsi-panel-status-check-mode = "bta_check";
 		qcom,mdss-dsi-tx-eot-append;
 		qcom,esd-check-enabled;
-
 		qcom,config-select = <&dsi_dual_sharp_video_config0>;
 
 		dsi_dual_sharp_video_config0: config0 {

@@ -205,7 +205,6 @@
 			compatible = "qcom,qpnp-smbcharger";
 			#address-cells = <1>;
 			#size-cells = <1>;
-
                         
 			qcom,iterm-ma = <250>;
 			qcom,float-voltage-mv = <4400>;
@@ -222,7 +221,6 @@
 			qcom,float-voltage-comp = <13>; 
 			qcom,fastchg-current-comp = <700>; 
 			qcom,no-parallel-defualt-dcp-icl-ma = <1400>;
-
 			qcom,no_support_qc;
 			qcom,speed-current = <1500 1400 1200 1100 900 700 600 450 400 0>;
 

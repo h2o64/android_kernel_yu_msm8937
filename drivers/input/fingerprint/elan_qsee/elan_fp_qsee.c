@@ -41,10 +41,6 @@
 #include <linux/regulator/consumer.h>
 #include "../fp_drv/fp_drv.h"
 
-
-
-
-
 #define VERSION_LOG	"ELAN FINGER PRINT V1.4.4.1"
 #define ELAN_FP_NAME "elan_fp"
 #define _ELAN_DEBUG_
@@ -97,16 +93,11 @@ struct efsa120s_data  {
 int elan_power_ctl(struct efsa120s_data *pdata, bool on);
 int elan_request_irq(struct efsa120s_data *pdata);
 
-
-
 #define MAX_LIB_BUF 256
 static char lib_ver_buf[MAX_LIB_BUF] = "unknow";
 
-
 #define POWER_NOTIFY
 static int is_screen_poweroff = 0;
-
-
 
 void efsa120s_irq_enable(void *_fp)
 {
@@ -282,10 +273,6 @@ static unsigned int efsa120s_poll(struct file *file, poll_table *wait)
 	int mask=0;
 	wait_for_completion_interruptible(&cmd_done_irq);
 	poll_wait(file, &fp->efsa_wait, wait);
-
-
-
-
 	mask |= POLLIN | POLLRDNORM;
 
 	return mask;
@@ -293,7 +280,6 @@ static unsigned int efsa120s_poll(struct file *file, poll_table *wait)
 
 static int elan_fp_fasync(int fd, struct file * filp, int on)
 {
-
 	return fasync_helper(fd, filp, on, &fasync_queue);
 }
 
@@ -336,22 +322,7 @@ static irqreturn_t efsa120s_irq_handler(int irq, void *_fp)
 	ELAN_DEBUG("%s()\n", __func__);
 	/* input power keyevent */
 	wake_lock_timeout(&fp->wake_lock,msecs_to_jiffies(1000));
-#if 0
-	input_report_key(fp->input_dev, KEY_FP_INT, 1); /* Added for KEY Event */
-	input_sync(fp->input_dev);
-	msleep(1);
-	input_report_key(fp->input_dev, KEY_FP_INT, 0); /* Added for KEY Event */
-	input_sync(fp->input_dev);
-	msleep(1);
-#endif
-
 	complete(&cmd_done_irq);
-
-
-
-
-
-
 	return IRQ_HANDLED;
 }
 
@@ -396,7 +367,6 @@ static char efsa120s_gpio_config(void *_fp)
 	int ret;
 
 	/* Developement platform */
-
 	ret = gpio_request(fp->irq_gpio, "efsa120-irq");
 	ELAN_DEBUG("irq gpio_request ret = %d", ret);
 	if (false/*ret < 0*/) {
@@ -407,7 +377,6 @@ static char efsa120s_gpio_config(void *_fp)
 		fp->isr = gpio_to_irq(fp->irq_gpio);
 		ELAN_DEBUG("%s() IRQ(%d) = ISR(%d) request success, err=0x%x.\n", __func__, fp->irq_gpio, fp->isr, ret);
 	}
-
 
 	ret =  gpio_request(fp->rst_gpio, "efsa120-reset");
 	ELAN_DEBUG("reset gpio_request ret = %d", ret);
@@ -424,21 +393,6 @@ static char efsa120s_gpio_config(void *_fp)
 		mdelay(20);
 		ELAN_DEBUG("%s() Reset ...\n", __func__);
 	}
-
-
-	/*ret =  gpio_request(fp->fpid_gpio, "efsa120-fpid");
-	if (ret < 0)
-	{
-		ELAN_DEBUG("%s() FPID%d request fail, err=0x%x.\n", __func__, fp->fpid_gpio, ret);
-		ret = -ENODEV;
-	}
-	else
-	{
-		ELAN_DEBUG("%s() FPID%d request success, err=0x%x.\n", __func__, fp->fpid_gpio, ret);
-	       fpid = gpio_get_value(fp->fpid_gpio);
-		ELAN_DEBUG("%s() FPID = %d...\n", fpid,  __func__);
-	}*/
-
 	return ret;
 }
 
@@ -458,24 +412,7 @@ static int elan_parse_dt(struct device *dev, struct efsa120s_data *pdata)
 	if (pdata->irq_gpio < 0)
 		return pdata->irq_gpio;
 
-
-	/*pdata->fpid_gpio = of_get_named_gpio(np, "qcom,fpid-gpio", 0);
-	ELAN_DEBUG("fpid_gpio = %d\n", pdata->fpid_gpio);
-	if (pdata->fpid_gpio < 0)
-		return pdata->irq_gpio;	*/
-
-	/* ---reset, irq gpio info--- */
-
-	/* ==optional== */
-	/*
-		pdata->osvcc_pin = of_get_named_gpio_flags(np,
-				"osvcc-gpio", 0, NULL);
-
-		pdata->vcc3v3 = of_get_named_gpio_flags(np,
-				"vcc3v3-gpio", 0, NULL);
-	*/
 	ELAN_DEBUG("rst-gpio = %d, irq_pin = %d\n", pdata->rst_gpio, pdata->irq_gpio);
-
 	return 0;
 }
 
@@ -490,13 +427,11 @@ int elan_power_ctl(struct efsa120s_data *pdata, bool on)
 			        "elan Regulator vdd enable failed rc=%d\n", rc);
 			return rc;
 		}
-
 		msleep(10);
 
 		pdata->isPowerOn = 1;
 		ELAN_DEBUG(" set PowerOn ok !\n");
 	} else if (!on && (pdata->isPowerOn)) {
-
 		rc = regulator_disable(pdata->vdd);
 		if (rc) {
 			dev_err(&pdata->pdev->dev,
@@ -519,7 +454,6 @@ int elan_request_irq(struct efsa120s_data *pdata)
 	int err = request_irq(pdata->isr, efsa120s_irq_handler,
 	                      IRQF_NO_SUSPEND | IRQF_TRIGGER_RISING,
 	                      pdata->pdev->dev.driver->name, pdata);
-
 	if (err) {
 		ELAN_DEBUG("Failed to request IRQ %d.\n", err);
 		return -1;
@@ -550,13 +484,11 @@ int elan_power_init(struct efsa120s_data *pdata)
 			goto reg_vdd_put;
 		}
 	}
-
 	printk("elan Regulator set_vtg OK vdd ret=%d \n", ret);
 	return 0;
 
 reg_vdd_put:
 	regulator_put(pdata->vdd);
-
 	return ret;
 }
 
@@ -567,7 +499,6 @@ int elan_power_deinit(struct efsa120s_data *pdata)
 	if (pdata->vdd) {
 		if (regulator_count_voltages(pdata->vdd) > 0)
 			regulator_set_voltage(pdata->vdd, 0, GF_VDD_MAX_UV);
-
 		regulator_disable(pdata->vdd);
 		regulator_put(pdata->vdd);
 	}
@@ -593,8 +524,6 @@ static int elan_fb_state_chg_callback(struct notifier_block *nb,
 		case FB_BLANK_POWERDOWN:
 			is_screen_poweroff = 1;
 			complete(&cmd_done_irq);
-
-
 			break;
 		case FB_BLANK_UNBLANK:
 			is_screen_poweroff = 0;
@@ -643,8 +572,6 @@ static int efsa120s_probe(struct platform_device *pdev)
 	fp->pdev = pdev;
 
 	platform_set_drvdata(pdev, fp);
-
-
 	err = elan_power_init(fp);
 
 	input_dev->name = "efsa120s";
@@ -686,12 +613,6 @@ static int efsa120s_probe(struct platform_device *pdev)
 	fp->notifier = elan_noti_block;
 	fb_register_client(&fp->notifier);
 #endif
-	/* Init IRQ FUNC */
-	/*err = request_threaded_irq(fp->isr, NULL, efsa120s_irq_handler,
-			IRQF_NO_SUSPEND | IRQF_TRIGGER_RISING | IRQF_ONESHOT,
-			pdev->dev.driver->name, fp);*/
-
-
 	/* Set Spi to TZ */
 #if SET_SPI_OWNER
 	err = set_pipe_ownership();
@@ -709,16 +630,9 @@ fp_probe_fail:
 	return -ENOMEM;
 }
 
-
 static int efsa120s_remove(struct platform_device *pdev)
-
 {
-#if 1
 	struct efsa120s_data *fp = platform_get_drvdata(pdev);
-#else
-	struct efsa120s_data *fp = spi_get_drvdata(pdev);
-#endif
-
 
 	if (fp->isr)
 		free_irq(fp->isr, fp);
@@ -731,11 +645,7 @@ static int efsa120s_remove(struct platform_device *pdev)
 	elan_power_deinit(fp);
 
 	kfree(fp);
-#if 1
 	platform_set_drvdata(pdev, NULL);
-#else
-	spi_set_drvdata(pdev, NULL);
-#endif
 	return 0;
 }
 
@@ -764,11 +674,7 @@ static struct of_device_id efsa120s_metallica_table[] = {
 #define efsa120s_metallica_table NULL
 #endif
 
-#if 1
 static struct platform_driver efsa120s_driver = {
-#else
-static struct spi_driver efsa120s_driver = {
-#endif
 	.driver = {
 		.name 	= "efsa120s",
 		.owner = THIS_MODULE,
@@ -798,8 +704,6 @@ static int __init efsa120s_init(void)
 static void __exit efsa120s_exist(void)
 {
 	platform_driver_unregister(&efsa120s_driver);
-
-
 }
 
 module_init(efsa120s_init);

@@ -3399,7 +3399,6 @@ static int qpnp_get_config_pwm(struct pwm_config_data *pwm_cfg,
 	pwm_cfg->use_blink =
 		of_property_read_bool(node, "qcom,use-blink");
 
-	
 	if (pwm_cfg->mode == LPG_MODE) {
 		pwm_cfg->duty_cycles =
 			devm_kzalloc(&spmi_dev->dev,

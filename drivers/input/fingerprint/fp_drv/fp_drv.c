@@ -31,13 +31,10 @@
 #include <linux/workqueue.h>
 #include <linux/kobject.h>
 #include <linux/platform_device.h>
-
 #include "fp_drv.h"
-
 
 static int fp_probe(struct platform_device *pdev);
 static int fp_remove(struct platform_device *pdev);
-
 
 static struct platform_driver fp_driver = {
 	.probe = fp_probe,
@@ -53,19 +50,11 @@ struct platform_device fp_device = {
 };
 
 
-
-
-
-
 static char m_dev_name[64];
 static int has_exist = 0;
-
-
 static char m_dev_info[64];
 static int all_info_exist = 0;
-
 static DECLARE_WAIT_QUEUE_HEAD(waiter);
-
 
 int full_fp_chip_name(const char *name)
 {
@@ -159,13 +148,5 @@ static void __exit fp_drv_exit(void)
 	platform_driver_unregister(&fp_driver);
 }
 
-
 late_initcall(fp_drv_init);
 module_exit(fp_drv_exit);
-
-
-
-
-
-
-

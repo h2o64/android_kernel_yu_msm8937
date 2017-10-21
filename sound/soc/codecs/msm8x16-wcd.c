@@ -463,7 +463,6 @@ static bool msm8x16_adj_ref_current(struct snd_soc_codec *codec,
 	return true;
 }
 
-
 #if defined(CONFIG_PROJECT_GARLIC)
 extern int ext_spk_pa_gpio;
 #endif
@@ -2646,8 +2645,6 @@ static const struct soc_enum msm8x16_wcd_hph_mode_ctl_enum[] = {
 			msm8x16_wcd_hph_mode_ctrl_text),
 };
 
-
-
 #if defined(CONFIG_PROJECT_GARLIC)
 static const char * const msm8x16_wcd_ext_spk_ctrl_text[] = { 
 	"DISABLE", "ENABLE"};
@@ -2699,7 +2696,6 @@ static const struct snd_kcontrol_new msm8x16_wcd_snd_controls[] = {
 	SOC_ENUM_EXT("LOOPBACK Mode", msm8x16_wcd_loopback_mode_ctl_enum[0],
 		msm8x16_wcd_loopback_mode_get, msm8x16_wcd_loopback_mode_put),
 
-	
 	#if defined(CONFIG_PROJECT_GARLIC)
 	SOC_ENUM_EXT("Speaker Ext", msm8x16_wcd_ext_spk_ctl_enum[0], 
 	msm8x16_wcd_ext_spk_get, msm8x16_wcd_ext_spk_set),
@@ -5954,7 +5950,7 @@ static int msm8x16_wcd_codec_probe(struct snd_soc_codec *codec)
 
 	wcd_mbhc_init(&msm8x16_wcd_priv->mbhc, codec, &mbhc_cb, &intr_ids,
 		      wcd_mbhc_registers, true);
-  #ifdef CONFIG_SWITCH
+	#ifdef CONFIG_SWITCH
 	ret = switch_dev_register(&wcd_mbhc_headset_switch);
 	if (ret < 0) {
 		dev_err(codec->dev, "not able to register switch device h2w\n");
