@@ -48,6 +48,7 @@ struct gf_key_map {
 
 /*#define  USE_PLATFORM_BUS     */
 #define  USE_SPI_BUS	1
+#define GF_NETLINK_ENABLE 1
 #define GF_FASYNC   1	/*If support fasync mechanism.*/
 #define GF_NET_EVENT_IRQ 0
 
