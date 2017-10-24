@@ -39,7 +39,6 @@
 #include <linux/spi/spi.h>
 #include <linux/spi/spidev.h>
 #include <linux/regulator/consumer.h>
-#include "../fp_drv/fp_drv.h"
 
 #define VERSION_LOG	"ELAN FINGER PRINT V1.4.4.1"
 #define ELAN_FP_NAME "elan_fp"
@@ -541,12 +540,27 @@ static struct notifier_block elan_noti_block = {
 };
 #endif
 
+unsigned int garlic_fpsensor = 1;
+tatic int __init setup_garlic_fpsensor(char *str)
+{
+	if (!strncmp(str, "gdx", strlen(str)))
+		garlic_fpsensor = 2;
+
+	return garlic_fpsensor;
+}
+__setup("androidboot.fpsensor=", setup_garlic_fpsensor);
+
 static int efsa120s_probe(struct platform_device *pdev)
 
 {
 	struct efsa120s_data *fp = NULL;
 	struct input_dev *input_dev = NULL;
 	int err = 0;
+
+	if (garlic_fpsensor != 1) {
+		pr_err("board no elan fpsensor\n");
+		return -ENODEV;
+	}
 
 	ELAN_DEBUG("=====%s() Start=====\n", __func__);
 	ELAN_DEBUG("%s GPIO_FP_ID : %d\n", VERSION_LOG, gpio_get_value(GPIO_FP_ID));

@@ -56,9 +56,6 @@
 #include <linux/platform_device.h>
 #endif
 
-#include "../fp_drv/fp_drv.h"
-
-
 #define GF_SPIDEV_NAME     "qcom,fingerprint"
 
 /*device name after register in charater*/
@@ -691,7 +688,11 @@ static int gf_probe(struct platform_device *pdev)
 	int ret;
 	printk(KERN_ERR" goodix gfx1xm gf_probe ========.\n");
 	FUNC_ENTRY();
-
+ 
+	if (garlic_fpsensor != 2) {
+		pr_err("board no gdx fpsensor\n");
+		return -ENODEV;
+	}
 
 	/* Initialize the driver data */
 	INIT_LIST_HEAD(&gf_dev->device_entry);
