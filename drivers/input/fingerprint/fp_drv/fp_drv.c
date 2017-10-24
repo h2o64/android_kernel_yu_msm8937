@@ -100,12 +100,10 @@ static int fp_remove(struct platform_device *pdev)
 
 static int __init fp_drv_init(void)
 {
-	if (platform_device_register(&fp_device) != 0)
-		return -1;
-	else if (platform_driver_register(&fp_driver) != 0)
-		return -1;
-	else
-		return 0;
+    if ((platform_device_register(&fp_device) != 0) || (platform_driver_register(&fp_driver) != 0))
+        return -1;
+
+    return 0;
 }
 
 static void __exit fp_drv_exit(void)
