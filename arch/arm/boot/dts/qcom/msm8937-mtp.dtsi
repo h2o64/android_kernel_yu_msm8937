@@ -70,12 +70,6 @@
 	qcom,actuator-type = "erm";
 	qcom,misc-trim-error-rc19p2-clk-reg-present;
 };
-&flash_led{
-	qcom,front_flash_gpio_mode=<&tlmm 12 0x00>;
-	qcom,front_flash_gpio_en=<&tlmm 13 0x00>;
-};
-
-
 
 &spi_6 {
     qcom_fp@0 {
