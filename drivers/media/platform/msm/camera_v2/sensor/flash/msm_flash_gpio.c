@@ -26,6 +26,7 @@ enum msm_flash_driver_type flash_type_gpio = FLASH_DRIVER_DEFAULT;
 DEFINE_MSM_MUTEX(msm_flash_mutex);
 
 static struct v4l2_file_operations msm_flash_v4l2_subdev_fops;
+static DEFINE_MUTEX(flash_lock);
 
 static const struct of_device_id msm_flash_dt_match[] = {
 	{.compatible = "qcom,camera-led-flash", .data = NULL},
@@ -112,7 +113,7 @@ static int32_t msm_flash_get_subdev_id(
 	return 0;
 }
 
-
+#if 0
 #ifdef CONFIG_COMPAT
 static void msm_flash_copy_power_settings_compat(
 	struct msm_sensor_power_setting *ps,
@@ -127,6 +128,7 @@ static void msm_flash_copy_power_settings_compat(
 		ps[i].seq_val = ps32[i].seq_val;
 	}
 }
+#endif
 #endif
 
 static int32_t msm_flash_gpio_init(
@@ -167,12 +169,12 @@ static int32_t msm_flash_off(struct msm_flash_ctrl_t *flash_ctrl,
 	CDBG("%s:%d called\n", __func__, __LINE__);
 
 	if (power_info->gpio_conf->gpio_num_info->valid[0] == 1) {
-		gpio_set_value_cansleep(
+		gpio_set_value(
 		power_info->gpio_conf->gpio_num_info->gpio_num[0],
 		GPIO_OUT_LOW);
 	}
 	if (power_info->gpio_conf->gpio_num_info->valid[1] == 1) {
-		gpio_set_value_cansleep(
+		gpio_set_value(
 		power_info->gpio_conf->gpio_num_info->gpio_num[1],
 		GPIO_OUT_LOW);
 	}
@@ -198,7 +200,7 @@ static int32_t msm_flash_init(
 	}
 
 	if (flash_data->cfg.flash_init_info->flash_driver_type ==
-		FLASH_DRIVER_GPIO)
+		FLASH_DRIVER_DEFAULT)
 		flash_driver_type = FLASH_DRIVER_GPIO;
 
 	if (flash_driver_type == FLASH_DRIVER_DEFAULT) {
@@ -239,6 +241,7 @@ static int32_t msm_flash_low(
 	struct msm_flash_cfg_data_t *flash_data)
 {
 	struct msm_camera_power_ctrl_t *power_info = NULL;
+	static int32_t i;
 
 	CDBG("%s:%d called\n", __func__, __LINE__);
 
@@ -247,17 +250,25 @@ static int32_t msm_flash_low(
 	if (power_info->gpio_conf->cam_gpiomux_conf_tbl != NULL)
 		pr_err("%s:%d mux install\n", __func__, __LINE__);
 
+	mutex_lock(&flash_lock);
 	if (power_info->gpio_conf->gpio_num_info->valid[0] == 1) {
-		gpio_set_value_cansleep(
+		gpio_set_value(
 		power_info->gpio_conf->gpio_num_info->gpio_num[0],
 		GPIO_OUT_HIGH);
-		CDBG("%s:%d set flash en HIGH\n", __func__, __LINE__);
+		for (i = 0 ; i <= 14 ; i++) {
+			gpio_set_value(
+			power_info->gpio_conf->gpio_num_info->gpio_num[0],
+			GPIO_OUT_LOW);
+			gpio_set_value(
+			power_info->gpio_conf->gpio_num_info->gpio_num[0],
+			GPIO_OUT_HIGH);
+		}
 	}
+	mutex_unlock(&flash_lock);
 	if (power_info->gpio_conf->gpio_num_info->valid[1] == 1) {
-		gpio_set_value_cansleep(
+		gpio_set_value(
 		power_info->gpio_conf->gpio_num_info->gpio_num[1],
 		GPIO_OUT_LOW);
-		CDBG("%s:%d set flash now LOW\n", __func__, __LINE__);
 	}
 
 	CDBG("Exit\n");
@@ -270,6 +281,7 @@ static int32_t msm_flash_high(
 {
 
 	struct msm_camera_power_ctrl_t *power_info = NULL;
+	static int32_t i;
 
 	CDBG("%s:%d called\n", __func__, __LINE__);
 
@@ -278,17 +290,25 @@ static int32_t msm_flash_high(
 	if (power_info->gpio_conf->cam_gpiomux_conf_tbl != NULL)
 		pr_err("%s:%d mux install\n", __func__, __LINE__);
 
+	mutex_lock(&flash_lock);
 	if (power_info->gpio_conf->gpio_num_info->valid[0] == 1) {
-		gpio_set_value_cansleep(
+		gpio_set_value(
 		power_info->gpio_conf->gpio_num_info->gpio_num[0],
 		GPIO_OUT_HIGH);
-		CDBG("%s:%d set flash en HIGH\n", __func__, __LINE__);
+		for (i = 0 ; i <= 10 ; i++) {
+			gpio_set_value(
+			power_info->gpio_conf->gpio_num_info->gpio_num[0],
+			GPIO_OUT_LOW);
+			gpio_set_value(
+			power_info->gpio_conf->gpio_num_info->gpio_num[0],
+			GPIO_OUT_HIGH);
+		}
 	}
+	mutex_unlock(&flash_lock);
 	if (power_info->gpio_conf->gpio_num_info->valid[1] == 1) {
-		gpio_set_value_cansleep(
+		gpio_set_value(
 		power_info->gpio_conf->gpio_num_info->gpio_num[1],
 		GPIO_OUT_HIGH);
-		CDBG("%s:%d set flash now HIGH\n", __func__, __LINE__);
 	}
 
 	CDBG("Exit\n");
@@ -315,13 +335,13 @@ static int32_t msm_flash_release(
 		pr_err("%s:%d mux install\n", __func__, __LINE__);
 
 	if (power_info->gpio_conf->gpio_num_info->valid[0] == 1) {
-		gpio_set_value_cansleep(
+		gpio_set_value(
 		power_info->gpio_conf->gpio_num_info->gpio_num[0],
 		GPIO_OUT_LOW);
 		CDBG("%s:%d set flash en LOW\n", __func__, __LINE__);
 	}
 	if (power_info->gpio_conf->gpio_num_info->valid[1] == 1) {
-		gpio_set_value_cansleep(
+		gpio_set_value(
 		power_info->gpio_conf->gpio_num_info->gpio_num[1],
 		GPIO_OUT_LOW);
 		CDBG("%s:%d set flash en LOW\n", __func__, __LINE__);
