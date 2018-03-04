@@ -34,7 +34,7 @@
 		pinctrl-names = "tlmm_gpio_key_active","tlmm_gpio_key_suspend";
 		pinctrl-0 = <&gpio_key_active>;
 		pinctrl-1 = <&gpio_key_suspend>;
-
+	};
 	hall-ic{
 		compatible = "hall-switch";
 		interrupt-parent = <&tlmm>;
