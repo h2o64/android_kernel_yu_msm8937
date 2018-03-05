@@ -34,7 +34,25 @@
 		pinctrl-names = "tlmm_gpio_key_active","tlmm_gpio_key_suspend";
 		pinctrl-0 = <&gpio_key_active>;
 		pinctrl-1 = <&gpio_key_suspend>;
+
+		vol_up {
+			label = "volume_up";
+			gpios = <&tlmm 91 0x1>;
+			linux,input-type = <1>;
+			linux,code = <115>;
+			debounce-interval = <15>;
+		};
+		home {
+			label = "home";
+			gpios = <&tlmm 128 0x1>;
+			linux,input-type = <1>;
+			linux,code = <0x66>;
+			gpio-key,wakeup;
+			debounce-interval = <15>;
+		};
+
 	};
+
 	hall-ic{
 		compatible = "hall-switch";
 		interrupt-parent = <&tlmm>;
@@ -45,6 +63,7 @@
 		linux,min-uv = <1800000>;
 		linux,max-uv = <1800000>;
 	};
+
 	qcom_fp{
 		status = "ok";
 		compatible = "qcom,fingerprint";
